@@ -345,16 +345,22 @@ class DocumentVersionController extends Controller
         try {
             $doc = DocumentVersion::findOrFail($id);
             
+            // Load document without global scopes to allow viewing expired documents
+            // (needed for OCR view of expired documents)
+            $document = Document::withoutGlobalScopes()
+                ->where('id', $doc->document_id)
+                ->first();
+            
             // Check if document is deleted
-            if (!$doc->document || $doc->document->trashed()) {
+            if (!$document || $document->trashed()) {
                 return redirect()->back()->with('error', 'This document has been deleted and is no longer available.');
             }
             
-            Gate::authorize('view', $doc->document);
+            Gate::authorize('view', $document);
             Gate::authorize('viewAny', \App\Models\OcrJob::class);
 
             // Log the view action
-            $doc->document->logAction('viewed_ocr', $doc->id);
+            $document->logAction('viewed_ocr', $doc->id);
 
             if (!Storage::disk('local')->exists($doc->file_path)) {
                 return redirect()->back()->with('error', 'The document file has been deleted and is no longer available.');
@@ -408,6 +414,7 @@ class DocumentVersionController extends Controller
                 'excelPreviewRows'     => $excelPreviewRows,
                 'wordPreviewParagraphs'=> $wordPreviewParagraphs,
                 'doc'                  => $doc,
+                'document'             => $document, // Explicitly pass document (bypasses global scopes)
             ]);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return redirect()->back()->with('error', 'This document has been deleted and is no longer available.');
@@ -422,15 +429,20 @@ class DocumentVersionController extends Controller
         try {
             $doc = DocumentVersion::findOrFail($id);
             
+            // Load document without global scopes to allow viewing expired documents
+            $document = Document::withoutGlobalScopes()
+                ->where('id', $doc->document_id)
+                ->first();
+            
             // Check if document is deleted
-            if (!$doc->document || $doc->document->trashed()) {
+            if (!$document || $document->trashed()) {
                 return redirect()->back()->with('error', 'This document has been deleted and is no longer available.');
             }
             
-            Gate::authorize('view', $doc->document);
+            Gate::authorize('view', $document);
 
             // Log the view action
-            $doc->document->logAction('viewed', $doc->id);
+            $document->logAction('viewed', $doc->id);
 
             if (!Storage::disk('local')->exists($doc->file_path)) {
                 return redirect()->back()->with('error', 'The document file has been deleted and is no longer available.');
@@ -469,7 +481,7 @@ class DocumentVersionController extends Controller
                 ->pluck('id');
 
             if ($nonExpiredIds->isNotEmpty()) {
-                $currentDocId = $doc->document->id;
+                $currentDocId = $document->id;
                 $currentIndex = $nonExpiredIds->search($currentDocId);
 
                 if ($currentIndex !== false) {
@@ -570,10 +582,20 @@ class DocumentVersionController extends Controller
     {
 
         $doc = DocumentVersion::findOrFail($id);
-        Gate::authorize('view', $doc->document);
+        
+        // Load document without global scopes to allow downloading expired documents
+        $document = Document::withoutGlobalScopes()
+            ->where('id', $doc->document_id)
+            ->first();
+        
+        if (!$document) {
+            abort(404, 'Document not found.');
+        }
+        
+        Gate::authorize('view', $document);
 
         // Log the download action
-        $doc->document->logAction('downloaded', $doc->id);
+        $document->logAction('downloaded', $doc->id);
 
         if (!Storage::disk('local')->exists($doc->file_path)) {
             abort(404, 'File not found.');
@@ -589,7 +611,17 @@ class DocumentVersionController extends Controller
     public static function getPdf($id)
     {
         $doc = DocumentVersion::findOrFail($id);
-        Gate::authorize('view', $doc->document);
+        
+        // Load document without global scopes to allow viewing expired documents
+        $document = Document::withoutGlobalScopes()
+            ->where('id', $doc->document_id)
+            ->first();
+        
+        if (!$document) {
+            abort(404, 'Document not found.');
+        }
+        
+        Gate::authorize('view', $document);
 
         $pdfPath = (new self())->getPdfConversionPath($doc->file_path);
 
