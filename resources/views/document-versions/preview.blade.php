@@ -28,27 +28,37 @@
                 @elseif($fileType === 'pdf')
                     <iframe src="{{ $fileUrl }}" width="100%" height="100%" style="border:none;"></iframe>
                 @elseif($fileType === 'doc')
-                    <div class="d-flex align-items-center justify-content-center h-100">
-                        <div class="text-center">
-                            <i class="fas fa-file-word fa-5x text-primary mb-3"></i>
-                            <h5>{{ ui_t('pages.versions.word_doc') }}</h5>
-                            <p class="text-muted">{{ $document->title }}</p>
-                            <a href="{{ $fileUrl }}" class="btn btn-primary" download>
-                                <i class="fas fa-download"></i> {{ ui_t('pages.versions.download') }}
-                            </a>
+                    @if(!empty($pdfUrl))
+                        {{-- PDF preview for Word document converted by LibreOffice --}}
+                        <iframe src="{{ $pdfUrl }}" width="100%" height="100%" style="border:none; min-height: 500px;"></iframe>
+                    @else
+                        <div class="d-flex align-items-center justify-content-center h-100">
+                            <div class="text-center">
+                                <i class="fas fa-file-word fa-5x text-primary mb-3"></i>
+                                <h5>{{ ui_t('pages.versions.word_doc') }}</h5>
+                                <p class="text-muted">{{ $document->title }}</p>
+                                <a href="{{ $fileUrl }}" class="btn btn-primary" download>
+                                    <i class="fas fa-download"></i> {{ ui_t('pages.versions.download') }}
+                                </a>
+                            </div>
                         </div>
-                    </div>
+                    @endif
                 @elseif($fileType === 'excel')
-                    <div class="d-flex align-items-center justify-content-center h-100">
-                        <div class="text-center">
-                            <i class="fas fa-file-excel fa-5x text-success mb-3"></i>
-                            <h5>{{ ui_t('pages.versions.excel_sheet') }}</h5>
-                            <p class="text-muted">{{ $document->title }}</p>
-                            <a href="{{ $fileUrl }}" class="btn btn-success" download>
-                                <i class="fas fa-download"></i> {{ ui_t('pages.versions.download') }}
-                            </a>
+                    @if(!empty($pdfUrl))
+                        {{-- PDF preview for Excel document converted by LibreOffice --}}
+                        <iframe src="{{ $pdfUrl }}" width="100%" height="100%" style="border:none; min-height: 500px;"></iframe>
+                    @else
+                        <div class="d-flex align-items-center justify-content-center h-100">
+                            <div class="text-center">
+                                <i class="fas fa-file-excel fa-5x text-success mb-3"></i>
+                                <h5>{{ ui_t('pages.versions.excel_sheet') }}</h5>
+                                <p class="text-muted">{{ $document->title }}</p>
+                                <a href="{{ $fileUrl }}" class="btn btn-success" download>
+                                    <i class="fas fa-download"></i> {{ ui_t('pages.versions.download') }}
+                                </a>
+                            </div>
                         </div>
-                    </div>
+                    @endif
                 @elseif($fileType === 'video')
                     <video controls class="w-100" style="max-height: 100%;">
                         <source src="{{ $fileUrl }}" type="video/mp4">
