@@ -1,0 +1,83 @@
+// Font awesome - using CDN for reliable HTTPS loading
+@import url('http://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css');
+
+// Fonts (prefer system Helvetica; no webfont loaded) @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+
+// Variables
+@import 'variables';
+
+// Bootstrap
+@import 'bootstrap/scss/bootstrap';
+//@import "../css/bootstrap.min.css";
+
+
+@import '../css/madia';
+@import '../css/style';
+@import 'sidebar';
+
+// Global font override
+html,
+body,
+.btn,
+.form-control,
+.nav,
+.dropdown-menu,
+.modal,
+.card,
+.table,
+.badge,
+.alert,
+.list-group,
+.pagination {
+    font-family: $font-family-sans-serif !important;
+}
+
+// Z-index system: ensure modals and backdrops sit above sidebar (z-index: 9999)
+.modal-backdrop.show {
+    z-index: 10040;
+}
+
+.modal {
+    z-index: 10050;
+}
+
+.modal .modal-content {
+    z-index: 10051;
+}
+
+// Preview modal sizing helpers
+.preview-modal-body {
+    height: 85dvh;
+    overflow: hidden;
+}
+
+// Notification utilities
+.avatar-40 {
+    width: 40px;
+    height: 40px;
+}
+
+.notification-icon {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.notif-panel {
+    min-width: 320px;
+    max-width: 420px;
+}
+
+.text-break {
+    word-wrap: break-word;
+    overflow-wrap: anywhere;
+}

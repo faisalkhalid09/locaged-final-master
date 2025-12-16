@@ -1,0 +1,276 @@
+/* Layout-level responsive variables */
+.layout-with-sidebar {
+  --sidebar-width: clamp(200px, 15vw, 240px);
+  --sidebar-collapsed-width: 88px;
+  --submenu-gap: clamp(10px, 1.2vw, 16px);
+}
+
+/* Sidebar */
+.sidebar {
+  background-color: white;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 9999;
+  transition: width 0.3s;
+  width: var(--sidebar-width);
+  position: fixed;
+  min-height: 100vh;
+  box-shadow: 4px 4px 19px 0px #0000000D;
+}
+
+/* Respect document direction: move sidebar to the inline-start side in RTL */
+body[dir="rtl"] .sidebar {
+  right: 0;
+  left: auto;
+}
+
+.sidebar.collapsed { width: var(--sidebar-collapsed-width); }
+.layout-with-sidebar .main-content {
+  margin-left: var(--sidebar-width);
+  transition: margin-left 0.3s ease;
+  /* responsive padding next to sidebar */
+  padding-inline-start: clamp(12px, 2vw, 24px);
+}
+
+.layout-with-sidebar .main-content.collapsed {
+  margin-left: var(--sidebar-collapsed-width);
+}
+
+/* Mirror margins for RTL so content is pushed from the right side */
+body[dir="rtl"] .layout-with-sidebar .main-content { margin-left: 0; margin-right: var(--sidebar-width); transition: margin-right 0.3s ease; }
+body[dir="rtl"] .layout-with-sidebar .main-content.collapsed { margin-right: var(--sidebar-collapsed-width); }
+
+/* Fallback for explicit directions */
+body[dir="ltr"] .layout-with-sidebar .main-content { padding-left: clamp(12px, 2vw, 24px); }
+body[dir="rtl"] .layout-with-sidebar .main-content { padding-right: clamp(12px, 2vw, 24px); }
+
+@media (max-width: 991.98px) {
+  /* On smaller screens keep overlay behavior */
+  .sidebar { position: fixed; }
+  .layout-with-sidebar .main-content,
+  .layout-with-sidebar .main-content.collapsed { margin-left: 0; }
+}
+
+
+.sidebar-menu li {
+  text-align: left;
+  text-decoration: none;
+  list-style-type: none;
+  margin-bottom: 10px;
+}
+
+.sidebar-text {
+  transition: opacity 0.3s;
+  display: inline-block;
+  opacity: 1;
+  transition: opacity 0.2s ease, margin 0.2s ease;
+}
+
+.sidebar.collapsed .sidebar-text {
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.sidebar.collapsed li {
+  text-align: center;
+  padding-left: 0;
+  text-decoration: none;
+  list-style-type: none;
+  margin: 0px 5px 10px 0px;
+}
+
+.bottom-icons {
+  position: absolute;
+  bottom: 30px;
+  left: 0;
+  width: 100%;
+}
+
+
+.collapsed-only {
+  display: none;
+}
+.expanded-only {
+  display: block;
+}
+
+
+.sidebar.collapsed .collapsed-only {
+  display: block;
+}
+
+.sidebar.collapsed .expanded-only {
+  display: none;
+}
+
+.sidebar a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #000;
+  text-decoration: none;
+  border-radius: 9px;
+  padding: 10px 20px;
+  margin: 0px 10px;
+}
+.sidebar-menu{
+  padding-left: 0 !important;
+
+}
+
+.sidebar-menu > li > a:hover,
+.sidebar-menu > li > a.active {
+  color: white;
+  background:  #2A2A2E;
+}
+.sidebar-menu > li > a:hover img,
+.sidebar-menu > li > a.active img {
+  filter: invert(1) brightness(1);
+  opacity: 1;
+}
+
+.logo-slider {
+  bottom: 0;
+}
+
+.sidebar.collapsed .sidebar-menu > li:hover > a .sidebar-text,
+.sidebar.collapsed .bottom-icons a:hover .sidebar-text {
+    opacity: 1;
+    width: auto;
+    position: absolute;
+    left: 100%;
+    margin-left: 10px;
+    background: #D4D4D4;
+    border-radius: 8px;
+    padding: 10px;
+    color: #9E9E9E;
+    z-index: 1000;
+    font-weight: 500;
+    font-size: 12px;
+    color: #000;
+}
+
+/* Tooltip placement in RTL (flip to the left) */
+body[dir="rtl"] .sidebar.collapsed .sidebar-menu > li:hover > a .sidebar-text,
+body[dir="rtl"] .sidebar.collapsed .bottom-icons a:hover .sidebar-text {
+    left: auto;
+    right: 100%;
+    margin-left: 0;
+    margin-right: 10px;
+}
+
+/* In floating submenu, always show real text even when sidebar is collapsed */
+.sidebar.collapsed .submenu .sidebar-text {
+  opacity: 1;
+  pointer-events: auto;
+  position: static;
+  width: auto;
+  overflow: visible;
+  white-space: normal;
+}
+.submenu {
+    display: none;
+    list-style: none;
+    padding-left: 15px;
+}
+
+.has-submenu.active > .submenu {
+    display: block;
+}
+
+.submenu li a {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  font-size: 14px;
+  margin: 0px 10px;
+}
+.sidebar.collapsed .submenu li a{
+   margin: 0px;
+}
+
+.sidebar-menu > li > a img {
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+}
+.submenu li a img {
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+}
+
+.sidebar-menu a img {
+  display: block;
+  object-fit: contain;
+  filter: brightness(0) saturate(100%) contrast(100%);
+  opacity: 0.9;
+  transition: filter 0.2s ease, opacity 0.2s ease;
+}
+
+/* Floating submenu panel and overlay on desktop */
+@media (min-width: 992px) {
+  .sidebar .submenu {
+    position: fixed;
+    top: var(--submenu-top, 64px);
+    inset-inline-start: calc(var(--sidebar-width) + var(--submenu-gap));
+    width: clamp(260px, 28vw, 360px);
+    max-height: min(72vh, calc(100vh - 32px));
+    margin: 0 !important;
+    padding: 12px;
+    background: #ffffff;
+    box-shadow: 0 12px 28px rgba(0,0,0,0.14);
+    border: 1px solid rgba(17,24,39,0.06);
+    border-radius: 12px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    z-index: 9998;
+    opacity: 0;
+    transform: translateX(8px);
+    transition: opacity .18s ease, transform .18s ease;
+    pointer-events: auto;
+  }
+  .sidebar.collapsed .submenu { inset-inline-start: calc(var(--sidebar-collapsed-width) + var(--submenu-gap)); }
+  .sidebar .has-submenu:hover > .submenu,
+  .sidebar .has-submenu.submenu-open > .submenu {
+    display: block;
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  /* Professional look for items inside floating panel */
+  .sidebar .submenu li { margin: 2px 4px; }
+  .sidebar .submenu li a {
+    border-radius: 10px;
+    padding: 10px 12px;
+    color: #111827;
+    line-height: 1.25;
+    white-space: normal;
+    word-break: break-word;
+  }
+  .sidebar .submenu li a:hover,
+  .sidebar .submenu li a.active {
+    background: #f5f7fb;
+    color: #0f172a;
+  }
+  /* Ensure good contrast when sidebar collapsed */
+  .sidebar.collapsed .submenu li a { color: #0f172a; }
+  .sidebar.collapsed .submenu li a:hover { background: #eef2f7; color: #0b1220; }
+}
+
+/* Semi-transparent overlay behind floating submenu */
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.12);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s ease;
+  z-index: 9991;
+}
+.sidebar-overlay.show { opacity: 1; pointer-events: auto; }

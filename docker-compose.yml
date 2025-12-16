@@ -1,0 +1,124 @@
+services:
+    # Nginx Web Server
+    web:
+        build:
+            context: .
+            dockerfile: ./docker/nginx/Dockerfile
+        restart: unless-stopped
+        volumes:
+            - .:/var/www:ro
+        networks:
+            - app-network
+        ports:
+            - "8089:80"
+
+    # PHP-FPM Application Server
+    php-fpm:
+        build:
+            context: .
+            dockerfile: ./docker/php-fpm/Dockerfile
+        restart: unless-stopped
+        volumes:
+            - .:/var/www
+            - ./docker/imagemagick/policy.xml:/etc/ImageMagick-6/policy.xml:ro
+            - ./docker/tessdata/ara.traineddata:/usr/share/tesseract-ocr/5/tessdata/ara.traineddata
+            - ./docker/php-fpm/custom.ini:/usr/local/etc/php/conf.d/custom.ini
+
+        env_file:
+            - .env
+        networks:
+            - app-network
+        healthcheck:
+            test: ["CMD-SHELL", "php-fpm-healthcheck || exit 1"]
+            interval: 10s
+            timeout: 5s
+            retries: 3
+        depends_on:
+            mysql:
+                condition: service_healthy
+            elasticsearch:
+                condition: service_healthy
+
+    # PHP Command Line Interface
+    php-cli:
+        build:
+            context: .
+            dockerfile: ./docker/php-cli/Dockerfile
+        tty: true
+        stdin_open: true
+        env_file:
+            - .env
+        networks:
+            - app-network
+        volumes:
+            - .:/var/www
+            - ./docker/imagemagick/policy.xml:/etc/ImageMagick-6/policy.xml:ro
+            - ./docker/tessdata/ara.traineddata:/usr/share/tesseract-ocr/5/tessdata/ara.traineddata
+
+
+
+    # MySQL Database
+    mysql:
+        image: mysql:8.0
+        restart: unless-stopped
+        command: --default-authentication-plugin=mysql_native_password
+        environment:
+            MYSQL_DATABASE: ${DB_DATABASE}
+            MYSQL_USER: ${DB_USERNAME}
+            MYSQL_PASSWORD: ${DB_PASSWORD}
+            MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+        volumes:
+            - mysql-data:/var/lib/mysql
+        networks:
+            - app-network
+        ports:
+            - "${DB_PORT:-3306}:3306"
+        healthcheck:
+            test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD}"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+
+    # phpMyAdmin
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin
+        restart: unless-stopped
+        environment:
+            PMA_HOST: mysql
+            PMA_PORT: 3306
+            MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+        ports:
+            - "${PMA_PORT:-8081}:80"
+        networks:
+            - app-network
+        depends_on:
+            - mysql
+
+    # Elasticsearch
+    elasticsearch:
+        image: elasticsearch:8.14.1
+        restart: unless-stopped
+        environment:
+            - discovery.type=single-node
+            - xpack.security.enabled=false # Disable for local dev; enable for production
+            - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+        volumes:
+            - es-data:/usr/share/elasticsearch/data
+        networks:
+            - app-network
+        ports:
+            - "9200:9200"
+        healthcheck:
+            test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+            interval: 20s
+            timeout: 10s
+            retries: 5
+
+networks:
+    app-network:
+        driver: bridge
+
+volumes:
+    mysql-data:
+    laravel-storage:
+    es-data:

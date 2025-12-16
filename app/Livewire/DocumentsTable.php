@@ -1,0 +1,669 @@
+<?php
+
+namespace App\Livewire;
+
+use App\Enums\DocumentStatus;
+use App\Models\Document;
+use App\Models\DocumentMovement;
+use App\Models\Folder;
+use App\Models\PhysicalLocation;
+use App\Models\Department;
+use App\Models\SubDepartment;
+use App\Models\Service;
+use App\Services\DocumentSearchService;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
+use Livewire\Component;
+use Livewire\WithPagination;
+use ZipArchive;
+
+class DocumentsTable extends Component
+{
+    use WithPagination;
+
+    public $search = '';
+    public $status = '';
+    public $fileType = '';
+    public $dateFrom = '';
+    public $dateTo = '';
+    public $room = '';
+    public $author = '';
+    public $keywords = '';
+    public $tags = '';
+    public $category = ''; // Category ID filter
+    public $service = ''; // Service ID filter
+    public $favoritesOnly = false;
+
+    // Hierarchy filter (department / sub-department / service)
+    // Encoded as e.g. "department:5", "subdepartment:8", "service:12".
+    public $hierarchy = '';
+
+    // Lightweight search suggestions (used mainly on approvals page)
+    public array $searchResults = [];
+    public bool $showSearchDropdown = false;
+
+    public $documentsIds = [];
+    public $checkedDocuments = []; // IDs of selected documents
+    public $selectAll = false;
+    public $page = 1;
+
+    // Pagination page size
+    public int $perPage = 10;
+
+    // Folder navigation: null = root
+    public ?int $currentFolderId = null;
+
+    // When true (e.g., dashboard), show only items awaiting approval for the current user
+    public bool $showOnlyPendingApprovals = false;
+
+    protected $queryString = [
+        'search' => ['except' => ''],
+        'status' => ['except' => ''],
+        'fileType' => ['except' => ''],
+        'dateFrom' => ['except' => ''],
+        'dateTo' => ['except' => ''],
+        'room' => ['except' => ''],
+        'author' => ['except' => ''],
+        'keywords' => ['except' => ''],
+        'tags' => ['except' => ''],
+        'category' => ['except' => ''],
+        'service' => ['except' => ''],
+        'favoritesOnly' => ['except' => false],
+        'perPage' => ['except' => 10],
+        'hierarchy' => ['except' => ''],
+    ];
+
+    public function updated($field)
+    {
+        // Reset to first page when any filter changes
+        if (in_array($field, ['search', 'status', 'fileType', 'dateFrom', 'dateTo', 'author', 'keywords', 'tags', 'category', 'service', 'favoritesOnly', 'perPage', 'hierarchy'])) {
+            $this->resetPage();
+        }
+
+        // Keep search suggestions in sync as the user types or changes filters
+        if ($field === 'search' || $field === 'hierarchy' || $field === 'status') {
+            $this->updateSearchSuggestions();
+        }
+    }
+
+    public function openFolder(int $folderId): void
+    {
+        $this->currentFolderId = $folderId;
+        $this->resetPage();
+    }
+
+    public function goUp(): void
+    {
+        if (is_null($this->currentFolderId)) {
+            return; // already at root
+        }
+
+        $parentId = Folder::where('id', $this->currentFolderId)->value('parent_id');
+        $this->currentFolderId = $parentId; // may become null (root)
+        $this->resetPage();
+    }
+
+    public function resetFilters()
+    {
+        $this->search = '';
+        $this->status = '';
+        $this->fileType = '';
+        $this->dateFrom = '';
+        $this->dateTo = '';
+        $this->room = '';
+        $this->author = '';
+        $this->keywords = '';
+        $this->tags = '';
+        $this->category = '';
+        $this->service = '';
+        $this->favoritesOnly = false;
+        $this->perPage = 10;
+        $this->hierarchy = '';
+        $this->searchResults = [];
+        $this->showSearchDropdown = false;
+
+        $this->selectAll = false;
+        $this->checkedDocuments = [];
+
+        $this->resetPage();
+    }
+
+
+    public function updatedSelectAll($value)
+    {
+        // Kept for backwards compatibility if selectAll is ever bound directly.
+        if ($value) {
+            $this->checkedDocuments = $this->documentsIds;
+        } else {
+            $this->checkedDocuments = [];
+        }
+    }
+
+    public function toggleSelectAll(): void
+    {
+        $this->selectAll = ! $this->selectAll;
+        $this->checkedDocuments = $this->selectAll ? $this->documentsIds : [];
+    }
+
+    public function selectHierarchy(string $type, int $id): void
+    {
+        $this->hierarchy = $type . ':' . $id;
+        $this->resetPage();
+        $this->updateSearchSuggestions();
+    }
+
+    public function clearHierarchy(): void
+    {
+        $this->hierarchy = '';
+        $this->resetPage();
+        $this->updateSearchSuggestions();
+    }
+
+    public function openSearchResult(int $documentId): void
+    {
+        $doc = Document::with('latestVersion')->find($documentId);
+        if (! $doc || ! $doc->latestVersion) {
+            return;
+        }
+
+        $params = ['id' => $doc->latestVersion->id];
+        if ($this->showOnlyPendingApprovals) {
+            $params['approval'] = 1;
+        }
+
+        $this->redirectRoute('document-versions.preview', $params);
+    }
+
+    public function downloadSelected()
+    {
+        if (empty($this->checkedDocuments)) {
+            session()->flash('error', 'No documents selected for download.');
+            return null;
+        }
+
+        // Get all selected documents
+        $documents = Document::whereIn('id', $this->checkedDocuments)->get();
+
+        if ($documents->isEmpty()) {
+            session()->flash('error', 'Selected documents not found.');
+            return null;
+        }
+
+        // Create a temporary ZIP file
+        $zipFileName = 'documents_' . now()->timestamp . '.zip';
+        $zipFilePath = storage_path('app/public/' . $zipFileName);
+
+        $zip = new ZipArchive;
+
+        if ($zip->open($zipFilePath, ZipArchive::CREATE) === TRUE) {
+            foreach ($documents as $doc) {
+                if (!empty($doc->latestVersion) && Storage::exists($doc->latestVersion->file_path)) {
+                    $zip->addFile(
+                        Storage::path($doc->latestVersion->file_path),
+                        basename($doc->latestVersion->file_path)
+                    );
+                }
+            }
+
+            // Check if any files were added
+            if ($zip->numFiles === 0) {
+                $zip->close();
+                session()->flash('error', 'No files found for the selected documents.');
+                return back();
+            }
+
+            $zip->close();
+        }
+
+        return response()->download($zipFilePath)->deleteFileAfterSend(true);
+    }
+
+
+    public function render()
+    {
+        // Base documents query (database only; we no longer use Elasticsearch
+        // here because the ES cluster may be down and users expect search to
+        // always work based on the database state.)
+        $documentsQuery = Document::with([
+            'subcategory', 'department', 'box.shelf.row.room',
+            'createdBy', 'latestVersion', 'auditLogs.user'
+        ]);
+
+        // Exclude expired documents - they should only appear on the destructions page
+        // Real-time check: if expire_at is in the past, document is expired
+        $documentsQuery->where(function ($q) {
+            $q->whereNull('expire_at')
+              ->orWhere('expire_at', '>', now());
+        });
+
+        // Apply hierarchy filter (department / sub-department / service)
+        $this->applyHierarchyToQuery($documentsQuery);
+
+        // Restrict to current folder (or root when null) UNLESS we are filtering by
+        // global filters. In approvals view we ignore folders entirely.
+        $isFiltering = $this->category || $this->tags || $this->keywords || $this->author || $this->dateFrom || $this->dateTo || $this->service;
+
+        if (! $this->showOnlyPendingApprovals && ! $isFiltering) {
+            if (is_null($this->currentFolderId)) {
+                $documentsQuery->whereNull('folder_id');
+            } else {
+                $documentsQuery->where('folder_id', $this->currentFolderId);
+            }
+        }
+
+        // Pending-approvals mode: default to pending status, but allow user filter
+        if ($this->showOnlyPendingApprovals) {
+            if ($this->status === '' || $this->status === null) {
+                $documentsQuery->where('status', 'pending');
+            }
+
+            // For users who ONLY have "view own document" permission (no service/department/global view),
+            // restrict the approvals table to their own uploads.
+            $user = auth()->user();
+            if ($user && ! $user->can('approve', Document::class)) {
+                $canViewAny        = $user->can('view any document');
+                $canViewDepartment = $user->can('view department document');
+                $canViewService    = $user->can('view service document');
+                $canViewOwn        = $user->can('view own document');
+
+                if (! $canViewAny && ! $canViewDepartment && ! $canViewService && $canViewOwn) {
+                    $documentsQuery->where('created_by', $user->id);
+                }
+            }
+        }
+
+        // Full-text search: title AND OCR content from latest version
+        if (! empty($this->search)) {
+            $searchTerm = '%' . strtolower($this->search) . '%';
+            $documentsQuery->where(function ($q) use ($searchTerm) {
+                // Search in document title
+                $q->whereRaw('LOWER(title) LIKE ?', [$searchTerm])
+                  // Also search in OCR text from the latest version
+                  ->orWhereHas('latestVersion', function ($sub) use ($searchTerm) {
+                      $sub->whereRaw('LOWER(ocr_text) LIKE ?', [$searchTerm]);
+                  });
+            });
+        }
+
+        // Apply remaining filters identically for both approvals and normal views
+        $documents = $documentsQuery
+            // Status filter (overrides defaults above when explicitly set)
+            ->when($this->status && $this->status !== 'all', fn($q) =>
+                $q->where('status', $this->status)
+            )
+            ->when($this->fileType, fn($q) =>
+                $q->whereHas('latestVersion', function ($q) {
+                    $q->where('file_type', $this->fileType);
+                })
+            )
+            ->when($this->favoritesOnly, function ($q) {
+                $q->whereHas('favoritedByUsers', function ($q2) {
+                    $q2->where('user_id', auth()->id());
+                });
+            })
+            ->when($this->category, function ($q) {
+                if ($this->category === 'uncategorized') {
+                    $q->whereNull('category_id');
+                } else {
+                    $q->where('category_id', $this->category);
+                }
+            })
+            ->when($this->service, function ($q) {
+                $q->where('service_id', $this->service);
+            })
+            // Author filter matches metadata->author, latest version uploader, or document owner
+            ->when($this->author, function ($q) {
+                $author = $this->author;
+                $q->where(function ($sub) use ($author) {
+                    $sub->where('metadata->author', 'like', '%' . $author . '%')
+                        ->orWhereHas('latestVersion.uploadedBy', function ($q2) use ($author) {
+                            $q2->where('full_name', 'like', '%' . $author . '%')
+                               ->orWhere('email', 'like', '%' . $author . '%');
+                        })
+                        ->orWhereHas('createdBy', function ($q3) use ($author) {
+                            $q3->where('full_name', 'like', '%' . $author . '%')
+                               ->orWhere('email', 'like', '%' . $author . '%');
+                        });
+                });
+            })
+            ->when($this->room, function ($q) {
+                $room = \App\Models\Room::where('name', $this->room)->first();
+                if ($room) {
+                    $boxIds = \App\Models\Box::whereHas('shelf.row.room', function($q2) use ($room) {
+                        $q2->where('id', $room->id);
+                    })->pluck('id');
+                    $q->whereIn('box_id', $boxIds);
+                }
+            })
+            ->when($this->dateFrom, fn($q) =>
+                $q->whereDate('created_at', '>=', $this->dateFrom)
+            )
+            ->when($this->dateTo, fn($q) =>
+                $q->whereDate('created_at', '<=', $this->dateTo)
+            )
+            ->latest()
+            ->paginate($this->perPage);
+
+        $this->documentsIds = $documents->pluck('id')->toArray();
+
+        // Folders for current level
+        // - Hidden when showing only pending approvals (dashboard)
+        // - Hidden on File Audit page (documents.index)
+        $hideFolders = $this->showOnlyPendingApprovals || request()->routeIs('documents.index');
+        if ($hideFolders) {
+            $folders = collect();
+        } else {
+            if (is_null($this->currentFolderId)) {
+                $folders = Folder::whereNull('parent_id')
+                    ->orderBy('name')
+                    ->get();
+            } else {
+                $folders = Folder::where('parent_id', $this->currentFolderId)
+                    ->orderBy('name')
+                    ->get();
+            }
+        }
+
+
+        $this->documentsIds = $documents->pluck('id')->toArray();
+
+        // Folders for current level
+        // - Hidden when showing only pending approvals (dashboard)
+        // - Hidden on File Audit page (documents.index)
+        $hideFolders = $this->showOnlyPendingApprovals || request()->routeIs('documents.index');
+        if ($hideFolders) {
+            $folders = collect();
+        } else {
+            if (is_null($this->currentFolderId)) {
+                $folders = Folder::whereNull('parent_id')
+                    ->orderBy('name')
+                    ->get();
+            } else {
+                $folders = Folder::where('parent_id', $this->currentFolderId)
+                    ->orderBy('name')
+                    ->get();
+            }
+        }
+
+        $movements = DocumentMovement::all();
+        // Load rooms for move modal hierarchical selection
+        $rooms = \App\Models\Room::with(['rows.shelves.boxes'])->get();
+
+        // Rebuild search suggestions when rendering (in case filters changed)
+        $this->updateSearchSuggestions(false);
+
+        // Build hierarchy options (departments -> sub-departments -> services) based on user assignments
+        $user = auth()->user();
+        $hierarchyDepartments = collect();
+
+        if ($user) {
+            $user->refresh();
+            $user->loadMissing(['subDepartments', 'services']);
+
+            $isMasterOrSuper = $user->hasRole('master') || $user->hasRole('Super Administrator');
+            $isDepartmentAdmin = $user->hasAnyRole(['Department Administrator', 'Admin de pole']);
+            $isDivisionChief = $user->hasAnyRole(['Division Chief', 'Admin de departments']);
+
+            if ($isMasterOrSuper) {
+                $hierarchyDepartments = Department::withoutGlobalScopes()
+                    ->with(['subDepartments.services'])
+                    ->orderBy('name')
+                    ->get();
+            } else {
+                // Departments directly from pivot (bypassing Department global scope)
+                $userDeptIdsRaw = DB::table('department_user')
+                    ->where('user_id', $user->id)
+                    ->pluck('department_id');
+
+                $departments = Department::withoutGlobalScopes()
+                    ->whereIn('id', $userDeptIdsRaw)
+                    ->orderBy('name')
+                    ->get();
+
+                // Determine visible sub-departments
+                if ($isDepartmentAdmin) {
+                    $deptIds = $departments->pluck('id');
+                    $subDepartments = SubDepartment::whereIn('department_id', $deptIds)->get();
+                } else {
+                    $subDepartments = $user->subDepartments; // via pivot
+                }
+
+                // Determine visible services
+                if ($isDivisionChief || $isDepartmentAdmin) {
+                    $subIds = $subDepartments->pluck('id');
+                    $services = Service::whereIn('sub_department_id', $subIds)->get();
+                } else {
+                    $services = $user->services; // via pivot
+                }
+
+                // Assemble hierarchy tree limited to these units
+                $subByDept = $subDepartments->groupBy('department_id');
+                $servicesBySub = $services->groupBy('sub_department_id');
+
+                $hierarchyDepartments = $departments->map(function ($dept) use ($subByDept, $servicesBySub) {
+                    $dept->visibleSubDepartments = ($subByDept[$dept->id] ?? collect())
+                        ->map(function ($sub) use ($servicesBySub) {
+                            $sub->visibleServices = $servicesBySub[$sub->id] ?? collect();
+                            return $sub;
+                        });
+                    return $dept;
+                });
+            }
+        }
+
+        return view('livewire.documents-table', [
+            'documents' => $documents,
+            'folders'   => $folders,
+            'movements' => $movements,
+            'rooms'     => $rooms,
+            'hierarchyDepartments' => $hierarchyDepartments,
+        ]);
+    }
+
+    private function updateSearchSuggestions(bool $resetWhenEmpty = true): void
+    {
+        // Currently we only show suggestions on the approvals page.
+        if (! $this->showOnlyPendingApprovals) {
+            $this->searchResults = [];
+            $this->showSearchDropdown = false;
+            return;
+        }
+
+        $term = trim((string) $this->search);
+        // Require at least 1 visible character; show suggestions as soon as
+        // the user starts typing anything non-empty.
+        if ($term === '') {
+            if ($resetWhenEmpty) {
+                $this->searchResults = [];
+                $this->showSearchDropdown = false;
+            }
+            return;
+        }
+
+        $query = Document::with('latestVersion');
+
+        // Only documents that actually have a version
+        $query->whereHas('latestVersion');
+
+        // Apply same hierarchy restrictions as main approvals table
+        $this->applyHierarchyToQuery($query);
+
+        // Default pending status unless user changed the filter
+        if ($this->status === '' || $this->status === null) {
+            $query->where('status', 'pending');
+        } elseif ($this->status !== 'all') {
+            $query->where('status', $this->status);
+        }
+
+        // Respect "own documents only" scenario
+        $user = auth()->user();
+        if ($user && ! $user->can('approve', Document::class)) {
+            $canViewAny        = $user->can('view any document');
+            $canViewDepartment = $user->can('view department document');
+            $canViewService    = $user->can('view service document');
+            $canViewOwn        = $user->can('view own document');
+
+            if (! $canViewAny && ! $canViewDepartment && ! $canViewService && $canViewOwn) {
+                $query->where('created_by', $user->id);
+            }
+        }
+
+        // Full-text search: title AND OCR content
+        $searchLike = '%' . strtolower($term) . '%';
+        $query->where(function ($q) use ($searchLike) {
+            $q->whereRaw('LOWER(title) LIKE ?', [$searchLike])
+              ->orWhereHas('latestVersion', function ($sub) use ($searchLike) {
+                  $sub->whereRaw('LOWER(ocr_text) LIKE ?', [$searchLike]);
+              });
+        });
+
+        $docs = $query->orderByDesc('created_at')->limit(10)->get();
+
+        $this->searchResults = $docs->filter(fn($d) => $d->latestVersion)
+            ->map(function ($d) {
+                return [
+                    'id' => $d->id,
+                    'title' => $d->title,
+                    'status' => $d->status,
+                ];
+            })->values()->all();
+
+        $this->showSearchDropdown = ! empty($this->searchResults);
+    }
+
+    private function applyHierarchyToFilters(array &$filters): void
+    {
+        if (! $this->hierarchy) {
+            return;
+        }
+
+        [$type, $id] = explode(':', $this->hierarchy) + [null, null];
+        $id = (int) $id;
+        if (! $id) {
+            return;
+        }
+
+        if ($type === 'department') {
+            $filters['department_id'] = $id;
+        } elseif ($type === 'subdepartment') {
+            $serviceIds = Service::where('sub_department_id', $id)->pluck('id')->all();
+            if (! empty($serviceIds)) {
+                $filters['service_ids'] = $serviceIds;
+            }
+        } elseif ($type === 'service') {
+            $filters['service_ids'] = [$id];
+        }
+    }
+
+    private function applyHierarchyToQuery($query): void
+    {
+        if (! $this->hierarchy) {
+            return;
+        }
+
+        [$type, $id] = explode(':', $this->hierarchy) + [null, null];
+        $id = (int) $id;
+        if (! $id) {
+            return;
+        }
+
+        if ($type === 'department') {
+            $query->where('department_id', $id);
+        } elseif ($type === 'subdepartment') {
+            $serviceIds = Service::where('sub_department_id', $id)->pluck('id');
+            if ($serviceIds->isNotEmpty()) {
+                $query->whereIn('service_id', $serviceIds);
+            }
+        } elseif ($type === 'service') {
+            $query->where('service_id', $id);
+        }
+    }
+
+    public function toggleFavorite(int $documentId): void
+    {
+        $user = auth()->user();
+        if (! $user) {
+            return;
+        }
+        $isFav = $user->favoriteDocuments()->where('document_id', $documentId)->exists();
+        if ($isFav) {
+            $user->favoriteDocuments()->detach($documentId);
+        } else {
+            $user->favoriteDocuments()->attach($documentId);
+        }
+        $this->resetPage();
+    }
+
+    public function bulkApprove(): void
+    {
+        if (empty($this->checkedDocuments)) {
+            session()->flash('error', 'No documents selected for approval.');
+            return;
+        }
+
+        Gate::authorize('approve', Document::class);
+
+        $docs = Document::whereIn('id', $this->checkedDocuments)->get();
+        $approvedCount = 0;
+
+        foreach ($docs as $doc) {
+            if ($doc->status !== DocumentStatus::Pending->value) {
+                continue;
+            }
+
+            $doc->status = DocumentStatus::Approved->value;
+            $doc->save();
+            $doc->logAction('approved');
+
+            // Queue OCR only once the document is approved.
+            $doc->queueOcrIfNeeded();
+
+            $approvedCount++;
+        }
+
+        $this->checkedDocuments = [];
+        $this->selectAll = false;
+        $this->resetPage();
+
+        if ($approvedCount > 0) {
+            session()->flash('success', $approvedCount . ' document(s) approved.');
+        } else {
+            session()->flash('error', 'No pending documents in the selected items.');
+        }
+    }
+
+    public function bulkDecline(): void
+    {
+        if (empty($this->checkedDocuments)) {
+            session()->flash('error', 'No documents selected for rejection.');
+            return;
+        }
+
+        Gate::authorize('decline', Document::class);
+
+        $docs = Document::whereIn('id', $this->checkedDocuments)->get();
+        $declinedCount = 0;
+
+        foreach ($docs as $doc) {
+            if ($doc->status !== DocumentStatus::Pending->value) {
+                continue;
+            }
+
+            $doc->status = DocumentStatus::Declined->value;
+            $doc->save();
+            $doc->logAction('declined');
+            $declinedCount++;
+        }
+
+        $this->checkedDocuments = [];
+        $this->selectAll = false;
+        $this->resetPage();
+
+        if ($declinedCount > 0) {
+            session()->flash('success', $declinedCount . ' document(s) rejected.');
+        } else {
+            session()->flash('error', 'No pending documents in the selected items.');
+        }
+    }
+}
