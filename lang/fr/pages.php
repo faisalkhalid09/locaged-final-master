@@ -806,6 +806,10 @@ return [
     ],
     'errors' => [
         'input_problems' => 'Il y a eu quelques problèmes avec votre saisie :',
+        'failed_to_load_metadata' => 'Échec du chargement des métadonnées',
+        'error_loading_metadata' => 'Une erreur s\'est produite lors du chargement des métadonnées',
+        'failed_to_save_metadata' => 'Échec de l\'enregistrement des métadonnées',
+        'error_saving_metadata' => 'Une erreur s\'est produite lors de l\'enregistrement des métadonnées',
     ],
 ];
 

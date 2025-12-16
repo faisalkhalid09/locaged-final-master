@@ -440,7 +440,7 @@
                             <div class="modal-header">
                                 <h5 class="modal-title" id="documentMetadataLabel">
                                     <i class="fa-solid fa-info-circle me-2"></i>
-                                    Informations du document
+                                    {{ ui_t('pages.upload.document_information') }}
                                 </h5>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
@@ -452,8 +452,8 @@
                                 </div>
                             </div>
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ ui_t('actions.close') ?? 'Close' }}</button>
-                                <button type="button" class="btn btn-primary" id="metadataSaveBtn" disabled>{{ __('Save') }}</button>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ ui_t('actions.close') }}</button>
+                                <button type="button" class="btn btn-primary" id="metadataSaveBtn" disabled>{{ ui_t('pages.upload.save') }}</button>
                             </div>
                         </div>
                     </div>
@@ -503,7 +503,7 @@
                 metadataContent.innerHTML = `
                     <div class="alert alert-danger">
                         <i class="fas fa-exclamation-triangle me-2"></i>
-                        ${data.message || 'Failed to load metadata'}
+                        ${data.message || '{{ __('Failed to load metadata') }}'}
                     </div>
                 `;
             }
@@ -513,7 +513,7 @@
             metadataContent.innerHTML = `
                 <div class="alert alert-danger">
                     <i class="fas fa-exclamation-triangle me-2"></i>
-                    An error occurred while loading metadata
+                    {{ __('An error occurred while loading metadata') }}
                 </div>
             `;
         });
@@ -547,31 +547,31 @@
             <div class="metadata-container">
                 <div class="metadata-section mb-4">
                     <h6 class="text-primary border-bottom pb-2 mb-3">
-                        <i class="fas fa-file me-2"></i>Document Information
+                        <i class="fas fa-file me-2"></i>{{ ui_t('pages.upload.document_information') }}
                     </h6>
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="text-muted small d-block">Document Title</label>
+                            <label class="text-muted small d-block">{{ ui_t('pages.upload.document_title') }}</label>
                             <input type="text" class="form-control" value="${metadata.title || ''}" disabled>
                         </div>
                         <div class="col-md-6">
-                            <label class="text-muted small d-block">Status</label>
+                            <label class="text-muted small d-block">{{ ui_t('tables.status') }}</label>
                             <span class="badge bg-${getStatusColor(metadata.status)}">${metadata.status || 'N/A'}</span>
                         </div>
                         <div class="col-md-6">
-                            <label class="text-muted small d-block">Created At</label>
+                            <label class="text-muted small d-block">{{ ui_t('tables.created_at') }}</label>
                             <input type="text" class="form-control" value="${metadata.created_at || 'N/A'}" disabled>
                         </div>
                         <div class="col-md-6">
-                            <label class="text-muted small d-block">Expires At</label>
+                            <label class="text-muted small d-block">{{ ui_t('pages.upload.expires_at') }}</label>
                             <input type="date" class="form-control" value="${expireValue}" disabled>
                         </div>
                         <div class="col-md-6">
-                            <label class="text-muted small d-block">Created By</label>
+                            <label class="text-muted small d-block">{{ ui_t('pages.upload.created_by') }}</label>
                             <input type="text" class="form-control" value="${metadata.created_by || 'N/A'}" disabled>
                         </div>
                         <div class="col-md-6">
-                            <label class="text-muted small d-block">File Type</label>
+                            <label class="text-muted small d-block">{{ ui_t('pages.upload.file_type') }}</label>
                             <input type="text" class="form-control" value="${metadata.file_type ? metadata.file_type.toUpperCase() : 'N/A'}" disabled>
                         </div>
                     </div>
@@ -579,29 +579,29 @@
 
                 <div class="metadata-section mb-4">
                     <h6 class="text-primary border-bottom pb-2 mb-3">
-                        <i class="fas fa-sitemap me-2"></i>Organizational Structure
+                        <i class="fas fa-sitemap me-2"></i>{{ ui_t('pages.upload.organizational_structure') }}
                     </h6>
                     <div class="row g-3">
                         <div class="col-md-4">
-                            <label class="text-muted small d-block">Pole</label>
+                            <label class="text-muted small d-block">{{ ui_t('pages.upload.pole') }}</label>
                             <select class="form-select" disabled>
                                 ${deptOptions}
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <label class="text-muted small d-block">Department</label>
+                            <label class="text-muted small d-block">{{ ui_t('pages.upload.department') }}</label>
                             <select class="form-select" disabled>
                                 ${subDeptOptions}
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <label class="text-muted small d-block">Service</label>
+                            <label class="text-muted small d-block">{{ __('Service') }}</label>
                             <select class="form-select" disabled>
                                 ${serviceOptions}
                             </select>
                         </div>
                         <div class="col-md-12">
-                            <label class="text-muted small d-block">Category</label>
+                            <label class="text-muted small d-block">{{ ui_t('pages.upload.category') }}</label>
                             <select name="category_id" class="form-select">
                                 ${categoryOptions}
                             </select>
@@ -611,40 +611,40 @@
 
                 <div class="metadata-section mb-4">
                     <h6 class="text-primary border-bottom pb-2 mb-3">
-                        <i class="fas fa-map-marker-alt me-2"></i>Physical Location
+                        <i class="fas fa-map-marker-alt me-2"></i>{{ ui_t('pages.upload.physical_location') }}
                     </h6>
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="text-muted small d-block">Room</label>
+                            <label class="text-muted small d-block">{{ ui_t('pages.upload.room') }}</label>
                             <select name="room_id" class="form-select" data-location-level="room">
-                                <option value="">— Select Room —</option>
+                                <option value="">{{ ui_t('pages.upload.select_room_first') }}</option>
                                 ${(metadata.rooms || []).map(room => `
                                     <option value="${room.id}" ${String(room.id) == String(metadata.room_id ?? '') ? 'selected' : ''}>${room.name}</option>
                                 `).join('')}
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="text-muted small d-block">Row</label>
+                            <label class="text-muted small d-block">{{ ui_t('pages.upload.row') }}</label>
                             <select name="row_id" class="form-select" data-location-level="row" ${!metadata.room_id ? 'disabled' : ''}>
-                                <option value="">— Select Row —</option>
+                                <option value="">{{ ui_t('pages.upload.select_row_first') }}</option>
                                 ${(metadata.rows || []).map(row => `
                                     <option value="${row.id}" data-room-id="${row.room_id}" ${String(row.id) == String(metadata.row_id ?? '') ? 'selected' : ''}>${row.name}</option>
                                 `).join('')}
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="text-muted small d-block">Shelf</label>
+                            <label class="text-muted small d-block">{{ ui_t('pages.upload.shelf') }}</label>
                             <select name="shelf_id" class="form-select" data-location-level="shelf" ${!metadata.row_id ? 'disabled' : ''}>
-                                <option value="">— Select Shelf —</option>
+                                <option value="">{{ ui_t('pages.upload.select_shelf_first') }}</option>
                                 ${(metadata.shelves || []).map(shelf => `
                                     <option value="${shelf.id}" data-row-id="${shelf.row_id}" ${String(shelf.id) == String(metadata.shelf_id ?? '') ? 'selected' : ''}>${shelf.name}</option>
                                 `).join('')}
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="text-muted small d-block">Box</label>
+                            <label class="text-muted small d-block">{{ ui_t('pages.upload.box') }}</label>
                             <select name="box_id" class="form-select" data-location-level="box" ${!metadata.shelf_id ? 'disabled' : ''}>
-                                <option value="">— Select Box —</option>
+                                <option value="">{{ ui_t('pages.upload.select_box_first') }}</option>
                                 ${(metadata.boxes || []).map(box => `
                                     <option value="${box.id}" data-shelf-id="${box.shelf_id}" ${String(box.id) == String(metadata.box_id ?? '') ? 'selected' : ''}>${box.name}</option>
                                 `).join('')}
@@ -655,15 +655,15 @@
 
                 <div class="metadata-section mb-4">
                     <h6 class="text-primary border-bottom pb-2 mb-3">
-                        <i class="fas fa-tags me-2"></i>Tags
+                        <i class="fas fa-tags me-2"></i>{{ ui_t('pages.upload.tags') }}
                     </h6>
                     <div class="row g-3">
                         <div class="col-12">
-                            <label class="text-muted small d-block">Tags (comma-separated)</label>
+                            <label class="text-muted small d-block">{{ ui_t('pages.upload.tags_comma_separated') }}</label>
                             <input type="text" name="tags" class="form-control" 
                                    value="${(metadata.tags || []).join(', ')}" 
-                                   placeholder="Enter tags separated by commas">
-                            <small class="text-muted">Enter tags separated by commas. New tags will be created automatically.</small>
+                                   placeholder="{{ ui_t('pages.upload.enter_tags_comma') }}">
+                            <small class="text-muted">{{ ui_t('pages.upload.new_tags_hint') }}</small>
                         </div>
                     </div>
                 </div>

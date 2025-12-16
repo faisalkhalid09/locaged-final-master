@@ -813,6 +813,10 @@ return [
     ],
     'errors' => [
         'input_problems' => 'There were some problems with your input:',
+        'failed_to_load_metadata' => 'Failed to load metadata',
+        'error_loading_metadata' => 'An error occurred while loading metadata',
+        'failed_to_save_metadata' => 'Failed to save metadata',
+        'error_saving_metadata' => 'An error occurred while saving metadata',
     ],
 ];
 
