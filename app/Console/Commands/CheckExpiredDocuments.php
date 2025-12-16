@@ -1,12 +1,12 @@
-\u003c?php
+<?php
 
-namespace App\\Console\\Commands;
+namespace App\Console\Commands;
 
-use App\\Models\\Document;
-use App\\Models\\DocumentDestructionRequest;
-use Illuminate\\Console\\Command;
-use Illuminate\\Support\\Facades\\Log;
-use Illuminate\\Support\\Facades\\DB;
+use App\Models\Document;
+use App\Models\DocumentDestructionRequest;
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class CheckExpiredDocuments extends Command
 {
@@ -46,7 +46,7 @@ class CheckExpiredDocuments extends Command
 
             // Find a system user (first admin) to assign as requester
             $systemUser = \App\Models\User::role(['master', 'Super Administrator'])->first() ?? \App\Models\User::first();
-            
+
             if (!$systemUser) {
                 $this->error("No user found to assign as requester.");
                 return 1;
@@ -80,7 +80,7 @@ class CheckExpiredDocuments extends Command
                 DB::rollBack();
                 $this->error("  ✗ Failed to process: {$document->title}");
                 $this->error("    Error: {$e->getMessage()}");
-                
+
                 Log::error('Failed to process automatic destruction', [
                     'document_id' => $document->id,
                     'error' => $e->getMessage(),
@@ -96,14 +96,14 @@ class CheckExpiredDocuments extends Command
 
         // Notify admins if any destruction requests were created
         if ($created > 0) {
-            $this->info("\\nNotifying administrators...");
-            
+            $this->info("\nNotifying administrators...");
+
             try {
-                $admins = \\App\\Models\\User::role(['master', 'Super Administrator', 'Admin de pole'])
+                $admins = \App\Models\User::role(['master', 'Super Administrator', 'Admin de pole'])
                     ->get();
-                
+
                 foreach ($admins as $admin) {
-                    $admin->notify(new \\App\\Notifications\\GeneralNotification(
+                    $admin->notify(new \App\Notifications\GeneralNotification(
                         'warning',
                         __('Expired Documents Require Attention'),
                         __(':count expired document(s) have been added to the destruction queue. Please review to postpone or permanently delete.', ['count' => $created]),
@@ -112,9 +112,9 @@ class CheckExpiredDocuments extends Command
                         'expired_documents'
                     ));
                 }
-                
+
                 $this->info("✓ Notified {$admins->count()} administrator(s)");
-            } catch (\\Exception $e) {
+            } catch (\Exception $e) {
                 $this->warn("Failed to send notifications: {$e->getMessage()}");
             }
         }
