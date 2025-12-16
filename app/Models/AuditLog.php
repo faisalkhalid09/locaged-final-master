@@ -58,8 +58,11 @@ class AuditLog extends Model
 
     public function document(): BelongsTo
     {
-        // Include soft-deleted documents so audit logs remain visible even after permanent delete
-        return $this->belongsTo(Document::class)->withTrashed();
+        // Bypass global scopes and include soft-deleted documents
+        // so audit logs remain visible even for expired or deleted documents
+        return $this->belongsTo(Document::class)
+            ->withoutGlobalScopes()
+            ->withTrashed();
     }
 
     public function documentVersion(): BelongsTo

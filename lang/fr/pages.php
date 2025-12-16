@@ -86,6 +86,7 @@ return [
             'moved' => 'Déplacé',
             'destroyed' => 'Détruit',
             'failed_access' => 'Accès échoué',
+            'expiration_postponed' => 'Expiration reportée',
         ],
         'reset_filters' => 'Réinitialiser les filtres',
         'table' => [

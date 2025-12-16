@@ -86,6 +86,7 @@ return [
             'moved' => 'Moved',
             'destroyed' => 'Destroyed',
             'failed_access' => 'Failed Access',
+            'expiration_postponed' => 'Expiration Postponed',
         ],
         'reset_filters' => 'Reset Filters',
         'table' => [
