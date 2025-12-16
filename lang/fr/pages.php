@@ -812,6 +812,24 @@ return [
         'failed_to_save_metadata' => 'Échec de l\'enregistrement des métadonnées',
         'error_saving_metadata' => 'Une erreur s\'est produite lors de l\'enregistrement des métadonnées',
     ],
+    'storage' => [
+        'title' => 'Stockage & Espace serveur',
+        'description' => 'Aperçu de l\'utilisation du disque sur le serveur et de l\'espace utilisé par les documents de l\'application.',
+        'server_disk_usage' => 'Utilisation du disque serveur',
+        'total_disk_space' => 'Espace disque total',
+        'used' => 'Utilisé',
+        'free' => 'Libre',
+        'unable_to_read' => 'Impossible de lire les statistiques du disque sur ce serveur.',
+        'status_critical' => 'Critique : le disque est presque plein. Envisagez d\'ajouter plus de stockage dès que possible.',
+        'status_warning' => 'Avertissement : l\'utilisation du disque est élevée. Prévoyez d\'ajouter plus de stockage bientôt.',
+        'status_normal' => 'L\'utilisation du disque est dans les limites normales.',
+        'app_documents_usage' => 'Utilisation des documents de l\'application',
+        'app_documents_description' => 'Documents stockés par l\'application (disque de stockage local).',
+        'size_used_by_documents' => 'Taille utilisée par les documents',
+        'share_of_total_disk' => 'Part du disque total',
+        'share_of_used_space' => 'Part de l\'espace utilisé',
+        'values_calculated' => 'Les valeurs sont calculées en fonction des fichiers stockés sur le disque de stockage local de l\'application.',
+    ],
 ];
 
 

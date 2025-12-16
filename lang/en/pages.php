@@ -819,6 +819,24 @@ return [
         'failed_to_save_metadata' => 'Failed to save metadata',
         'error_saving_metadata' => 'An error occurred while saving metadata',
     ],
+    'storage' => [
+        'title' => 'Storage & Server Space',
+        'description' => 'Overview of disk usage on the server and space used by application documents.',
+        'server_disk_usage' => 'Server Disk Usage',
+        'total_disk_space' => 'Total disk space',
+        'used' => 'Used',
+        'free' => 'Free',
+        'unable_to_read' => 'Unable to read disk statistics on this server.',
+        'status_critical' => 'Critical: disk is almost full. Consider adding more storage as soon as possible.',
+        'status_warning' => 'Warning: disk usage is high. Plan to add more storage soon.',
+        'status_normal' => 'Disk usage is within normal limits.',
+        'app_documents_usage' => 'Application Documents Usage',
+        'app_documents_description' => 'Documents stored by the application (local storage disk).',
+        'size_used_by_documents' => 'Size used by documents',
+        'share_of_total_disk' => 'Share of total disk',
+        'share_of_used_space' => 'Share of used space',
+        'values_calculated' => "Values are calculated based on files stored on the application's local storage disk.",
+    ],
 ];
 
 

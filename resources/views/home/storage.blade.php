@@ -4,11 +4,10 @@
     <div class="mt-3 position-relative mb-5">
         <div class="overview-section px-3 px-md-0 mb-4">
             <div class="d-flex justify-content-between align-items-center">
-                <h2>Storage &amp; Server Space</h2>
+                <h2>{{ ui_t('pages.storage.title') }}</h2>
             </div>
             <p class="text-muted mb-0">
-                Overview of disk usage on the server and space used by application documents. This page is only
-                available to Master and Super Administrator roles.
+                {{ ui_t('pages.storage.description') }}
             </p>
         </div>
 
@@ -21,13 +20,13 @@
 
             if (! is_null($usedPercent)) {
                 if ($usedPercent >= $critical) {
-                    $statusMessage = 'Critical: disk is almost full. Consider adding more storage as soon as possible.';
+                    $statusMessage = ui_t('pages.storage.status_critical');
                     $statusClass   = 'text-danger';
                 } elseif ($usedPercent >= $warning) {
-                    $statusMessage = 'Warning: disk usage is high. Plan to add more storage soon.';
+                    $statusMessage = ui_t('pages.storage.status_warning');
                     $statusClass   = 'text-warning';
                 } else {
-                    $statusMessage = 'Disk usage is within normal limits.';
+                    $statusMessage = ui_t('pages.storage.status_normal');
                     $statusClass   = 'text-success';
                 }
             }
@@ -46,22 +45,22 @@
             <div class="col-lg-7 col-md-12">
                 <div class="card shadow-sm h-100">
                     <div class="card-body">
-                        <h5 class="card-title mb-3">Server Disk Usage</h5>
+                        <h5 class="card-title mb-3">{{ ui_t('pages.storage.server_disk_usage') }}</h5>
 
                         @if(is_null($disk['total_bytes']))
-                            <p class="text-danger mb-0">Unable to read disk statistics on this server.</p>
+                            <p class="text-danger mb-0">{{ ui_t('pages.storage.unable_to_read') }}</p>
                         @else
                             <div class="mb-3">
                                 <div class="d-flex justify-content-between mb-1">
-                                    <span>Total disk space</span>
+                                    <span>{{ ui_t('pages.storage.total_disk_space') }}</span>
                                     <strong>{{ $disk['total_human'] }}</strong>
                                 </div>
                                 <div class="d-flex justify-content-between mb-1">
-                                    <span>Used</span>
+                                    <span>{{ ui_t('pages.storage.used') }}</span>
                                     <strong>{{ $disk['used_human'] ?? 'N/A' }} @if(!is_null($usedPercent)) ({{ $usedPercent }}%) @endif</strong>
                                 </div>
                                 <div class="d-flex justify-content-between mb-2">
-                                    <span>Free</span>
+                                    <span>{{ ui_t('pages.storage.free') }}</span>
                                     <strong>{{ $disk['free_human'] ?? 'N/A' }} @if(!is_null($disk['free_percent'])) ({{ $disk['free_percent'] }}%) @endif</strong>
                                 </div>
 
@@ -87,17 +86,17 @@
             <div class="col-lg-5 col-md-12">
                 <div class="card shadow-sm h-100">
                     <div class="card-body">
-                        <h5 class="card-title mb-3">Application Documents Usage</h5>
+                        <h5 class="card-title mb-3">{{ ui_t('pages.storage.app_documents_usage') }}</h5>
 
-                        <p class="mb-2">Documents stored by the application (local storage disk).</p>
+                        <p class="mb-2">{{ ui_t('pages.storage.app_documents_description') }}</p>
 
                         <div class="d-flex justify-content-between mb-1">
-                            <span>Size used by documents</span>
+                            <span>{{ ui_t('pages.storage.size_used_by_documents') }}</span>
                             <strong>{{ $appStorage['human'] }}</strong>
                         </div>
 
                         <div class="d-flex justify-content-between mb-1">
-                            <span>Share of total disk</span>
+                            <span>{{ ui_t('pages.storage.share_of_total_disk') }}</span>
                             <strong>
                                 @if(!is_null($appStorage['percent_of_disk']))
                                     {{ $appStorage['percent_of_disk'] }}%
@@ -108,7 +107,7 @@
                         </div>
 
                         <div class="d-flex justify-content-between mb-1">
-                            <span>Share of used space</span>
+                            <span>{{ ui_t('pages.storage.share_of_used_space') }}</span>
                             <strong>
                                 @if(!is_null($appStorage['percent_of_used']))
                                     {{ $appStorage['percent_of_used'] }}%
@@ -119,7 +118,7 @@
                         </div>
 
                         <p class="text-muted small mt-3 mb-0">
-                            Values are calculated based on files stored on the application's local storage disk.
+                            {{ ui_t('pages.storage.values_calculated') }}
                         </p>
                     </div>
                 </div>
