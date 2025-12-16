@@ -160,8 +160,6 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/documents/by-category/{categoryId?}',[DocumentController::class,'byCategory'])->name('documents.by-category');
     Route::get('/documents/by-subcategory/{subcategoryId}',[DocumentController::class,'bySubcategory'])->name('documents.by-subcategory');
-    // History of permanently deleted documents (separate URI to avoid conflicts with documents.show)
-    Route::get('/documents-deleted',[DocumentController::class,'destructions'])->name('documents.destructions');
 
     Route::get('/document-versions/{documentId}/create',[DocumentVersionController::class,'create'])->name('document-versions.document.create');
 
