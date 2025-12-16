@@ -81,8 +81,13 @@ class DocumentElasticSearch extends Component
         $like = '%' . strtolower($term) . '%';
 
         $searchResults = DocumentVersion::with(['uploadedBy', 'document.tags'])
-            ->whereHas('document', function ($q) use ($like) {
-                $q->whereRaw('LOWER(title) LIKE ?', [$like]);
+            ->where(function ($q) use ($like) {
+                // Search in document title
+                $q->whereHas('document', function ($docQ) use ($like) {
+                    $docQ->whereRaw('LOWER(title) LIKE ?', [$like]);
+                })
+                // Also search in OCR text
+                ->orWhereRaw('LOWER(ocr_text) LIKE ?', [$like]);
             })
             ->orderByDesc('updated_at')
             ->limit(50)
