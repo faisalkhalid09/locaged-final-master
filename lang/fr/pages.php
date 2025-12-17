@@ -87,6 +87,7 @@ return [
             'destroyed' => 'Détruit',
             'failed_access' => 'Accès échoué',
             'expiration_postponed' => 'Expiration reportée',
+            'metadata_updated' => 'Métadonnées mises à jour',
         ],
         'reset_filters' => 'Réinitialiser les filtres',
         'table' => [
