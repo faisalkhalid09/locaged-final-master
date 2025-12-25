@@ -242,7 +242,7 @@
                                 @endif
                             </button>
                             @if($doc->expire_at && $doc->expire_at->isPast())
-                                <span class="badge bg-danger" style="font-size: 0.7rem;">{{ ui_t('pages.destructions.status.expired') }}</span>
+                                <span class="badge bg-danger" style="font-size: 0.7rem;">{{ ui_t('pages.destructions.status_values.expired') }}</span>
                             @endif
                         </div>
                     </td>
