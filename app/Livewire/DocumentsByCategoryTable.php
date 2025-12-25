@@ -32,6 +32,7 @@ class DocumentsByCategoryTable extends Component
     public $favoritesOnly = false;
     public $documentId = null; // Filter by specific document ID
     public $showExpired = false; // Show expired documents (from dashboard All Documents card)
+    public $pageTitle = null; // Heading to display (from dashboard cards)
 
     public $documentsIds = [];
     public $checkedDocuments = []; // IDs of selected documents
@@ -53,6 +54,7 @@ class DocumentsByCategoryTable extends Component
         'perPage' => ['except' => 10],
         'documentId' => ['except' => null, 'as' => 'document_id'],
         'showExpired' => ['except' => false, 'as' => 'show_expired'],
+        'pageTitle' => ['except' => null, 'as' => 'page_title'],
     ];
 
     public function mount($filterId = null, $isCategory = false, $contextLabel = null): void

@@ -11,6 +11,12 @@ return [
         'todays_uploads' => "Téléversements d'aujourd'hui",
         'declined' => 'Refusés',
     ],
+    'headings' => [
+        'all_documents' => 'Tous les Documents',
+        'pending_documents' => 'Documents en Attente',
+        'approved_documents' => 'Documents Approuvés',
+        'declined_documents' => 'Documents Refusés',
+    ],
     'all_departments' => 'Tous les Pôles',
     'back_to_departments' => 'Retour aux Pôles',
     'view_all' => 'Tout voir',

@@ -11,6 +11,12 @@ return [
         'todays_uploads' => "Today's Uploads",
         'declined' => 'Declined',
     ],
+    'headings' => [
+        'all_documents' => 'All Documents',
+        'pending_documents' => 'Pending Documents',
+        'approved_documents' => 'Approved Documents',
+        'declined_documents' => 'Declined Documents',
+    ],
     'all_departments' => 'All Pole',
     'back_to_departments' => 'Back to Poles',
     'view_all' => 'View all',

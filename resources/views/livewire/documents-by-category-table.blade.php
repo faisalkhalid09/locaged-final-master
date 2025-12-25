@@ -1,7 +1,7 @@
 <div class="mt-5">
-    @if($showExpired)
+    @if($pageTitle)
         <div class="mb-4">
-            <h2 class="fw-bold">{{ ui_t('pages.stats.all_documents') }}</h2>
+            <h2 class="fw-bold">{{ ui_t('pages.headings.' . $pageTitle) }}</h2>
         </div>
     @endif
     <div class="section-header justify-content-end">
