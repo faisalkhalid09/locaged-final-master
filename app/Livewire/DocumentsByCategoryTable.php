@@ -31,6 +31,7 @@ class DocumentsByCategoryTable extends Component
     public $tags = '';
     public $favoritesOnly = false;
     public $documentId = null; // Filter by specific document ID
+    public $showExpired = false; // Show expired documents (from dashboard All Documents card)
 
     public $documentsIds = [];
     public $checkedDocuments = []; // IDs of selected documents
@@ -51,6 +52,7 @@ class DocumentsByCategoryTable extends Component
         'favoritesOnly' => ['except' => false],
         'perPage' => ['except' => 10],
         'documentId' => ['except' => null, 'as' => 'document_id'],
+        'showExpired' => ['except' => false, 'as' => 'show_expired'],
     ];
 
     public function mount($filterId = null, $isCategory = false, $contextLabel = null): void
@@ -151,12 +153,14 @@ class DocumentsByCategoryTable extends Component
             'subcategory', 'department', 'box.shelf.row.room', 'createdBy', 'latestVersion', 'auditLogs.user'
         ]);
 
-        // Exclude expired documents - they should only appear on the destructions page
+        // Exclude expired documents unless showExpired is true (from dashboard All Documents card)
         // Real-time check: if expire_at is in the past, document is expired
-        $documentsQuery->where(function ($q) {
-            $q->whereNull('expire_at')
-              ->orWhere('expire_at', '>', now());
-        });
+        if (!$this->showExpired) {
+            $documentsQuery->where(function ($q) {
+                $q->whereNull('expire_at')
+                  ->orWhere('expire_at', '>', now());
+            });
+        }
 
         // Handle category/subcategory filter
         if ($this->filterId) {

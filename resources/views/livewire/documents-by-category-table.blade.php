@@ -1,4 +1,9 @@
 <div class="mt-5">
+    @if($showExpired)
+        <div class="mb-4">
+            <h2 class="fw-bold">{{ ui_t('pages.stats.all_documents') }}</h2>
+        </div>
+    @endif
     <div class="section-header justify-content-end">
         <div class="section-actions ">
             {{--   <i class="fa-solid fa-sliders align-self-center"></i>--}}
@@ -223,18 +228,23 @@
                     </td>
 
                     <td>
-                        <button class="status-badge 
-                            @if($doc->status === 'approved') approved
-                            @elseif($doc->status === 'pending') pending
-                            @elseif($doc->status === 'declined') declined
-                            @elseif($doc->status === 'archived') archived
-                            @else approved
-                            @endif border-0">
-                            {{ ui_t('pages.documents.status.' . $doc->status) }}
-                            @if($doc->status === 'declined' && $doc->created_by === auth()->id())
-                                <i class="fas fa-trash-can ms-1" title="{{ ui_t('pages.documents.permanent_delete_hint') }}"></i>
+                        <div class="d-flex flex-column gap-1">
+                            <button class="status-badge 
+                                @if($doc->status === 'approved') approved
+                                @elseif($doc->status === 'pending') pending
+                                @elseif($doc->status === 'declined') declined
+                                @elseif($doc->status === 'archived') archived
+                                @else approved
+                                @endif border-0">
+                                {{ ui_t('pages.documents.status.' . $doc->status) }}
+                                @if($doc->status === 'declined' && $doc->created_by === auth()->id())
+                                    <i class="fas fa-trash-can ms-1" title="{{ ui_t('pages.documents.permanent_delete_hint') }}"></i>
+                                @endif
+                            </button>
+                            @if($doc->expire_at && $doc->expire_at->isPast())
+                                <span class="badge bg-danger" style="font-size: 0.7rem;">{{ ui_t('pages.destructions.status.expired') }}</span>
                             @endif
-                        </button>
+                        </div>
                     </td>
                     <td>
                         <div>
