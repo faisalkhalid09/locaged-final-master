@@ -12,6 +12,14 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\WorkFlowRuleController;
 use Illuminate\Support\Facades\Route;
 
+// Password setup routes (signed URLs for new user invitations)
+Route::get('/password/setup/{user}', [App\Http\Controllers\Auth\PasswordSetupController::class, 'show'])
+    ->name('password.setup.show')
+    ->middleware('signed');
+    
+Route::post('/password/setup/{user}', [App\Http\Controllers\Auth\PasswordSetupController::class, 'store'])
+    ->name('password.setup.store')
+    ->middleware('signed');
 
 Route::middleware('auth')->group(function () {
 

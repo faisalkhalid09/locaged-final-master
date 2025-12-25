@@ -252,39 +252,47 @@ class UserController extends Controller
             $servicesRule = 'required|array|min:1';
         }
 
+        // NEW: Check if admin wants to set password now
+        $setPasswordNow = $request->boolean('set_password_now', false);
+
         $data = $request->validate([
             'full_name'  => 'required|string|max:255',
             'email'      => 'required|email|unique:users,email',
-            'password'   => ['required', 'string', 'confirmed', Password::min(8)->mixedCase()->numbers()->symbols()],
+            // Password is now conditionally required
+            'password'   => $setPasswordNow 
+                ? ['required', 'string', 'confirmed', Password::min(8)->mixedCase()->numbers()->symbols()]
+                : ['nullable'],
             'active'     => 'nullable|boolean',
             'role'       => 'nullable|exists:roles,id',
-            // Note: department_id removed - now using multi-department system via pivot table
-'departments'   => $departmentsRule,
+            'departments'   => $departmentsRule,
             'departments.*' => 'exists:departments,id',
             'sub_departments'   => $subDepartmentsRule,
             'sub_departments.*' => 'exists:sub_departments,id',
             'services'          => $servicesRule,
             'services.*'        => 'exists:services,id',
+            'set_password_now'  => 'nullable|boolean',
         ], [
-'departments.required' => 'At least one structure must be selected.',
+            'departments.required' => 'At least one structure must be selected.',
             'departments.min' => 'At least one structure must be selected.',
             'sub_departments.required' => 'At least one sub-department must be selected for this role.',
             'sub_departments.min' => 'At least one sub-department must be selected for this role.',
-'service_id.required' => 'A service must be selected for this role.',
+            'service_id.required' => 'A service must be selected for this role.',
         ]);
 
         // Determine primary sub-department and service (first in each list)
         $primarySubDeptId = isset($data['sub_departments'][0]) ? $data['sub_departments'][0] : null;
         $primaryServiceId = isset($data['services'][0]) ? $data['services'][0] : null;
 
+        // Store plain text password before hashing (for email)
+        $plainPassword = $data['password'] ?? null;
+
         $user = User::create([
             'full_name' => $data['full_name'],
             'email' => $data['email'],
             'active' => $data['active'] ?? true,
-            // Note: department_id removed - now using multi-department system via pivot table
-            // Username removed from UI; keep DB non-null by setting it to email
             'username' => $data['email'],
-            'password' => Hash::make($data['password']),
+            // If password provided, hash it; otherwise set random password that user can't use
+            'password' => $plainPassword ? Hash::make($plainPassword) : Hash::make(bin2hex(random_bytes(32))),
             'locale' => 'fr', // Default locale is French
             'sub_department_id' => $primarySubDeptId,
             'service_id'        => $primaryServiceId,
@@ -300,16 +308,26 @@ class UserController extends Controller
             $user->assignRole($role->name);
         }
 
-        // Sync multiple departments (may be optional depending on role)
+        // Sync multiple departments
         $user->departments()->sync($data['departments'] ?? []);
-
-        // Sync sub-departments (multi-select via pivot)
         $user->subDepartments()->sync($data['sub_departments'] ?? ($primarySubDeptId ? [$primarySubDeptId] : []));
-
-        // Sync services (multi-select)
         $user->services()->sync($data['services'] ?? []);
 
-        return redirect()->back()->with('success', 'User created successfully.');
+        // NEW: Send appropriate email
+        if ($setPasswordNow && $plainPassword) {
+            // Admin set password: send credentials email
+            \Mail::to($user->email)->send(new \App\Mail\UserCreatedWithPassword($user, $plainPassword));
+        } else {
+            // Admin didn't set password: send invitation email with setup link
+            $setupUrl = \URL::temporarySignedRoute(
+                'password.setup.show',
+                now()->addHours(24),
+                ['user' => $user->id]
+            );
+            \Mail::to($user->email)->send(new \App\Mail\UserInvitation($user, $setupUrl));
+        }
+
+        return redirect()->back()->with('success', 'User created successfully. An email has been sent to the user.');
     }
 
         // Update an existing user (Admins from Users management UI)
