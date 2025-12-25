@@ -856,6 +856,13 @@ class HomeController extends Controller
             ->groupBy('day', 'status')
             ->get();
 
+        // Get deleted documents from audit logs
+        $deletedWeekly = \App\Models\AuditLog::selectRaw('DAYNAME(created_at) as day, COUNT(DISTINCT document_id) as total')
+            ->where('action', 'permanently_deleted')
+            ->whereBetween('created_at', [$now->copy()->subDays(6)->startOfDay(), $now->copy()->endOfDay()])
+            ->groupBy('day')
+            ->get();
+
         $daysOrder = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
         $weekly = [];
         foreach ($daysOrder as $day) {
@@ -864,6 +871,10 @@ class HomeController extends Controller
         }
         foreach ($rawWeekly as $row) {
             $weekly[$row->day][$row->status] = $row->total;
+        }
+        // Add deleted counts from audit logs
+        foreach ($deletedWeekly as $row) {
+            $weekly[$row->day]['deleted'] = $row->total;
         }
 
         return array_values($weekly);
@@ -880,6 +891,13 @@ class HomeController extends Controller
             ->groupBy('month', 'status')
             ->get();
 
+        // Get deleted documents from audit logs
+        $deletedMonthly = \App\Models\AuditLog::selectRaw('DATE_FORMAT(created_at, "%Y-%m") as month, COUNT(DISTINCT document_id) as total')
+            ->where('action', 'permanently_deleted')
+            ->whereBetween('created_at', [$now->copy()->subMonths(11)->startOfMonth(), $now->copy()->endOfMonth()])
+            ->groupBy('month')
+            ->get();
+
         $monthly = [];
         $startOfYear = $now->copy()->startOfYear();
 
@@ -891,6 +909,13 @@ class HomeController extends Controller
 
         foreach ($rawMonthly as $row) {
             $monthly[$row->month][$row->status] = $row->total;
+        }
+        
+        // Add deleted counts from audit logs
+        foreach ($deletedMonthly as $row) {
+            if (isset($monthly[$row->month])) {
+                $monthly[$row->month]['deleted'] = $row->total;
+            }
         }
 
         return array_values($monthly);
@@ -907,6 +932,13 @@ class HomeController extends Controller
             ->groupBy('year', 'status')
             ->get();
 
+        // Get deleted documents from audit logs
+        $deletedYearly = \App\Models\AuditLog::selectRaw('YEAR(created_at) as year, COUNT(DISTINCT document_id) as total')
+            ->where('action', 'permanently_deleted')
+            ->whereBetween('created_at', [$now->copy()->subYears(4)->startOfYear(), $now->copy()->endOfYear()])
+            ->groupBy('year')
+            ->get();
+
         $yearly = [];
         for ($i = 0; $i < 5; $i++) {
             $yearKey = $now->copy()->subYears(4 - $i)->format('Y');
@@ -916,6 +948,13 @@ class HomeController extends Controller
 
         foreach ($rawYearly as $row) {
             $yearly[$row->year][$row->status] = $row->total;
+        }
+        
+        // Add deleted counts from audit logs
+        foreach ($deletedYearly as $row) {
+            if (isset($yearly[$row->year])) {
+                $yearly[$row->year]['deleted'] = $row->total;
+            }
         }
 
         return array_values($yearly);
