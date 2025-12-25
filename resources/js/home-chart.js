@@ -13,7 +13,7 @@ if (chartEl) {
     const approvedLabel = chartEl.dataset.approvedLabel || 'Approved';
     const pendingLabel = chartEl.dataset.pendingLabel || 'Pending';
     const declinedLabel = chartEl.dataset.declinedLabel || 'Declined';
-    const destroyedLabel = chartEl.dataset.destroyedLabel || 'Destroyed';
+    const deletedLabel = chartEl.dataset.deletedLabel || 'Deleted';
 
 
     const labelsWeekly = weeklyData.map(item => item.day.substring(0, 3).toUpperCase());
@@ -38,7 +38,7 @@ if (chartEl) {
                 { label: approvedLabel, data: getData(monthlyData, 'approved', 12), backgroundColor: '#28a745', borderRadius: 6, barThickness: 14 },
                 { label: pendingLabel, data: getData(monthlyData, 'pending', 12), backgroundColor: '#f1c40f', borderRadius: 6, barThickness: 14 },
                 { label: declinedLabel, data: getData(monthlyData, 'declined', 12), backgroundColor: '#dc3545', borderRadius: 6, barThickness: 14 },
-                { label: destroyedLabel, data: getData(monthlyData, 'destroyed', 12), backgroundColor: '#343a40', borderRadius: 6, barThickness: 14 }
+                { label: deletedLabel, data: getData(monthlyData, 'deleted', 12), backgroundColor: '#343a40', borderRadius: 6, barThickness: 14 }
             ]
         },
         options: {
@@ -120,7 +120,7 @@ if (chartEl) {
             chart.data.datasets[0].data = getData(dataSource, 'approved', dataLength);
             chart.data.datasets[1].data = getData(dataSource, 'pending', dataLength);
             chart.data.datasets[2].data = getData(dataSource, 'declined', dataLength);
-            chart.data.datasets[3].data = getData(dataSource, 'destroyed', dataLength);
+            chart.data.datasets[3].data = getData(dataSource, 'deleted', dataLength);
 
             chart.update();
         });
