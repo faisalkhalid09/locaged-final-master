@@ -238,7 +238,7 @@
                                     </td>
                                     <td>
                                         @if($log->document)
-                                            <a href="{{ route('document-versions.by-document', ['id' => $log->document->id]) }}" class="text-decoration-none">
+                                            <a href="{{ route('documents.all', ['document_id' => $log->document->id]) }}" class="text-decoration-none">
                                                 <div class="fw-semibold text-primary">{{ \Str::limit($log->document->title, 40) }}</div>
                                             </a>
                                             @if($log->document->department)
