@@ -859,9 +859,9 @@ class HomeController extends Controller
 
         // Get deleted documents from audit logs
         $deletedWeekly = \App\Models\AuditLog::withoutGlobalScopes()
-            ->selectRaw('DAYNAME(created_at) as day, COUNT(DISTINCT document_id) as total')
+            ->selectRaw('DAYNAME(occurred_at) as day, COUNT(DISTINCT document_id) as total')
             ->where('action', 'permanently_deleted')
-            ->whereBetween('created_at', [$now->copy()->subDays(6)->startOfDay(), $now->copy()->endOfDay()])
+            ->whereBetween('occurred_at', [$now->copy()->subDays(6)->startOfDay(), $now->copy()->endOfDay()])
             ->groupBy('day')
             ->get();
 
@@ -895,9 +895,9 @@ class HomeController extends Controller
 
         // Get deleted documents from audit logs
         $deletedMonthly = \App\Models\AuditLog::withoutGlobalScopes()
-            ->selectRaw('DATE_FORMAT(created_at, "%Y-%m") as month, COUNT(DISTINCT document_id) as total')
+            ->selectRaw('DATE_FORMAT(occurred_at, "%Y-%m") as month, COUNT(DISTINCT document_id) as total')
             ->where('action', 'permanently_deleted')
-            ->whereBetween('created_at', [$now->copy()->subMonths(11)->startOfMonth(), $now->copy()->endOfMonth()])
+            ->whereBetween('occurred_at', [$now->copy()->subMonths(11)->startOfMonth(), $now->copy()->endOfMonth()])
             ->groupBy('month')
             ->get();
 
@@ -937,9 +937,9 @@ class HomeController extends Controller
 
         // Get deleted documents from audit logs
         $deletedYearly = \App\Models\AuditLog::withoutGlobalScopes()
-            ->selectRaw('YEAR(created_at) as year, COUNT(DISTINCT document_id) as total')
+            ->selectRaw('YEAR(occurred_at) as year, COUNT(DISTINCT document_id) as total')
             ->where('action', 'permanently_deleted')
-            ->whereBetween('created_at', [$now->copy()->subYears(4)->startOfYear(), $now->copy()->endOfYear()])
+            ->whereBetween('occurred_at', [$now->copy()->subYears(4)->startOfYear(), $now->copy()->endOfYear()])
             ->groupBy('year')
             ->get();
 
