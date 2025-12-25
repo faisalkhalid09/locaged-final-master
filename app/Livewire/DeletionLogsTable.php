@@ -31,7 +31,7 @@ class DeletionLogsTable extends Component
         'deletedBy' => ['except' => ''],
         'departmentId' => ['except' => ''],
         'perPage' => ['except' => 25],
-        'document_id' => ['except' => null, 'as' => 'documentId'],
+        'documentId' => ['except' => null, 'as' => 'document_id'],
     ];
 
     public function mount(): void
