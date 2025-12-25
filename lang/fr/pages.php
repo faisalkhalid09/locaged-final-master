@@ -831,6 +831,24 @@ return [
         'share_of_used_space' => 'Part de l\'espace utilisé',
         'values_calculated' => 'Les valeurs sont calculées en fonction des fichiers stockés sur le disque de stockage local de l\'application.',
     ],
+    'destructions' => [
+        'title' => 'File de destruction des documents',
+        'document_name' => 'Nom du document',
+        'author' => 'Auteur',
+        'created_by' => 'Créé par',
+        'creation_date' => 'Date de création',
+        'expiration_date' => 'Date d\'expiration',
+        'status' => 'Statut',
+        'actions' => 'Actions',
+        'status_values' => [
+            'expired' => 'Expiré',
+            'pending' => 'En attente',
+            'accepted' => 'Accepté',
+            'rejected' => 'Rejeté',
+        ],
+        'export' => 'Exporter',
+        'preview' => 'Aperçu',
+    ],
 ];
 
 

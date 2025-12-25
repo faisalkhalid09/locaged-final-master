@@ -838,6 +838,24 @@ return [
         'share_of_used_space' => 'Share of used space',
         'values_calculated' => "Values are calculated based on files stored on the application's local storage disk.",
     ],
+    'destructions' => [
+        'title' => 'Document Destruction Queue',
+        'document_name' => 'Document Name',
+        'author' => 'Author',
+        'created_by' => 'Created By',
+        'creation_date' => 'Creation Date',
+        'expiration_date' => 'Expiration Date',
+        'status' => 'Status',
+        'actions' => 'Actions',
+        'status_values' => [
+            'expired' => 'Expired',
+            'pending' => 'Pending',
+            'accepted' => 'Accepted',
+            'rejected' => 'Rejected',
+        ],
+        'export' => 'Export',
+        'preview' => 'Preview',
+    ],
 ];
 
 

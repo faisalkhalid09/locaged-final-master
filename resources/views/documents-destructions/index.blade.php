@@ -22,8 +22,8 @@
                                 <th style="min-width: 120px;">{{ ui_t('pages.destructions.created_by') }}</th>
                                 <th style="min-width: 110px;">{{ ui_t('pages.destructions.creation_date') }}</th>
                                 <th style="min-width: 110px;">{{ ui_t('pages.destructions.expiration_date') }}</th>
-                                <th style="min-width: 80px;">{{ __('Status') }}</th>
-                                <th style="min-width: 200px;" class="text-center">{{ __('Actions') }}</th>
+                                <th style="min-width: 80px;">{{ ui_t('pages.destructions.status') }}</th>
+                                <th style="min-width: 200px;" class="text-center">{{ ui_t('pages.destructions.actions') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -70,7 +70,7 @@
                                     {{-- Status --}}
                                     <td>
                                         <span class="badge bg-danger">
-                                            {{ __('Expired') }}
+                                            {{ ui_t('pages.destructions.status_values.expired') }}
                                         </span>
                                     </td>
                                     {{-- Actions --}}
