@@ -832,18 +832,23 @@ class HomeController extends Controller
             ->groupBy('status')
             ->pluck('count', 'status');
 
+        // Count permanently deleted documents from audit logs
+        $deletedCount = \App\Models\AuditLog::where('action', 'permanently_deleted')
+            ->distinct('document_id')
+            ->count('document_id');
+
         return [
             DocumentStatus::Approved->value => $statusCounts['approved'] ?? 0,
             DocumentStatus::Pending->value  => $statusCounts['pending'] ?? 0,
             DocumentStatus::Declined->value => $statusCounts['declined'] ?? 0,
-            DocumentStatus::Destroyed->value => $statusCounts['destroyed'] ?? 0,
+            'deleted' => $deletedCount,
         ];
     }
 
     private function getWeeklyData()
     {
         $now = Carbon::now();
-        $statuses = ['pending', 'approved', 'declined', 'destroyed'];
+        $statuses = ['pending', 'approved', 'declined', 'deleted'];
 
         $rawWeekly = $this->getVisibleDocumentsQuery()
             ->selectRaw('DAYNAME(created_at) as day, status, COUNT(*) as total')
@@ -867,7 +872,7 @@ class HomeController extends Controller
     private function getMonthlyData()
     {
         $now = Carbon::now();
-        $statuses = ['pending', 'approved', 'declined', 'destroyed'];
+        $statuses = ['pending', 'approved', 'declined', 'deleted'];
 
         $rawMonthly = $this->getVisibleDocumentsQuery()
             ->selectRaw('DATE_FORMAT(created_at, "%Y-%m") as month, status, COUNT(*) as total')
@@ -894,7 +899,7 @@ class HomeController extends Controller
     private function getYearlyData()
     {
         $now = Carbon::now();
-        $statuses = ['pending', 'approved', 'declined', 'destroyed'];
+        $statuses = ['pending', 'approved', 'declined', 'deleted'];
 
         $rawYearly = $this->getVisibleDocumentsQuery()
             ->selectRaw('YEAR(created_at) as year, status, COUNT(*) as total')

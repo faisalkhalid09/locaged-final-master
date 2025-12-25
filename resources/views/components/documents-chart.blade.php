@@ -24,7 +24,7 @@
                     data-approved-label="{{ ui_t('pages.chart.approved') }}"
                     data-pending-label="{{ ui_t('pages.chart.pending') }}"
                     data-declined-label="{{ ui_t('pages.chart.rejected') }}"
-                    data-destroyed-label="{{ ui_t('pages.chart.destroyed') }}"
+                    data-deleted-label="{{ ui_t('pages.chart.deleted') }}"
                 ></canvas>
 
             </div>
@@ -85,9 +85,9 @@
                         <li class="d-flex justify-content-between align-items-center mt-2">
                             <div class="d-flex align-items-center gap-2">
                                 <span class="bg-dark rounded-circle d-inline-block" style="width: 10px; height: 10px"></span>
-                                <span>{{ ui_t('pages.chart.destroyed') }}</span>
+                                <span>{{ ui_t('pages.chart.deleted') }}</span>
                             </div>
-                            <span class="fw-semibold">{{ $statusSummary['destroyed'] ?? 0 }}</span>
+                            <span class="fw-semibold">{{ $statusSummary['deleted'] ?? 0 }}</span>
                         </li>
                     </ul>
                 </div>
