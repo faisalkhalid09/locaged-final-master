@@ -9,29 +9,13 @@ class AddDeletedChartTranslationSeeder extends Seeder
 {
     public function run()
     {
-        $translations = [
+        UiTranslation::updateOrCreate(
+            ['key' => 'pages.chart.deleted'],
             [
-                'key' => 'pages.chart.deleted',
-                'locale' => 'en',
-                'value' => 'Deleted',
-            ],
-            [
-                'key' => 'pages.chart.deleted',
-                'locale' => 'fr',
-                'value' => 'Supprimé',
-            ],
-            [
-                'key' => 'pages.chart.deleted',
-                'locale' => 'ar',
-                'value' => 'محذوف',
-            ],
-        ];
-
-        foreach ($translations as $translation) {
-            UiTranslation::updateOrCreate(
-                ['key' => $translation['key'], 'locale' => $translation['locale']],
-                ['value' => $translation['value']]
-            );
-        }
+                'en_text' => 'Deleted',
+                'fr_text' => 'Supprimé',
+                'ar_text' => 'محذوف',
+            ]
+        );
     }
 }
