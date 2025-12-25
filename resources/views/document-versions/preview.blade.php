@@ -121,23 +121,62 @@
                         </div>
 
                         <div class="row g-3 mb-3 p-4">
+                            {{-- Pole (Department) - locked --}}
                             <div class="col-md-6">
-                                <label for="subcategory" class="form-label">{{ ui_t('pages.versions.subcategory') }}</label>
-                                <select name="subcategory_id" id="subcategory" class="form-select" @if($isExpired) disabled @endif>
-                                    <option value="">{{ ui_t('pages.versions.select_subcategory') }}</option>
-                                    @php
-                                        $groupedSubcategories = $subcategories->groupBy('category.name');
-                                    @endphp
-                                    @foreach($groupedSubcategories as $categoryName => $subcategories)
-                                        <optgroup label="{{ $categoryName }}">
-                                            @foreach($subcategories as $subcategory)
-                                                <option value="{{ $subcategory->id }}"
-                                                    {{ (old('subcategory_id', $document->subcategory_id ?? '') == $subcategory->id) ? 'selected' : '' }}>
-                                                    {{ $subcategory->name }}
-                                                </option>
-                                            @endforeach
-                                        </optgroup>
-                                    @endforeach
+                                <label for="pole" class="form-label">{{ __('Pole') }}</label>
+                                <input
+                                    type="text"
+                                    class="form-control"
+                                    id="pole"
+                                    value="{{ $document->service->subDepartment->department->name ?? 'N/A' }}"
+                                    disabled
+                                />
+                            </div>
+
+                            {{-- Department (Sub-Department) - locked --}}
+                            <div class="col-md-6">
+                                <label for="department" class="form-label">{{ __('Department') }}</label>
+                                <input
+                                    type="text"
+                                    class="form-control"
+                                    id="department"
+                                    value="{{ $document->service->subDepartment->name ?? 'N/A' }}"
+                                    disabled
+                                />
+                            </div>
+
+                            {{-- Service - locked --}}
+                            <div class="col-md-6">
+                                <label for="service" class="form-label">{{ __('Service') }}</label>
+                                <input
+                                    type="text"
+                                    class="form-control"
+                                    id="service"
+                                    value="{{ $document->service->name ?? 'N/A' }}"
+                                    disabled
+                                />
+                            </div>
+
+                            {{-- Category - editable, filtered by service --}}
+                            <div class="col-md-6">
+                                <label for="category" class="form-label">{{ __('Category') }}</label>
+                                <select name="category_id" id="category" class="form-select" @if($isExpired) disabled @endif>
+                                    <option value="">{{ __('-- Select Category --') }}</option>
+                                    @if($document->service_id)
+                                        @php
+                                            $serviceCategories = $categories->where('service_id', $document->service_id);
+                                        @endphp
+                                        @forelse($serviceCategories as $category)
+                                            <option value="{{ $category->id }}"
+                                                {{ (old('category_id', $document->category_id ?? '') == $category->id) ? 'selected' : '' }}>
+                                                {{ $category->name }}
+                                            </option>
+                                        @empty
+                                            <option value="" disabled>{{ __('No categories available for this service') }}</option>
+                                        @endforelse
+                                    @else
+                                        <option value="" disabled>{{ __('Please assign a service first') }}</option>
+                                    @endif
                                 </select>
                             </div>
 
