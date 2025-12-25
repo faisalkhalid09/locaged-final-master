@@ -21,6 +21,7 @@ class DeletionLogsTable extends Component
     public $deletedBy = '';
     public $departmentId = '';
     public $perPage = 25;
+    public $documentId = null; // Filter by specific document ID
 
     protected $queryString = [
         'search' => ['except' => ''],
@@ -30,6 +31,7 @@ class DeletionLogsTable extends Component
         'deletedBy' => ['except' => ''],
         'departmentId' => ['except' => ''],
         'perPage' => ['except' => 25],
+        'document_id' => ['except' => null, 'as' => 'documentId'],
     ];
 
     public function mount(): void
@@ -44,7 +46,7 @@ class DeletionLogsTable extends Component
     {
         if (in_array($field, [
             'search', 'creationDate', 'expirationDate',
-            'deletedAt', 'deletedBy', 'departmentId', 'perPage'
+            'deletedAt', 'deletedBy', 'departmentId', 'perPage', 'documentId'
         ])) {
             $this->resetPage();
         }
@@ -59,6 +61,7 @@ class DeletionLogsTable extends Component
         $this->deletedBy = '';
         $this->departmentId = '';
         $this->perPage = 25;
+        $this->documentId = null;
         $this->resetPage();
     }
 
@@ -99,6 +102,10 @@ class DeletionLogsTable extends Component
                 $q->whereHas('document', function($q2) {
                     $q2->withTrashed()->where('department_id', $this->departmentId);
                 });
+            })
+            // Filter by specific document ID (from audit page)
+            ->when($this->documentId, function($q) {
+                $q->where('document_id', $this->documentId);
             })
             ->orderByDesc('occurred_at');
     }

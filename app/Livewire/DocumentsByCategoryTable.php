@@ -50,7 +50,7 @@ class DocumentsByCategoryTable extends Component
         'tags' => ['except' => ''],
         'favoritesOnly' => ['except' => false],
         'perPage' => ['except' => 10],
-        'documentId' => ['except' => null],
+        'document_id' => ['except' => null, 'as' => 'documentId'],
     ];
 
     public function mount($filterId = null, $isCategory = false, $contextLabel = null): void
