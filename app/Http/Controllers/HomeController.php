@@ -833,7 +833,8 @@ class HomeController extends Controller
             ->pluck('count', 'status');
 
         // Count permanently deleted documents from audit logs
-        $deletedCount = \App\Models\AuditLog::where('action', 'permanently_deleted')
+        $deletedCount = \App\Models\AuditLog::withoutGlobalScopes()
+            ->where('action', 'permanently_deleted')
             ->distinct('document_id')
             ->count('document_id');
 
@@ -857,7 +858,8 @@ class HomeController extends Controller
             ->get();
 
         // Get deleted documents from audit logs
-        $deletedWeekly = \App\Models\AuditLog::selectRaw('DAYNAME(created_at) as day, COUNT(DISTINCT document_id) as total')
+        $deletedWeekly = \App\Models\AuditLog::withoutGlobalScopes()
+            ->selectRaw('DAYNAME(created_at) as day, COUNT(DISTINCT document_id) as total')
             ->where('action', 'permanently_deleted')
             ->whereBetween('created_at', [$now->copy()->subDays(6)->startOfDay(), $now->copy()->endOfDay()])
             ->groupBy('day')
@@ -892,7 +894,8 @@ class HomeController extends Controller
             ->get();
 
         // Get deleted documents from audit logs
-        $deletedMonthly = \App\Models\AuditLog::selectRaw('DATE_FORMAT(created_at, "%Y-%m") as month, COUNT(DISTINCT document_id) as total')
+        $deletedMonthly = \App\Models\AuditLog::withoutGlobalScopes()
+            ->selectRaw('DATE_FORMAT(created_at, "%Y-%m") as month, COUNT(DISTINCT document_id) as total')
             ->where('action', 'permanently_deleted')
             ->whereBetween('created_at', [$now->copy()->subMonths(11)->startOfMonth(), $now->copy()->endOfMonth()])
             ->groupBy('month')
@@ -933,7 +936,8 @@ class HomeController extends Controller
             ->get();
 
         // Get deleted documents from audit logs
-        $deletedYearly = \App\Models\AuditLog::selectRaw('YEAR(created_at) as year, COUNT(DISTINCT document_id) as total')
+        $deletedYearly = \App\Models\AuditLog::withoutGlobalScopes()
+            ->selectRaw('YEAR(created_at) as year, COUNT(DISTINCT document_id) as total')
             ->where('action', 'permanently_deleted')
             ->whereBetween('created_at', [$now->copy()->subYears(4)->startOfYear(), $now->copy()->endOfYear()])
             ->groupBy('year')
