@@ -49,7 +49,7 @@
                                 <option value="Asia/Hong_Kong" {{ \App\Support\Branding::getTimezone() === 'Asia/Hong_Kong' ? 'selected' : '' }}>HKT (Asia/Hong_Kong)</option>
                             </optgroup>
                             <optgroup label="Africa">
-                                <option value="Africa/Casablanca" {{ \App\Support\Branding::getTimezone() === 'Africa/Casablanca' ? 'selected' : '' }}>WET (Africa/Casablanca - Morocco UTC+1)</option>
+                                <option value="Africa/Casablanca" {{ \App\Support\Branding::getTimezone() === 'Africa/Casablanca' ? 'selected' : '' }}>Morocco (Africa/Casablanca – UTC+1)</option>
                             </optgroup>
                             <optgroup label="Other">
                                 <option value="UTC" {{ \App\Support\Branding::getTimezone() === 'UTC' ? 'selected' : '' }}>UTC</option>
