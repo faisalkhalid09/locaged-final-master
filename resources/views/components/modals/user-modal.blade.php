@@ -54,7 +54,20 @@
 
             
 
-            <div class="mb-3">
+            {{-- Checkbox to set password now (only shown when creating new user) --}}
+            <div class="mb-3" id="setPasswordNowContainer">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="setPasswordNowCheckbox" name="set_password_now" value="1">
+                    <label class="form-check-label" for="setPasswordNowCheckbox">
+                        {{ ui_t('pages.users_page.user_modal.set_password_now') }}
+                    </label>
+                    <small class="form-text text-muted d-block">
+                        {{ ui_t('pages.users_page.user_modal.set_password_now_hint') }}
+                    </small>
+                </div>
+            </div>
+
+            <div class="mb-3" id="passwordFieldsContainer">
                 <label class="form-label">{{ ui_t('pages.users_page.user_modal.password') }}</label>
                 <input type="password"
                        class="form-control @error('password') is-invalid @enderror"
@@ -66,7 +79,7 @@
                 @enderror
             </div>
 
-            <div class="mb-3">
+            <div class="mb-3" id="passwordConfirmFieldsContainer">
                 <label class="form-label">{{ ui_t('pages.users_page.user_modal.confirm_password') }}</label>
                 <input type="password"
                        class="form-control"
@@ -171,6 +184,49 @@
     const subDepartmentSelect = document.getElementById("subDepartmentSelect");
     const serviceContainer = document.getElementById("serviceContainer");
     const serviceSelect = document.getElementById("serviceSelect");
+    
+    // Password checkbox and containers
+    const setPasswordNowCheckbox = document.getElementById("setPasswordNowCheckbox");
+    const setPasswordNowContainer = document.getElementById("setPasswordNowContainer");
+    const passwordFieldsContainer = document.getElementById("passwordFieldsContainer");
+    const passwordConfirmFieldsContainer = document.getElementById("passwordConfirmFieldsContainer");
+    const passwordInput = document.getElementById("passwordInput");
+    const passwordConfirmInput = document.getElementById("passwordConfirmationInput");
+
+    // Toggle password fields visibility based on checkbox and mode (create/edit)
+    function togglePasswordFields() {
+        const isCreating = formMethodInput.value === "POST";
+        const setPasswordNow = setPasswordNowCheckbox.checked;
+        
+        if (isCreating) {
+            // Creating new user
+            setPasswordNowContainer.classList.remove("d-none");
+            
+            if (setPasswordNow) {
+                // Show password fields if checkbox is checked
+                passwordFieldsContainer.classList.remove("d-none");
+                passwordConfirmFieldsContainer.classList.remove("d-none");
+                passwordInput.required = true;
+                passwordConfirmInput.required = true;
+            } else {
+                // Hide password fields if checkbox unchecked
+                passwordFieldsContainer.classList.add("d-none");
+                passwordConfirmFieldsContainer.classList.add("d-none");
+                passwordInput.required = false;
+                passwordConfirmInput.required = false;
+                passwordInput.value = "";
+                passwordConfirmInput.value = "";
+            }
+        } else {
+            // Editing existing user - always show password fields (optional), hide checkbox
+            setPasswordNowContainer.classList.add("d-none");
+            passwordFieldsContainer.classList.remove("d-none");
+            passwordConfirmFieldsContainer.classList.remove("d-none");
+            passwordInput.required = false;
+            passwordConfirmInput.required = false;
+        }
+    }
+
 
     function getSelectedRoleName() {
         if (!roleSelect) return '';
@@ -287,6 +343,11 @@
         formMethodInput.value = "POST";
         form.action = "{{ route('users.store') }}"; // default to create
 
+        // Reset password checkbox
+        if (setPasswordNowCheckbox) {
+            setPasswordNowCheckbox.checked = false;
+        }
+
         if (departmentSelect) {
             Array.from(departmentSelect.options).forEach(opt => (opt.selected = false));
         }
@@ -300,7 +361,11 @@
         applyRoleOrgVisibility();
         filterSubDepartmentsByDepartments();
         filterServicesBySubDepartment();
+        togglePasswordFields(); // Update password fields visibility
     }
+
+    // Event listener for password checkbox
+    setPasswordNowCheckbox?.addEventListener('change', togglePasswordFields);
 
     document.getElementById("nextBtn")?.addEventListener("click", () => {
         resetForm();
@@ -396,6 +461,8 @@
             // Clear password fields for security
             document.getElementById("passwordInput").value = "";
             document.getElementById("passwordConfirmationInput").value = "";
+
+            togglePasswordFields(); // Update password fields visibility for edit mode
 
             modal.classList.remove("d-none");
         });
