@@ -102,11 +102,11 @@
                        title="{{ ui_t('actions.download') ?? 'Download' }}">
                         <i class="fas fa-download"></i>
                     </a>
-                    <button onclick="window.history.back()" 
+                    <a href="{{ route('documents.all') }}" 
                             class="btn-preview" 
                             title="{{ ui_t('actions.close') ?? 'Close' }}">
                         <i class="fas fa-times"></i> {{ ui_t('actions.close') ?? 'Close' }}
-                    </button>
+                    </a>
                 </div>
             </div>
 
@@ -160,7 +160,7 @@
         // Close on Escape key
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
-                window.history.back();
+                window.location.href = '{{ route('documents.all') }}';
             }
         });
     </script>
