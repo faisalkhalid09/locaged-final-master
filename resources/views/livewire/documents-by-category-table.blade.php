@@ -538,9 +538,16 @@
             <option value="${s.id}" data-sub-department-id="${s.sub_department_id}" ${String(s.id) == String(metadata.service_id ?? '') ? 'selected' : ''}>${s.name}</option>
         `).join('');
 
-        const categoryOptions = categories.map(c => `
+
+        // Filter categories to only show those belonging to the document's service
+        const filteredCategories = metadata.service_id
+            ? categories.filter(c => String(c.service_id) === String(metadata.service_id))
+            : categories;
+
+        const categoryOptions = filteredCategories.map(c => `
             <option value="${c.id}" data-service-id="${c.service_id}" ${String(c.id) == String(metadata.category_id ?? '') ? 'selected' : ''}>${c.name}</option>
         `).join('');
+
 
         return `
             <form id="metadataForm">
