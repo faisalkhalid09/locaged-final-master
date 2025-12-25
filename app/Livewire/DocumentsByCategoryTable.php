@@ -30,6 +30,7 @@ class DocumentsByCategoryTable extends Component
     public $keywords = '';
     public $tags = '';
     public $favoritesOnly = false;
+    public $documentId = null; // Filter by specific document ID
 
     public $documentsIds = [];
     public $checkedDocuments = []; // IDs of selected documents
@@ -49,6 +50,7 @@ class DocumentsByCategoryTable extends Component
         'tags' => ['except' => ''],
         'favoritesOnly' => ['except' => false],
         'perPage' => ['except' => 10],
+        'documentId' => ['except' => null],
     ];
 
     public function mount($filterId = null, $isCategory = false, $contextLabel = null): void
@@ -192,6 +194,11 @@ class DocumentsByCategoryTable extends Component
                 $documentsQuery->whereIn('box_id', $boxIds);
             }
         }
+
+        // Specific document filter (from audit page)
+        $documentsQuery->when($this->documentId, function ($q) {
+            $q->where('id', $this->documentId);
+        });
 
         // Favorites filter
         $documentsQuery->when($this->favoritesOnly, function ($q) {

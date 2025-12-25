@@ -238,7 +238,14 @@
                                     </td>
                                     <td>
                                         @if($log->document)
-                                            <a href="{{ route('documents.all', ['document_id' => $log->document->id]) }}" class="text-decoration-none">
+                                            @php
+                                                // Check if document is permanently deleted (trashed)
+                                                $isTrashed = $log->document->trashed();
+                                                $linkUrl = $isTrashed 
+                                                    ? route('logs.deletions', ['document_id' => $log->document->id])
+                                                    : route('documents.all', ['document_id' => $log->document->id]);
+                                            @endphp
+                                            <a href="{{ $linkUrl }}" class="text-decoration-none">
                                                 <div class="fw-semibold text-primary">{{ \Str::limit($log->document->title, 40) }}</div>
                                             </a>
                                             @if($log->document->department)
