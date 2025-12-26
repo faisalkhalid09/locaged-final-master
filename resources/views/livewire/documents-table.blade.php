@@ -1,4 +1,9 @@
 <div class="mt-5">
+    @if($this->showOnlyPendingApprovals)
+        <div class="mb-4">
+            <h4 class="fw-bold">{{ ui_t('pages.dashboard.pending_documents') }}</h4>
+        </div>
+    @endif
     <div class="section-header justify-content-end">
         <div class="section-actions ">
             {{--   <i class="fa-solid fa-sliders align-self-center"></i>--}}
