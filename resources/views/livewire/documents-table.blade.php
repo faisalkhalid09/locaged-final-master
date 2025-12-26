@@ -1,6 +1,6 @@
 <div class="mt-5">
-    @if($this->showOnlyPendingApprovals)
-        <div class="mb-4">
+    @if($this->showOnlyPendingApprovals && !request()->routeIs('documents.status'))
+        <div class="mb-5 mt-4">
             <h4 class="fw-bold">{{ ui_t('pages.dashboard.pending_documents') }}</h4>
         </div>
     @endif

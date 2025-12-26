@@ -16,7 +16,7 @@
     </div>
     </a>
 
-    <a href="{{ route('documents.all', ['status' => \App\Enums\DocumentStatus::Pending->value, 'page_title' => 'pending_documents']) }}" class="text-decoration-none text-reset">
+    <a href="{{ route('documents.status') }}" class="text-decoration-none text-reset">
     <div class="stat-card blue">
         <div class="stat-icon">
             <i class="fas fa-clock"></i>
