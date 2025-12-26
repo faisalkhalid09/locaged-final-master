@@ -856,11 +856,11 @@ class HomeController extends Controller
             ->groupBy('day', 'status')
             ->get();
 
-        // Get deleted documents from audit logs
-        $deletedWeekly = \App\Models\AuditLog::withoutGlobalScopes()
-            ->selectRaw('DAYNAME(occurred_at) as day, COUNT(DISTINCT document_id) as total')
-            ->where('action', 'permanently_deleted')
-            ->whereBetween('occurred_at', [$now->copy()->subDays(6)->startOfDay(), $now->copy()->endOfDay()])
+        // Get expired documents
+        $expiredWeekly = $this->getVisibleDocumentsQuery()
+            ->selectRaw('DAYNAME(created_at) as day, COUNT(*) as total')
+            ->where('is_expired', true)
+            ->whereBetween('created_at', [$now->copy()->subDays(6)->startOfDay(), $now->copy()->endOfDay()])
             ->groupBy('day')
             ->get();
 
@@ -873,9 +873,9 @@ class HomeController extends Controller
         foreach ($rawWeekly as $row) {
             $weekly[$row->day][$row->status] = $row->total;
         }
-        // Add deleted counts from audit logs
-        foreach ($deletedWeekly as $row) {
-            $weekly[$row->day]['deleted'] = $row->total;
+        // Add expired counts
+        foreach ($expiredWeekly as $row) {
+            $weekly[$row->day]['expired'] = $row->total;
         }
 
         return array_values($weekly);
@@ -892,11 +892,11 @@ class HomeController extends Controller
             ->groupBy('month', 'status')
             ->get();
 
-        // Get deleted documents from audit logs
-        $deletedMonthly = \App\Models\AuditLog::withoutGlobalScopes()
-            ->selectRaw('DATE_FORMAT(occurred_at, "%Y-%m") as month, COUNT(DISTINCT document_id) as total')
-            ->where('action', 'permanently_deleted')
-            ->whereBetween('occurred_at', [$now->copy()->subMonths(11)->startOfMonth(), $now->copy()->endOfMonth()])
+        // Get expired documents
+        $expiredMonthly = $this->getVisibleDocumentsQuery()
+            ->selectRaw('DATE_FORMAT(created_at, "%Y-%m") as month, COUNT(*) as total')
+            ->where('is_expired', true)
+            ->whereBetween('created_at', [$now->copy()->subMonths(11)->startOfMonth(), $now->copy()->endOfMonth()])
             ->groupBy('month')
             ->get();
 
@@ -913,10 +913,10 @@ class HomeController extends Controller
             $monthly[$row->month][$row->status] = $row->total;
         }
         
-        // Add deleted counts from audit logs
-        foreach ($deletedMonthly as $row) {
+        // Add expired counts
+        foreach ($expiredMonthly as $row) {
             if (isset($monthly[$row->month])) {
-                $monthly[$row->month]['deleted'] = $row->total;
+                $monthly[$row->month]['expired'] = $row->total;
             }
         }
 
@@ -934,11 +934,11 @@ class HomeController extends Controller
             ->groupBy('year', 'status')
             ->get();
 
-        // Get deleted documents from audit logs
-        $deletedYearly = \App\Models\AuditLog::withoutGlobalScopes()
-            ->selectRaw('YEAR(occurred_at) as year, COUNT(DISTINCT document_id) as total')
-            ->where('action', 'permanently_deleted')
-            ->whereBetween('occurred_at', [$now->copy()->subYears(4)->startOfYear(), $now->copy()->endOfYear()])
+        // Get expired documents
+        $expiredYearly = $this->getVisibleDocumentsQuery()
+            ->selectRaw('YEAR(created_at) as year, COUNT(*) as total')
+            ->where('is_expired', true)
+            ->whereBetween('created_at', [$now->copy()->subYears(4)->startOfYear(), $now->copy()->endOfYear()])
             ->groupBy('year')
             ->get();
 
@@ -953,10 +953,10 @@ class HomeController extends Controller
             $yearly[$row->year][$row->status] = $row->total;
         }
         
-        // Add deleted counts from audit logs
-        foreach ($deletedYearly as $row) {
+        // Add expired counts
+        foreach ($expiredYearly as $row) {
             if (isset($yearly[$row->year])) {
-                $yearly[$row->year]['deleted'] = $row->total;
+                $yearly[$row->year]['expired'] = $row->total;
             }
         }
 
