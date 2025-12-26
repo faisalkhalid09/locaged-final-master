@@ -74,15 +74,26 @@ class DocumentController extends Controller
         return view('documents.by-subcategory', compact('subcategory'));
     }
 
-    public function showStatus()
+    public function showStatus(Request $request)
     {
         if (! Gate::any(['approve', 'decline'], Document::class)) {
             abort(403);
         }
 
+        $showExpired = $request->boolean('show_expired', false);
 
-        $documents = Document::with(['subcategory', 'department', 'box.shelf.row.room', 'createdBy'])
-            ->where('status','pending')->latest()->paginate(10);
+        $query = Document::with(['subcategory', 'department', 'box.shelf.row.room', 'createdBy'])
+            ->where('status','pending');
+        
+        // By default, hide expired documents unless show_expired=1 is passed
+        if (!$showExpired) {
+            $query->where(function($q) {
+                $q->whereNull('expire_at')
+                  ->orWhere('expire_at', '>', now());
+            });
+        }
+        
+        $documents = $query->latest()->paginate(10);
 
         return view('documents.status', compact('documents'));
     }

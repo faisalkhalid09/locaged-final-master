@@ -16,7 +16,7 @@
     </div>
     </a>
 
-    <a href="{{ route('documents.status') }}" class="text-decoration-none text-reset">
+    <a href="{{ route('documents.status', ['show_expired' => 1]) }}" class="text-decoration-none text-reset">
     <div class="stat-card blue">
         <div class="stat-icon">
             <i class="fas fa-clock"></i>
