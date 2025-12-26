@@ -6,7 +6,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="text-muted mb-2 small">{{ __('Total Deleted') }}</h6>
+                            <h6 class="text-muted mb-2 small">{{ ui_t('pages.deletion_log.stats.total_deleted') }}</h6>
                             <h3 class="mb-0">{{ number_format($totalDeleted) }}</h3>
                         </div>
                         <div class="bg-danger bg-opacity-10 rounded-circle p-3">
@@ -21,7 +21,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="text-muted mb-2 small">{{ __('This Week') }}</h6>
+                            <h6 class="text-muted mb-2 small">{{ ui_t('pages.deletion_log.stats.this_week') }}</h6>
                             <h3 class="mb-0">{{ number_format($thisWeekDeleted) }}</h3>
                         </div>
                         <div class="bg-warning bg-opacity-10 rounded-circle p-3">
@@ -36,7 +36,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="text-muted mb-2 small">{{ __('Today') }}</h6>
+                            <h6 class="text-muted mb-2 small">{{ ui_t('pages.deletion_log.stats.today') }}</h6>
                             <h3 class="mb-0">{{ number_format($todayDeleted) }}</h3>
                         </div>
                         <div class="bg-info bg-opacity-10 rounded-circle p-3">
@@ -51,7 +51,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="text-muted mb-2 small">{{ __('Current Page') }}</h6>
+                            <h6 class="text-muted mb-2 small">{{ ui_t('pages.deletion_log.stats.current_page') }}</h6>
                             <h3 class="mb-0">{{ $logs->count() }}</h3>
                         </div>
                         <div class="bg-primary bg-opacity-10 rounded-circle p-3">
@@ -69,33 +69,33 @@
             <div class="d-flex flex-wrap align-items-end gap-2">
                 <!-- Document Search -->
                 <div style="flex: 1; min-width: 180px;">
-                    <label class="form-label small mb-1">{{ __('Document') }}</label>
-                    <input type="text" class="form-control form-control-sm" placeholder="{{ __('Search...') }}" wire:model.live.debounce.300ms="search" />
+                    <label class="form-label small mb-1">{{ ui_t('pages.deletion_log.filters.document') }}</label>
+                    <input type="text" class="form-control form-control-sm" placeholder="{{ ui_t('pages.deletion_log.filters.search_placeholder') }}" wire:model.live.debounce.300ms="search" />
                 </div>
 
                 <!-- Creation Date -->
                 <div style="min-width: 130px;">
-                    <label class="form-label small mb-1">{{ __('Creation Date') }}</label>
+                    <label class="form-label small mb-1">{{ ui_t('pages.deletion_log.filters.creation_date') }}</label>
                     <input type="date" class="form-control form-control-sm" wire:model.change="creationDate" />
                 </div>
 
                 <!-- Expiration Date -->
                 <div style="min-width: 130px;">
-                    <label class="form-label small mb-1">{{ __('Expiration') }}</label>
+                    <label class="form-label small mb-1">{{ ui_t('pages.deletion_log.filters.expiration') }}</label>
                     <input type="date" class="form-control form-control-sm" wire:model.change="expirationDate" />
                 </div>
 
                 <!-- Deleted At Date -->
                 <div style="min-width: 130px;">
-                    <label class="form-label small mb-1">{{ __('Deleted At') }}</label>
+                    <label class="form-label small mb-1">{{ ui_t('pages.deletion_log.filters.deleted_at') }}</label>
                     <input type="date" class="form-control form-control-sm" wire:model.change="deletedAt" />
                 </div>
 
                 <!-- Deleted By (User) -->
                 <div style="min-width: 140px;">
-                    <label class="form-label small mb-1">{{ __('Deleted By') }}</label>
+                    <label class="form-label small mb-1">{{ ui_t('pages.deletion_log.filters.deleted_by') }}</label>
                     <select class="form-select form-select-sm" wire:model.change="deletedBy">
-                        <option value="">{{ __('All Users') }}</option>
+                        <option value="">{{ ui_t('pages.deletion_log.filters.all_users') }}</option>
                         @foreach($users as $user)
                             <option value="{{ $user->id }}">{{ $user->full_name }}</option>
                         @endforeach
@@ -104,9 +104,9 @@
 
                 <!-- Structure (Department) -->
                 <div style="min-width: 140px;">
-                    <label class="form-label small mb-1">{{ __('Structure') }}</label>
+                    <label class="form-label small mb-1">{{ ui_t('pages.deletion_log.filters.structure') }}</label>
                     <select class="form-select form-select-sm" wire:model.change="departmentId">
-                        <option value="">{{ __('All') }}</option>
+                        <option value="">{{ ui_t('pages.deletion_log.filters.all') }}</option>
                         @foreach($departments as $department)
                             <option value="{{ $department->id }}">{{ $department->name }}</option>
                         @endforeach
@@ -116,13 +116,13 @@
                 <!-- Reset Button -->
                 <div>
                     <button type="button" wire:click="resetFilters" class="btn btn-sm btn-outline-danger">
-                        <i class="fas fa-redo"></i> {{ __('Reset Filters') }}
+                        <i class="fas fa-redo"></i> {{ ui_t('pages.deletion_log.filters.reset') }}
                     </button>
                 </div>
 
                 <!-- Per Page & Export -->
                 <div class="d-flex align-items-center gap-2 ms-auto">
-                    <label class="form-label small mb-0">{{ __('Per page') }}</label>
+                    <label class="form-label small mb-0">{{ ui_t('pages.deletion_log.filters.per_page') }}</label>
                     <select class="form-select form-select-sm" wire:model.change="perPage" style="width: 70px;">
                         <option value="10">10</option>
                         <option value="25">25</option>
@@ -130,7 +130,7 @@
                         <option value="100">100</option>
                     </select>
                     <button type="button" wire:click="export" class="btn btn-sm btn-success">
-                        <i class="fas fa-file-export"></i> {{ __('Export') }}
+                        <i class="fas fa-file-export"></i> {{ ui_t('pages.deletion_log.filters.export') }}
                     </button>
                 </div>
             </div>
@@ -144,13 +144,13 @@
                 <table class="table table-hover mb-0 align-middle">
                     <thead class="table-light">
                         <tr>
-                            <th style="width: 250px;">{{ __('Document') }}</th>
-                            <th style="width: 120px;">{{ __('Creation Date') }}</th>
-                            <th style="width: 100px;">{{ __('Expiration') }}</th>
-                            <th style="width: 120px;">{{ __('Deleted At') }}</th>
-                            <th style="width: 140px;">{{ __('Deleted By') }}</th>
-                            <th>{{ __('Structure') }}</th>
-                            <th style="width: 60px;" class="text-center">{{ __('PDF') }}</th>
+                            <th style="width: 250px;">{{ ui_t('pages.deletion_log.table.document') }}</th>
+                            <th style="width: 120px;">{{ ui_t('pages.deletion_log.table.creation_date') }}</th>
+                            <th style="width: 100px;">{{ ui_t('pages.deletion_log.table.expiration') }}</th>
+                            <th style="width: 120px;">{{ ui_t('pages.deletion_log.table.deleted_at') }}</th>
+                            <th style="width: 140px;">{{ ui_t('pages.deletion_log.table.deleted_by') }}</th>
+                            <th>{{ ui_t('pages.deletion_log.table.structure') }}</th>
+                            <th style="width: 60px;" class="text-center">{{ ui_t('pages.deletion_log.table.pdf') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -171,8 +171,8 @@
                                             </div>
                                         </div>
                                         <div class="flex-grow-1 min-width-0">
-                                            <div class="fw-semibold text-truncate" style="max-width: 180px;" title="{{ $doc?->title ?? __('(Document deleted)') }}">
-                                                {{ $doc?->title ?? __('(Document deleted)') }}
+                                            <div class="fw-semibold text-truncate" style="max-width: 180px;" title="{{ $doc?->title ?? ui_t('pages.deletion_log.document_deleted') }}">
+                                                {{ $doc?->title ?? ui_t('pages.deletion_log.document_deleted') }}
                                             </div>
                                             <div class="text-muted small">ID: {{ $log->document_id }}</div>
                                         </div>
@@ -253,7 +253,7 @@
                                     <button type="button" 
                                         wire:click="exportSinglePdf({{ $log->id }})" 
                                         class="btn btn-sm btn-outline-danger" 
-                                        title="{{ __('Export to PDF') }}">
+                                        title="{{ ui_t('pages.deletion_log.export_pdf') }}">
                                         <i class="fas fa-file-pdf"></i>
                                     </button>
                                 </td>
@@ -262,7 +262,7 @@
                             <tr>
                                 <td colspan="7" class="text-center py-5">
                                     <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
-                                    <div class="text-muted">{{ __('No permanently deleted documents found.') }}</div>
+                                    <div class="text-muted">{{ ui_t('pages.deletion_log.no_documents') }}</div>
                                 </td>
                             </tr>
                         @endforelse

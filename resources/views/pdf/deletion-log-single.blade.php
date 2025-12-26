@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>{{ __('Deletion Log') }} - {{ $doc?->title ?? __('Document') }}</title>
+    <title>{{ ui_t('pdf.deletion_log.title') }} - {{ $doc?->title ?? ui_t('pdf.deletion_log.document') }}</title>
     <style>
         body {
             font-family: 'DejaVu Sans', Arial, sans-serif;
@@ -73,25 +73,25 @@
 </head>
 <body>
     <div class="header">
-        <h1>{{ __('Deletion Log Record') }}</h1>
-        <div class="subtitle">{{ __('Generated on') }} {{ now()->format('Y-m-d H:i:s') }}</div>
+        <h1>{{ ui_t('pdf.deletion_log.heading') }}</h1>
+        <div class="subtitle">{{ ui_t('pdf.deletion_log.generated_on') }} {{ now()->format('Y-m-d H:i:s') }}</div>
     </div>
 
     <table class="info-table">
         <tr>
-            <th>{{ __('Document Title') }}</th>
-            <td>{{ $doc?->title ?? __('(Document deleted)') }}</td>
+            <th>{{ ui_t('pdf.deletion_log.document_title') }}</th>
+            <td>{{ $doc?->title ?? ui_t('pdf.deletion_log.document_deleted') }}</td>
         </tr>
         <tr>
-            <th>{{ __('Document ID') }}</th>
+            <th>{{ ui_t('pdf.deletion_log.document_id') }}</th>
             <td>{{ $log->document_id }}</td>
         </tr>
         <tr>
-            <th>{{ __('Creation Date') }}</th>
+            <th>{{ ui_t('pdf.deletion_log.creation_date') }}</th>
             <td>{{ $doc?->created_at?->format('Y-m-d') ?? '—' }}</td>
         </tr>
         <tr>
-            <th>{{ __('Expiration Date') }}</th>
+            <th>{{ ui_t('pdf.deletion_log.expiration_date') }}</th>
             <td>
                 @if($doc?->expire_at)
                     <span class="badge badge-warning">{{ $doc->expire_at->format('Y-m-d') }}</span>
@@ -101,17 +101,17 @@
             </td>
         </tr>
         <tr>
-            <th>{{ __('Deleted At') }}</th>
+            <th>{{ ui_t('pdf.deletion_log.deleted_at') }}</th>
             <td>
                 <span class="badge badge-danger">{{ $log->occurred_at?->format('Y-m-d H:i:s') ?? '—' }}</span>
             </td>
         </tr>
         <tr>
-            <th>{{ __('Deleted By') }}</th>
+            <th>{{ ui_t('pdf.deletion_log.deleted_by') }}</th>
             <td>{{ $log->user?->full_name ?? 'N/A' }}</td>
         </tr>
         <tr>
-            <th>{{ __('Structure') }}</th>
+            <th>{{ ui_t('pdf.deletion_log.structure') }}</th>
             <td>{{ $structure }}</td>
         </tr>
     </table>
