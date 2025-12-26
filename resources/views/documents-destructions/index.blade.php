@@ -97,7 +97,7 @@
                                                     data-title="{{ ui_t('pages.documents.permanent_delete_title') }}"
                                                     data-body="{{ ui_t('pages.documents.permanent_delete_body') }}"
                                                     data-button-class="btn-danger">
-                                                    <i class="fa-solid fa-trash"></i> {{ __('Delete') }}
+                                                    <i class="fa-solid fa-trash"></i> {{ ui_t('pages.destructions.delete_button') }}
                                                 </button>
                                             @endcan
 
@@ -108,19 +108,19 @@
                                                     data-url="{{ route('documents.postpone-expiration', ['documentId' => $doc->id]) }}"
                                                     class="btn btn-sm btn-warning trigger-action"
                                                     data-method="PUT"
-                                                    data-button-text="{{ __('Confirm') }}"
-                                                    data-title="{{ __('Postpone Expiration') }}"
-                                                    data-body="{{ __('Select the time period to extend the expiration date. The document will be restored to active status.') }}"
+                                                    data-button-text="{{ ui_t('pages.destructions.postpone.confirm_button') }}"
+                                                    data-title="{{ ui_t('pages.destructions.postpone.title') }}"
+                                                    data-body="{{ ui_t('pages.destructions.postpone.description') }}"
                                                     data-extra-fields='[
                                                         {
                                                             "type":"select",
                                                             "name":"unit",
-                                                            "label":"Time Unit",
+                                                            "label":"{{ ui_t('pages.destructions.postpone.time_unit') }}",
                                                             "options":[
-                                                                {"value":"days","text":"Days"},
-                                                                {"value":"weeks","text":"Weeks"},
-                                                                {"value":"months","text":"Months"},
-                                                                {"value":"years","text":"Years"}
+                                                                {"value":"days","text":"{{ ui_t('pages.destructions.postpone.days') }}"},
+                                                                {"value":"weeks","text":"{{ ui_t('pages.destructions.postpone.weeks') }}"},
+                                                                {"value":"months","text":"{{ ui_t('pages.destructions.postpone.months') }}"},
+                                                                {"value":"years","text":"{{ ui_t('pages.destructions.postpone.years') }}"}
                                                             ],
                                                             "value":"days",
                                                             "required":true
@@ -128,8 +128,8 @@
                                                         {
                                                             "type":"number",
                                                             "name":"amount",
-                                                            "placeholder":"Amount (1-1000)",
-                                                            "label":"Amount",
+                                                            "placeholder":"{{ ui_t('pages.destructions.postpone.amount_placeholder') }}",
+                                                            "label":"{{ ui_t('pages.destructions.postpone.amount_label') }}",
                                                             "value":"7",
                                                             "min":1,
                                                             "max":1000,
@@ -137,7 +137,7 @@
                                                         }
                                                     ]'
                                                     data-button-class="btn-warning">
-                                                    <i class="fas fa-clock"></i> {{ __('Postpone') }}
+                                                    <i class="fas fa-clock"></i> {{ ui_t('pages.destructions.postpone_button') }}
                                                 </button>
                                             @endcan
                                         </div>
@@ -146,7 +146,7 @@
                             @empty
                                 <tr>
                                     <td colspan="7" class="text-center py-4 text-muted">
-                                        {{ __('No expired documents found.') }}
+                                        {{ ui_t('pages.destructions.no_expired_documents') }}
                                     </td>
                                 </tr>
                             @endforelse
