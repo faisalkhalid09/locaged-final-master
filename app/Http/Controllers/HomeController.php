@@ -832,9 +832,10 @@ class HomeController extends Controller
             ->groupBy('status')
             ->pluck('count', 'status');
 
-        // Count expired documents (is_expired = true)
+        // Count expired documents (expire_at has passed)
         $expiredCount = $this->getVisibleDocumentsQuery()
-            ->where('is_expired', true)
+            ->whereNotNull('expire_at')
+            ->where('expire_at', '<=', now())
             ->count();
 
         return [
@@ -859,7 +860,8 @@ class HomeController extends Controller
         // Get expired documents
         $expiredWeekly = $this->getVisibleDocumentsQuery()
             ->selectRaw('DAYNAME(created_at) as day, COUNT(*) as total')
-            ->where('is_expired', true)
+            ->whereNotNull('expire_at')
+            ->where('expire_at', '<=', now())
             ->whereBetween('created_at', [$now->copy()->subDays(6)->startOfDay(), $now->copy()->endOfDay()])
             ->groupBy('day')
             ->get();
@@ -895,7 +897,8 @@ class HomeController extends Controller
         // Get expired documents
         $expiredMonthly = $this->getVisibleDocumentsQuery()
             ->selectRaw('DATE_FORMAT(created_at, "%Y-%m") as month, COUNT(*) as total')
-            ->where('is_expired', true)
+            ->whereNotNull('expire_at')
+            ->where('expire_at', '<=', now())
             ->whereBetween('created_at', [$now->copy()->subMonths(11)->startOfMonth(), $now->copy()->endOfMonth()])
             ->groupBy('month')
             ->get();
@@ -937,7 +940,8 @@ class HomeController extends Controller
         // Get expired documents
         $expiredYearly = $this->getVisibleDocumentsQuery()
             ->selectRaw('YEAR(created_at) as year, COUNT(*) as total')
-            ->where('is_expired', true)
+            ->whereNotNull('expire_at')
+            ->where('expire_at', '<=', now())
             ->whereBetween('created_at', [$now->copy()->subYears(4)->startOfYear(), $now->copy()->endOfYear()])
             ->groupBy('year')
             ->get();
