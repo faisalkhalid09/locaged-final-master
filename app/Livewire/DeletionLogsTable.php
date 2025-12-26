@@ -130,6 +130,9 @@ class DeletionLogsTable extends Component
             abort(403);
         }
 
+        // Set locale for translations in PDF
+        app()->setLocale($user->locale ?? 'fr');
+
         $log = AuditLog::with(['user', 'document' => function ($q) {
                 $q->withTrashed()->with(['department', 'service.subDepartment']);
             }])
@@ -152,6 +155,9 @@ class DeletionLogsTable extends Component
             'structure' => $structure ?: '—',
         ])->render();
 
+        // Configure mPDF for multi-language support (including Arabic/RTL)
+        $isArabic = ($user->locale ?? 'fr') === 'ar';
+        
         $mpdf = new \Mpdf\Mpdf([
             'mode' => 'utf-8',
             'format' => 'A4-L',
@@ -159,6 +165,10 @@ class DeletionLogsTable extends Component
             'margin_right' => 15,
             'margin_top' => 15,
             'margin_bottom' => 15,
+            'default_font' => 'dejavusans', // Supports Arabic and special characters
+            'directionality' => $isArabic ? 'rtl' : 'ltr', // RTL for Arabic
+            'autoScriptToLang' => true,
+            'autoLangToFont' => true,
         ]);
         $mpdf->WriteHTML($html);
 

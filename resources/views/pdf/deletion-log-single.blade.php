@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Deletion Log - {{ $doc?->title ?? 'Document' }}</title>
+    <title>{{ __('Deletion Log') }} - {{ $doc?->title ?? __('Document') }}</title>
     <style>
         body {
             font-family: 'DejaVu Sans', Arial, sans-serif;
@@ -73,25 +73,25 @@
 </head>
 <body>
     <div class="header">
-        <h1>Deletion Log Record</h1>
-        <div class="subtitle">Generated on {{ now()->format('Y-m-d H:i:s') }}</div>
+        <h1>{{ __('Deletion Log Record') }}</h1>
+        <div class="subtitle">{{ __('Generated on') }} {{ now()->format('Y-m-d H:i:s') }}</div>
     </div>
 
     <table class="info-table">
         <tr>
-            <th>Document Title</th>
-            <td>{{ $doc?->title ?? '(Document deleted)' }}</td>
+            <th>{{ __('Document Title') }}</th>
+            <td>{{ $doc?->title ?? __('(Document deleted)') }}</td>
         </tr>
         <tr>
-            <th>Document ID</th>
+            <th>{{ __('Document ID') }}</th>
             <td>{{ $log->document_id }}</td>
         </tr>
         <tr>
-            <th>Creation Date</th>
+            <th>{{ __('Creation Date') }}</th>
             <td>{{ $doc?->created_at?->format('Y-m-d') ?? '—' }}</td>
         </tr>
         <tr>
-            <th>Expiration Date</th>
+            <th>{{ __('Expiration Date') }}</th>
             <td>
                 @if($doc?->expire_at)
                     <span class="badge badge-warning">{{ $doc->expire_at->format('Y-m-d') }}</span>
@@ -101,17 +101,17 @@
             </td>
         </tr>
         <tr>
-            <th>Deleted At</th>
+            <th>{{ __('Deleted At') }}</th>
             <td>
                 <span class="badge badge-danger">{{ $log->occurred_at?->format('Y-m-d H:i:s') ?? '—' }}</span>
             </td>
         </tr>
         <tr>
-            <th>Deleted By</th>
+            <th>{{ __('Deleted By') }}</th>
             <td>{{ $log->user?->full_name ?? 'N/A' }}</td>
         </tr>
         <tr>
-            <th>Structure</th>
+            <th>{{ __('Structure') }}</th>
             <td>{{ $structure }}</td>
         </tr>
     </table>
