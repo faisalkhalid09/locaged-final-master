@@ -832,17 +832,16 @@ class HomeController extends Controller
             ->groupBy('status')
             ->pluck('count', 'status');
 
-        // Count permanently deleted documents from audit logs
-        $deletedCount = \App\Models\AuditLog::withoutGlobalScopes()
-            ->where('action', 'permanently_deleted')
-            ->distinct('document_id')
-            ->count('document_id');
+        // Count expired documents (is_expired = true)
+        $expiredCount = $this->getVisibleDocumentsQuery()
+            ->where('is_expired', true)
+            ->count();
 
         return [
             DocumentStatus::Approved->value => $statusCounts['approved'] ?? 0,
             DocumentStatus::Pending->value  => $statusCounts['pending'] ?? 0,
             DocumentStatus::Declined->value => $statusCounts['declined'] ?? 0,
-            'deleted' => $deletedCount,
+            'expired' => $expiredCount,
         ];
     }
 
