@@ -267,7 +267,7 @@ if (donutEl) {
         } else if (type === 'categories') {
             // Final level: redirect to Documents by-category page so that
             // users land on the normal documents view instead of File Audit.
-            window.location.href = `/documents/by-category/${id}`;
+            window.location.href = `/documents/by-category/${id}?show_expired=1`;
         } else {
             // subcategories or any other terminal level – no further drilldown
         }
