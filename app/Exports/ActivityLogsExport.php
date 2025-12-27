@@ -35,22 +35,22 @@ class ActivityLogsExport implements FromCollection, WithHeadings, WithMapping, S
     {
         if ($this->logType === 'authentication') {
             return [
-                'Date/Time',
-                'User',
-                'Email',
-                'Type',
-                'IP Address',
-                'User Agent',
+                __('Date/Time'),
+                __('User'),
+                __('Email'),
+                __('Type'),
+                __('IP Address'),
+                __('User Agent'),
             ];
         }
 
         return [
-            'Date/Time',
-            'User',
-            'Department',
-            'Action',
-            'Document',
-            'IP Address',
+            __('Date/Time'),
+            __('User'),
+            __('Department'),
+            __('Action'),
+            __('Document'),
+            __('IP Address'),
         ];
     }
 
@@ -94,14 +94,14 @@ class ActivityLogsExport implements FromCollection, WithHeadings, WithMapping, S
 
                 // Header section
                 $title = $this->logType === 'authentication' 
-                    ? 'Authentication Activity Log' 
-                    : 'Document Activity Log';
+                    ? __('Authentication Activity Log') 
+                    : __('Document Activity Log');
                 $sheet->setCellValue('A1', $title);
                 $sheet->mergeCells('A1:F1');
                 $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(16);
 
-                $sheet->setCellValue('A2', 'Generated on: ' . now()->format('d/m/Y H:i'));
-                $sheet->setCellValue('A3', 'Total records: ' . ($this->rowCount - 1));
+                $sheet->setCellValue('A2', __('Generated on:') . ' ' . now()->format('d/m/Y H:i'));
+                $sheet->setCellValue('A3', __('Total records:') . ' ' . ($this->rowCount - 1));
 
                 // Freeze the header row of the data table (now at row 4)
                 $sheet->freezePane('A5');

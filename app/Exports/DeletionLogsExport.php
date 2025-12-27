@@ -42,15 +42,15 @@ class DeletionLogsExport implements FromCollection, WithHeadings, WithMapping, S
     public function headings(): array
     {
         return [
-            'Titre du document',
-            'ID du document',
-            'Date de création',
-            "Date d'expiration",
-            'Supprimé le',
-            'Supprimé par',
-            'Pole',
-            'Département',
-            'Service',
+            __('Document title'),
+            __('Document ID'),
+            __('Creation date'),
+            __('Expiration date'),
+            __('Deleted on'),
+            __('Deleted by'),
+            __('Pole'),
+            __('Department'),
+            __('Service'),
         ];
     }
 
@@ -64,7 +64,7 @@ class DeletionLogsExport implements FromCollection, WithHeadings, WithMapping, S
         $subDept = $service?->subDepartment;
 
         return [
-            $doc?->title ?? '(Document supprimé)',
+            $doc?->title ?? __('(Deleted document)'),
             $log->document_id,
             $doc?->created_at?->format('d/m/Y') ?? '—',
             $doc?->expire_at?->format('d/m/Y') ?? '—',
@@ -90,12 +90,12 @@ class DeletionLogsExport implements FromCollection, WithHeadings, WithMapping, S
                 $sheet->insertNewRowBefore(1, 3);
 
                 // Header section
-                $sheet->setCellValue('A1', 'Journal de suppression des documents');
+                $sheet->setCellValue('A1', __('Document Deletion Log'));
                 $sheet->mergeCells('A1:I1');
                 $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(16);
 
-                $sheet->setCellValue('A2', 'Généré le : ' . now()->format('d/m/Y H:i'));
-                $sheet->setCellValue('A3', 'Total des suppressions : ' . ($this->rowCount - 1));
+                $sheet->setCellValue('A2', __('Generated on:') . ' ' . now()->format('d/m/Y H:i'));
+                $sheet->setCellValue('A3', __('Total deletions:') . ' ' . ($this->rowCount - 1));
 
                 // Freeze the header row of the data table (now at row 4)
                 $sheet->freezePane('A4');

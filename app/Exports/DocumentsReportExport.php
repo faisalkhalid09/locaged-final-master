@@ -117,16 +117,16 @@ class DocumentsReportExport implements FromQuery, WithHeadings, WithMapping, Sho
     public function headings(): array
     {
         return [
-            'Titre',
-            'Catégorie',
-            'Structure',
-            'Service',
-            'Statut',
-            'Date de création',
-            "Date d'expiration",
-            'Créé par',
-            'Dernier valideur',
-            'Taille du fichier',
+            __('Title'),
+            __('Category'),
+            __('Structure'),
+            __('Service'),
+            __('Status'),
+            __('Creation date'),
+            __('Expiration date'),
+            __('Created by'),
+            __('Last approver'),
+            __('File size'),
         ];
     }
 
@@ -140,18 +140,18 @@ class DocumentsReportExport implements FromQuery, WithHeadings, WithMapping, Sho
             ?? optional($doc->subcategory)->name
             ?? 'N/A';
 
-        // French label for status
+        // Translated status labels
         $statusMap = [
-            'draft' => 'Brouillon',
-            'pending' => 'En attente',
-            'approved' => 'Approuvé',
-            'declined' => 'Refusé',
-            'archived' => 'Archivé',
-            'destroyed' => 'Détruit',
-            'destruction_pending' => 'Destruction en attente',
+            'draft' => __('Draft'),
+            'pending' => __('Pending'),
+            'approved' => __('Approved'),
+            'declined' => __('Declined'),
+            'archived' => __('Archived'),
+            'destroyed' => __('Destroyed'),
+            'destruction_pending' => __('Destruction pending'),
         ];
         $statusKey = (string) $doc->status;
-        $statusLabel = $statusMap[$statusKey] ?? ucfirst($statusKey ?: 'inconnu');
+        $statusLabel = $statusMap[$statusKey] ?? ucfirst($statusKey ?: __('Unknown'));
 
         // Last approver (last history entry where to_status = approved)
         $lastApprover = DocumentStatusHistory::where('document_id', $doc->id)
@@ -211,9 +211,9 @@ class DocumentsReportExport implements FromQuery, WithHeadings, WithMapping, Sho
         if ($r->filled('date_from') || $r->filled('date_to')) {
             $from = $r->date_from ? date('d/m/Y', strtotime($r->date_from)) : '...';
             $to = $r->date_to ? date('d/m/Y', strtotime($r->date_to)) : '...';
-            $parts[] = "Période={$from} → {$to}";
+            $parts[] = __('Period') . "={$from} → {$to}";
         } elseif ($r->filled('year')) {
-            $parts[] = 'Année=' . $r->year;
+            $parts[] = __('Year') . '=' . $r->year;
         }
 
         if ($r->filled('department_id')) {
@@ -235,7 +235,7 @@ class DocumentsReportExport implements FromQuery, WithHeadings, WithMapping, Sho
             $parts[] = 'Créateur ID=' . $r->user_id;
         }
 
-        return $parts ? implode(' ; ', $parts) : 'Aucun filtre (tous les documents)';
+        return $parts ? implode(' ; ', $parts) : __('No filters (all documents)');
     }
 
     public function registerEvents(): array
@@ -254,15 +254,15 @@ class DocumentsReportExport implements FromQuery, WithHeadings, WithMapping, Sho
                 $sheet->insertNewRowBefore(1, 5);
 
                 // Header section
-                $sheet->setCellValue('A1', 'Rapport sur les documents');
+                $sheet->setCellValue('A1', __('Documents Report'));
                 $sheet->mergeCells('A1:J1');
                 $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(16);
 
-                $sheet->setCellValue('A2', 'Généré le : ' . now()->format('d/m/Y H:i'));
-                $sheet->setCellValue('A3', 'Filtres actifs : ' . $this->buildFiltersSummary());
+                $sheet->setCellValue('A2', __('Generated on:') . ' ' . now()->format('d/m/Y H:i'));
+                $sheet->setCellValue('A3', __('Active filters:') . ' ' . $this->buildFiltersSummary());
 
                 $total = $this->totalDocuments ?? ($this->rowCount - 1);
-                $sheet->setCellValue('A4', 'Total des documents : ' . $total);
+                $sheet->setCellValue('A4', __('Total documents:') . ' ' . $total);
 
                 // Freeze the header row of the data table (now at row 6)
                 $sheet->freezePane('A6');
