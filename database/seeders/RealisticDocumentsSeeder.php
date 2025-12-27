@@ -25,7 +25,7 @@ class RealisticDocumentsSeeder extends Seeder
 
         // Get all available options from your actual database
         $users = User::all();
-        $categories = Category::all();
+        $categories = \App\Models\Category::all();
         $departments = Department::all();
         $subDepartments = SubDepartment::all();
         $services = Service::all();
@@ -87,6 +87,7 @@ class RealisticDocumentsSeeder extends Seeder
 
             // Create document
             $document = Document::create([
+                'uid' => (string) Str::uuid(), // Generate unique ID
                 'title' => $title,
                 'status' => $statuses[array_rand($statuses)],
                 'category_id' => $category?->id,
