@@ -33,6 +33,7 @@ class DocumentsTable extends Component
     public $tags = '';
     public $category = ''; // Category ID filter
     public $service = ''; // Service ID filter
+    public $boxId = ''; // Box ID filter for physical location
     public $favoritesOnly = false;
 
     // Hierarchy filter (department / sub-department / service)
@@ -69,6 +70,7 @@ class DocumentsTable extends Component
         'tags' => ['except' => ''],
         'category' => ['except' => ''],
         'service' => ['except' => ''],
+        'boxId' => ['except' => ''],
         'favoritesOnly' => ['except' => false],
         'perPage' => ['except' => 10],
         'hierarchy' => ['except' => ''],
@@ -77,7 +79,7 @@ class DocumentsTable extends Component
     public function updated($field)
     {
         // Reset to first page when any filter changes
-        if (in_array($field, ['search', 'status', 'fileType', 'dateFrom', 'dateTo', 'author', 'keywords', 'tags', 'category', 'service', 'favoritesOnly', 'perPage', 'hierarchy'])) {
+        if (in_array($field, ['search', 'status', 'fileType', 'dateFrom', 'dateTo', 'author', 'keywords', 'tags', 'category', 'service', 'boxId', 'favoritesOnly', 'perPage', 'hierarchy'])) {
             $this->resetPage();
         }
 
@@ -117,6 +119,7 @@ class DocumentsTable extends Component
         $this->tags = '';
         $this->category = '';
         $this->service = '';
+        $this->boxId = '';
         $this->favoritesOnly = false;
         $this->perPage = 10;
         $this->hierarchy = '';
@@ -331,6 +334,9 @@ class DocumentsTable extends Component
                     })->pluck('id');
                     $q->whereIn('box_id', $boxIds);
                 }
+            })
+            ->when($this->boxId, function ($q) {
+                $q->where('box_id', $this->boxId);
             })
             ->when($this->dateFrom, fn($q) =>
                 $q->whereDate('created_at', '>=', $this->dateFrom)

@@ -1,5 +1,21 @@
 <div class="mt-5">
-    @if($this->showOnlyPendingApprovals && !request()->routeIs('documents.status'))
+    @if($boxId)
+        @php
+            $box = \App\Models\Box::with('shelf.row.room')->find($boxId);
+        @endphp
+        @if($box)
+            <div class="mb-4">
+                <h4 class="fw-bold">
+                    <i class="fas fa-box text-secondary me-2"></i>
+                    {{ __('Documents in this location') }}
+                </h4>
+                <p class="text-muted mb-0">
+                    <i class="fas fa-map-marker-alt me-1"></i>
+                    <strong>{{ __('Location') }}:</strong> <code>{{ $box->__toString() }}</code>
+                </p>
+            </div>
+        @endif
+    @elseif($this->showOnlyPendingApprovals && !request()->routeIs('documents.status'))
         <div class="mb-5 mt-4">
             <h4 class="fw-bold">{{ ui_t('pages.dashboard.pending_documents') }}</h4>
         </div>

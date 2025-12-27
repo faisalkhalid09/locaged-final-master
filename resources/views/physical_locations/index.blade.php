@@ -235,7 +235,18 @@
                                                                         <small class="text-muted">
                                                                             {{ ui_t('pages.physical.actions.full_path') }} <code>{{ $box->__toString() }}</code>
                                                                         </small>
-                                                                        <span class="badge bg-secondary ms-2">{{ $box->documents->count() }} file(s)</span>
+                                                                        @if($box->documents->count() > 0)
+                                                                            <a href="{{ route('documents.index', ['box_id' => $box->id]) }}" 
+                                                                               class="badge bg-secondary ms-2 text-decoration-none"
+                                                                               data-bs-toggle="tooltip" 
+                                                                               data-bs-html="true"
+                                                                               data-bs-placement="top"
+                                                                               title="<div class='text-start'><strong>{{ __('Click to view documents') }}</strong><ul class='list-unstyled mb-0 mt-1'>@foreach($box->documents->take(5) as $doc)<li>• {{ $doc->title }}</li>@endforeach @if($box->documents->count() > 5)<li class='text-muted fst-italic'>{{ __('And :count more...', ['count' => $box->documents->count() - 5]) }}</li>@endif</ul></div>">
+                                                                                {{ $box->documents->count() }} {{ __('file(s)') }}
+                                                                            </a>
+                                                                        @else
+                                                                            <span class="badge bg-secondary ms-2">0 {{ __('file(s)') }}</span>
+                                                                        @endif
                                                                     </div>
                                                                     <div class="d-inline-flex gap-1">
                                                                         @can('create', \App\Models\PhysicalLocation::class)
@@ -387,6 +398,12 @@
 
         // Initialize edit box full path updates based on text inputs
         document.addEventListener('DOMContentLoaded', function () {
+            // Initialize Bootstrap tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+
             document.querySelectorAll('.edit-box-room-name').forEach(function (roomInput) {
                 const boxId = roomInput.dataset.boxId;
                 const rowInput = document.getElementById('edit_row_name_' + boxId);
