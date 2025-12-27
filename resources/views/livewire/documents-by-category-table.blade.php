@@ -311,7 +311,8 @@
                                     </li>
                                     @endcan
 
-                                    @if(auth()->user()?->hasRole('master'))
+
+                                    @if(auth()->user()?->hasRole('master') || auth()->user()?->hasRole('super_administrator'))
                                         <li class="pointer">
                                             <a class="dropdown-item trigger-action"
                                                data-id="{{ $doc->id }}"
@@ -341,6 +342,7 @@
                                             </a>
                                         </li>
                                     @endif
+
 
                                         @can('view',$doc)
                                     <li class="pointer">
