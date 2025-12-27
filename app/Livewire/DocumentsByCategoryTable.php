@@ -31,6 +31,7 @@ class DocumentsByCategoryTable extends Component
     public $tags = '';
     public $favoritesOnly = false;
     public $documentId = null; // Filter by specific document ID
+    public $boxId = ''; // Filter by box ID (physical location)
     public $showExpired = false; // Show expired documents (from dashboard All Documents card)
     public $pageTitle = null; // Heading to display (from dashboard cards)
 
@@ -52,6 +53,7 @@ class DocumentsByCategoryTable extends Component
         'tags' => ['except' => ''],
         'favoritesOnly' => ['except' => false],
         'perPage' => ['except' => 10],
+        'boxId' => ['except' => '', 'as' => 'box_id'],
         'documentId' => ['except' => null, 'as' => 'document_id'],
         'showExpired' => ['except' => false, 'as' => 'show_expired'],
         'pageTitle' => ['except' => null, 'as' => 'page_title'],
@@ -67,7 +69,7 @@ class DocumentsByCategoryTable extends Component
     public function updated($field)
     {
         // Reset to first page when any filter changes
-        if (in_array($field, ['search', 'status', 'fileType', 'dateFrom', 'dateTo', 'room', 'author', 'keywords', 'tags', 'favoritesOnly', 'perPage'])) {
+        if (in_array($field, ['search', 'status', 'fileType', 'dateFrom', 'dateTo', 'room', 'author', 'keywords', 'tags', 'boxId', 'favoritesOnly', 'perPage'])) {
             $this->resetPage();
         }
     }
@@ -83,6 +85,7 @@ class DocumentsByCategoryTable extends Component
         $this->author = '';
         $this->keywords = '';
         $this->tags = '';
+        $this->boxId = '';
         $this->favoritesOnly = false;
         $this->perPage = 10; // Reset to default
 
@@ -175,6 +178,11 @@ class DocumentsByCategoryTable extends Component
         // Status filter
         $documentsQuery->when($this->status && $this->status !== 'all', function ($q) {
             $q->where('status', $this->status);
+        });
+
+        // Box filter (physical location)
+        $documentsQuery->when($this->boxId, function ($q) {
+            $q->where('box_id', $this->boxId);
         });
 
         // File type filter via latest version

@@ -236,7 +236,7 @@
                                                                             {{ ui_t('pages.physical.actions.full_path') }} <code>{{ $box->__toString() }}</code>
                                                                         </small>
                                                                         @if($box->documents->count() > 0)
-                                                                            <a href="{{ route('documents.index', ['box_id' => $box->id]) }}" 
+                                                                            <a href="{{ route('documents.all', ['box_id' => $box->id]) }}" 
                                                                                class="badge bg-secondary ms-2 text-decoration-none"
                                                                                data-bs-toggle="tooltip" 
                                                                                data-bs-html="true"
