@@ -44,6 +44,7 @@ if (chartEl) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            clip: false,
             layout: {
                 padding: {
                     right: 50
