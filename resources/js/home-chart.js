@@ -38,12 +38,17 @@ if (chartEl) {
                 { label: approvedLabel, data: getData(monthlyData, 'approved', 12), backgroundColor: '#28a745', borderRadius: 6, barThickness: 14 },
                 { label: pendingLabel, data: getData(monthlyData, 'pending', 12), backgroundColor: '#f1c40f', borderRadius: 6, barThickness: 14 },
                 { label: declinedLabel, data: getData(monthlyData, 'declined', 12), backgroundColor: '#dc3545', borderRadius: 6, barThickness: 14 },
-                { label: expiredLabel, data: getData(monthlyData, 'expired', 12), backgroundColor: '#343a40', borderRadius: 6, barThickness: 20 }
+                { label: expiredLabel, data: getData(monthlyData, 'expired', 12), backgroundColor: '#343a40', borderRadius: 6, barThickness: 14 }
             ]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            layout: {
+                padding: {
+                    right: 20
+                }
+            },
             plugins: {
                 legend: {
                     display: true
