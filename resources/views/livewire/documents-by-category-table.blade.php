@@ -228,6 +228,9 @@
                     </td>
 
                     <td>
+                        @php
+                            $isExpired = $doc->expire_at && $doc->expire_at->isPast();
+                        @endphp
                         <div class="d-flex flex-column gap-1">
                             <button class="status-badge 
                                 @if($doc->status === 'approved') approved
@@ -241,8 +244,8 @@
                                     <i class="fas fa-trash-can ms-1" title="{{ ui_t('pages.documents.permanent_delete_hint') }}"></i>
                                 @endif
                             </button>
-                            @if($doc->expire_at && $doc->expire_at->isPast())
-                                <span class="badge bg-danger" style="font-size: 0.7rem;">{{ ui_t('pages.destructions.status_values.expired') }}</span>
+                            @if($isExpired)
+                                <span class="badge bg-danger" style="font-size: 0.7rem;">{{ ui_t('pages.documents.status.expired') }}</span>
                             @endif
                         </div>
                     </td>

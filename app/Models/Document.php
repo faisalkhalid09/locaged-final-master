@@ -141,12 +141,11 @@ class Document extends Model
             }
             $user = auth()->user();
 
-            // Always hide documents that are expired, already destroyed, or currently
+            // Always hide documents that are already destroyed or currently
             // queued for destruction (pending / accepted) from the main document
             // and approvals views for ALL roles. Admins can still see them via
             // explicit queries using withoutGlobalScopes().
             $query
-                ->where('is_expired', false)
                 ->whereNotIn('status', ['destroyed'])
                 ->whereDoesntHave('destructionsRequests', function ($q) {
                     $q->whereIn('status', ['pending', 'accepted']);
