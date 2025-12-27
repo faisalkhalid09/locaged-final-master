@@ -6,20 +6,12 @@ use App\Exports\Concerns\DefaultStyles;
 use App\Models\Box;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\FromQuery;
-use Maatwebsite\Excel\Concerns\WithCharts;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Events\AfterSheet;
-use PhpOffice\PhpSpreadsheet\Chart\Chart;
-use PhpOffice\PhpSpreadsheet\Chart\DataSeries;
-use PhpOffice\PhpSpreadsheet\Chart\DataSeriesValues;
-use PhpOffice\PhpSpreadsheet\Chart\Layout;
-use PhpOffice\PhpSpreadsheet\Chart\Legend;
-use PhpOffice\PhpSpreadsheet\Chart\PlotArea;
-use PhpOffice\PhpSpreadsheet\Chart\Title;
 
-class PhysicalLocationsExport implements FromQuery, WithHeadings, WithMapping, WithEvents, WithCharts
+class PhysicalLocationsExport implements FromQuery, WithHeadings, WithMapping, WithEvents
 {
     use DefaultStyles;
 
@@ -52,13 +44,13 @@ class PhysicalLocationsExport implements FromQuery, WithHeadings, WithMapping, W
     public function headings(): array
     {
         return [
-            'Code de boîte',
-            'Salle',
-            'Rangée',
-            'Étagère',
-            'Description',
-            'Nombre de documents',
-            'Date de création de la boîte',
+            __('Box Code'),
+            __('Room'),
+            __('Row'),
+            __('Shelf'),
+            __('Description'),
+            __('Number of documents'),
+            __('Box creation date'),
         ];
     }
 
@@ -103,42 +95,7 @@ class PhysicalLocationsExport implements FromQuery, WithHeadings, WithMapping, W
         })->toArray();
     }
 
-    protected function addDonutChart(\PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $sheet, string $name, string $title, string $labelsRange, string $valuesRange, string $topLeft, string $bottomRight): void
-    {
-        $dataseriesLabels = [
-            new DataSeriesValues('String', $valuesRange, null, 1),
-        ];
 
-        $xAxisTickValues = [
-            new DataSeriesValues('String', $labelsRange, null, null),
-        ];
-
-        $dataSeriesValues = [
-            new DataSeriesValues('Number', $valuesRange, null, null),
-        ];
-
-        $series = new DataSeries(
-            DataSeries::TYPE_DONUTCHART,
-            null,
-            range(0, count($dataSeriesValues) - 1),
-            $dataseriesLabels,
-            $xAxisTickValues,
-            $dataSeriesValues
-        );
-
-        $layout = new Layout();
-        $layout->setShowPercent(true);
-
-        $plotArea = new PlotArea($layout, [$series]);
-        $legend = new Legend(Legend::POSITION_RIGHT, null, false);
-        $chartTitle = new Title($title);
-
-        $chart = new Chart($name, $chartTitle, $legend, $plotArea);
-        $chart->setTopLeftPosition($topLeft);
-        $chart->setBottomRightPosition($bottomRight);
-
-        $sheet->addChart($chart);
-    }
 
     public function registerEvents(): array
     {
@@ -155,19 +112,19 @@ class PhysicalLocationsExport implements FromQuery, WithHeadings, WithMapping, W
                 // Insert header rows above table
                 $sheet->insertNewRowBefore(1, 5);
 
-                $sheet->setCellValue('A1', 'Rapport sur les emplacements physiques');
+                $sheet->setCellValue('A1', __('Physical Locations Report'));
                 $sheet->mergeCells('A1:G1');
                 $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(16);
 
-                $sheet->setCellValue('A2', 'Généré le : ' . now()->format('d/m/Y H:i'));
-                $sheet->setCellValue('A3', 'Filtres actifs : Aucun (toutes les boîtes)');
+                $sheet->setCellValue('A2', __('Generated on:') . ' ' . now()->format('d/m/Y H:i'));
+                $sheet->setCellValue('A3', __('Active filters:') . ' ' . __('None (all boxes)'));
                 $total = $this->totalBoxes ?? ($this->rowCount - 1);
-                $sheet->setCellValue('A4', 'Total des boîtes : ' . $total);
+                $sheet->setCellValue('A4', __('Total boxes:') . ' ' . $total);
 
                 // Stats tables
-                $sheet->setCellValue('I1', 'Boîtes par salle');
-                $sheet->setCellValue('I2', 'Salle');
-                $sheet->setCellValue('J2', 'Total');
+                $sheet->setCellValue('I1', __('Boxes by room'));
+                $sheet->setCellValue('I2', __('Room'));
+                $sheet->setCellValue('J2', __('Total'));
                 $rowRoom = 3;
                 foreach ($this->boxesByRoom as $room => $count) {
                     $sheet->setCellValue("I{$rowRoom}", $room ?: 'N/A');
@@ -175,26 +132,14 @@ class PhysicalLocationsExport implements FromQuery, WithHeadings, WithMapping, W
                     $rowRoom++;
                 }
 
-                $sheet->setCellValue('L1', 'Documents par emplacement');
-                $sheet->setCellValue('L2', 'Emplacement');
-                $sheet->setCellValue('M2', 'Total');
+                $sheet->setCellValue('L1', __('Documents by location'));
+                $sheet->setCellValue('L2', __('Location'));
+                $sheet->setCellValue('M2', __('Total'));
                 $rowBox = 3;
                 foreach ($this->documentsByBox as $location => $count) {
                     $sheet->setCellValue("L{$rowBox}", $location ?: 'N/A');
                     $sheet->setCellValue("M{$rowBox}", $count);
                     $rowBox++;
-                }
-
-                if ($rowRoom > 3) {
-                    $labelsRange = "'{$sheetTitle}'!I3:I" . ($rowRoom - 1);
-                    $valuesRange = "'{$sheetTitle}'!J3:J" . ($rowRoom - 1);
-                    $this->addDonutChart($sheet, 'boxes_by_room', 'Boîtes par salle', $labelsRange, $valuesRange, 'I6', 'N20');
-                }
-
-                if ($rowBox > 3) {
-                    $labelsRange = "'{$sheetTitle}'!L3:L" . ($rowBox - 1);
-                    $valuesRange = "'{$sheetTitle}'!M3:M" . ($rowBox - 1);
-                    $this->addDonutChart($sheet, 'docs_by_location', 'Documents par emplacement', $labelsRange, $valuesRange, 'I21', 'N35');
                 }
 
                 // Freeze data header row
@@ -203,8 +148,5 @@ class PhysicalLocationsExport implements FromQuery, WithHeadings, WithMapping, W
         ];
     }
 
-    public function charts(): array
-    {
-        return [];
-    }
+
 }
