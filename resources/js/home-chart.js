@@ -46,7 +46,7 @@ if (chartEl) {
             maintainAspectRatio: false,
             layout: {
                 padding: {
-                    right: 20
+                    right: 50
                 }
             },
             plugins: {
