@@ -88,7 +88,6 @@ class RealisticDocumentsSeeder extends Seeder
             // Create document
             $document = Document::create([
                 'title' => $title,
-                'description' => $description . " - Document #{$i}",
                 'status' => $statuses[array_rand($statuses)],
                 'category_id' => $category?->id,
                 'subcategory_id' => $category ? $category->subcategories->random()?->id : null,
@@ -103,6 +102,7 @@ class RealisticDocumentsSeeder extends Seeder
                     'author' => fake()->name(),
                     'keywords' => implode(', ', fake()->words(3)),
                     'subject' => $templateType,
+                    'description' => $description . " - Document #{$i}", // Store in metadata instead
                 ],
             ]);
 
