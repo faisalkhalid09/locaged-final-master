@@ -24,8 +24,9 @@ class RealisticDocumentsSeeder extends Seeder
         $this->command->info('Starting to seed realistic test documents...');
 
         // Get all available options from your actual database
+        // Use withoutGlobalScopes() because Category has a scope that requires auth user
         $users = User::all();
-        $categories = \App\Models\Category::all();
+        $categories = \App\Models\Category::withoutGlobalScopes()->get();
         $departments = Department::all();
         $subDepartments = SubDepartment::all();
         $services = Service::all();
