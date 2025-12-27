@@ -26,8 +26,10 @@ class PhysicalLocationController extends Controller
             abort(403);
         }
 
-        // Get all rooms with their hierarchy
-        $rooms = Room::with(['rows.shelves.boxes.documents'])->get();
+        // Get all rooms with their hierarchy, selecting only necessary document fields
+        $rooms = Room::with(['rows.shelves.boxes.documents' => function ($query) {
+            $query->select('id', 'box_id', 'title');
+        }])->get();
         
         return view('physical_locations.index', compact('rooms'));
     }
