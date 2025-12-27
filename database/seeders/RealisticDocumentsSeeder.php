@@ -92,7 +92,7 @@ class RealisticDocumentsSeeder extends Seeder
                 'title' => $title,
                 'status' => $statuses[array_rand($statuses)],
                 'category_id' => $category?->id,
-                'subcategory_id' => $category ? $category->subcategories->random()?->id : null,
+                'subcategory_id' => ($category && $category->subcategories->isNotEmpty()) ? $category->subcategories->random()->id : null,
                 'department_id' => $department?->id,
                 'service_id' => $service?->id,
                 'box_id' => $box?->id,
