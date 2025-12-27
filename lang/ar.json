@@ -175,7 +175,7 @@
     "Precondition Failed": "فشل الشرط المسبق",
     "Precondition Required": "الشرط المسبق مطلوب",
     "Preview": "معاينة",
-    "Preview Text" : "هذه معاينة لكيفية ظهور النص باستخدام إعدادات الترجمة المحددة.",
+    "Preview Text": "هذه معاينة لكيفية ظهور النص باستخدام إعدادات الترجمة المحددة.",
     "Price": "السعر",
     "Processing": "جاري المعالجة",
     "Profile": "الملف الشخصي",
@@ -271,5 +271,6 @@
     "You are logged in!": "لقد قمت بتسجيل الدخول!",
     "You are receiving this email because we received a password reset request for your account.": "لقد استلمت هذا الإيميل لأننا استقبلنا طلباً لاستعادة كلمة مرور حسابك.",
     "You're logged in!": "لقد قمت بتسجيل الدخول!",
-    "Your email address is unverified.": "لم يتم التحقق من عنوان بريدك الإلكتروني."
+    "Your email address is unverified.": "لم يتم التحقق من عنوان بريدك الإلكتروني.",
+    "Deletion log": "سجل الحذف"
 }

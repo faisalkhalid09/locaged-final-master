@@ -367,6 +367,7 @@
                 <tr class="log-row d-none" data-doc-id="{{ $doc->id }}">
                     <td colspan="10">
                         @foreach($doc->auditLogs as $log)
+                            @if($log->action !== 'viewed_ocr')
                             <div class="px-5 pt-2">
                                 <div class="activity-step">
                                     <div class="icon-box bord-color">
@@ -402,6 +403,7 @@
                                     </div>
                                 </div>
                             </div>
+                            @endif
                         @endforeach
 
                     </td>
