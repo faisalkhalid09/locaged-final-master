@@ -230,12 +230,8 @@ class DocumentsTable extends Component
             'createdBy', 'latestVersion', 'auditLogs.user'
         ]);
 
-        // Exclude expired documents - they should only appear on the destructions page
-        // Real-time check: if expire_at is in the past, document is expired
-        $documentsQuery->where(function ($q) {
-            $q->whereNull('expire_at')
-              ->orWhere('expire_at', '>', now());
-        });
+        // Note: Expired documents are now always shown in the listing
+        // The is_expired flag is maintained for visual indicators only
 
         // Apply hierarchy filter (department / sub-department / service)
         $this->applyHierarchyToQuery($documentsQuery);

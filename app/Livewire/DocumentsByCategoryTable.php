@@ -155,14 +155,8 @@ class DocumentsByCategoryTable extends Component
             'subcategory', 'department', 'box.shelf.row.room', 'createdBy', 'latestVersion', 'auditLogs.user'
         ]);
 
-        // Exclude expired documents unless showExpired is true (from dashboard All Documents card)
-        // Real-time check: if expire_at is in the past, document is expired
-        if (!$this->showExpired) {
-            $documentsQuery->where(function ($q) {
-                $q->whereNull('expire_at')
-                  ->orWhere('expire_at', '>', now());
-            });
-        }
+        // Note: Expired documents are now always shown in the listing
+        // The is_expired flag is maintained for visual indicators only
 
         // Handle category/subcategory filter
         if ($this->filterId) {

@@ -80,18 +80,11 @@ class DocumentController extends Controller
             abort(403);
         }
 
-        $showExpired = $request->boolean('show_expired', false);
-
+        // Note: Expired documents are now always shown in pending approvals
+        // The is_expired flag is maintained for visual indicators only
+        
         $query = Document::with(['subcategory', 'department', 'box.shelf.row.room', 'createdBy'])
             ->where('status','pending');
-        
-        // By default, hide expired documents unless show_expired=1 is passed
-        if (!$showExpired) {
-            $query->where(function($q) {
-                $q->whereNull('expire_at')
-                  ->orWhere('expire_at', '>', now());
-            });
-        }
         
         $documents = $query->latest()->paginate(10);
 
