@@ -312,7 +312,7 @@
                                     @endcan
 
 
-                                    @if(auth()->user()?->hasRole('master') || auth()->user()?->hasRole('super_administrator'))
+                                    @if(auth()->user()?->hasRole('master') || auth()->user()?->hasRole('Super Administrator'))
                                         <li class="pointer">
                                             <a class="dropdown-item trigger-action"
                                                data-id="{{ $doc->id }}"
