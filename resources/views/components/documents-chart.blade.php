@@ -29,7 +29,7 @@
 
             </div>
         </div>
-        <div class="col-md-2 d-flex align-items-center ">
+        <div class="col-md-2 d-flex align-items-center ps-3">
             <div class="border-chart ps-2 d-flex align-items-center">
                 <div class="">
                     <div
