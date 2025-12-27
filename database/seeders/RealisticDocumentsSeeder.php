@@ -120,7 +120,6 @@ class RealisticDocumentsSeeder extends Seeder
                 'document_id' => $document->id,
                 'version_number' => 1,
                 'file_path' => $filePath,
-                'file_name' => $fileName,
                 'file_size' => strlen($pdfContent),
                 'file_type' => 'pdf',
                 'mime_type' => 'application/pdf',
