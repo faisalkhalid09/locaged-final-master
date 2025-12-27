@@ -14,7 +14,7 @@
     </div>
 
     <div class="row h-100">
-        <div class="col-md-9" style="overflow-x: visible;">
+        <div class="col-md-10" style="overflow-x: visible;">
             <div style="height: 100%; overflow-x: visible;">
                 <canvas
                     id="approvalChart"
@@ -29,7 +29,7 @@
 
             </div>
         </div>
-        <div class="col-md-3 d-flex align-items-center ">
+        <div class="col-md-2 d-flex align-items-center ">
             <div class="border-chart ps-2 d-flex align-items-center">
                 <div class="">
                     <div
