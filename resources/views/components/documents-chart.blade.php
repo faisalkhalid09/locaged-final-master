@@ -14,8 +14,8 @@
     </div>
 
     <div class="row h-100">
-        <div class="col-md-9">
-            <div style="height: 100%">
+        <div class="col-md-9" style="overflow-x: visible;">
+            <div style="height: 100%; overflow-x: visible;">
                 <canvas
                     id="approvalChart"
                     data-weekly='@json($weeklyData)'
