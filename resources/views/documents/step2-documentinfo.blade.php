@@ -64,12 +64,12 @@
                                 $lockHierarchyFromCategory = !is_null($categoryId ?? null);
                             @endphp
 
-                            <label class="form-label">{{ ui_t('pages.upload.department') }} / Sub-Department / Service <span class="text-danger">*</span></label>
+                            <label class="form-label">{{ ui_t('pages.upload.pole') }} / {{ ui_t('pages.upload.department') }} / {{ ui_t('pages.upload.services') }} <span class="text-danger">*</span></label>
 
                             <div class="row g-3">
                                 {{-- Department (from department_user) --}}
                                 <div class="col-md-4">
-                                    <label class="form-label small mb-1">Department</label>
+                                    <label class="form-label small mb-1">{{ ui_t('pages.upload.pole') }}</label>
                                     <select class="form-select @error('currentInfo.department_id') is-invalid @enderror"
                                             required
                                             wire:model.change="currentInfo.department_id"
@@ -86,11 +86,11 @@
 
                                 {{-- Sub-Department (from sub_department_user, filtered by selected department) --}}
                                 <div class="col-md-4">
-                                    <label class="form-label small mb-1">Sub-Department</label>
+                                    <label class="form-label small mb-1">{{ ui_t('pages.upload.department') }}</label>
                                     <select class="form-select"
                                             wire:model.change="currentInfo.sub_department_id"
                                             @if(!$selectedDepartmentId || $lockHierarchyFromCategory) disabled @endif>
-                                        <option value="">Select sub-department</option>
+                                        <option value="">{{ ui_t('pages.upload.select_sub_department') }}</option>
                                         @foreach($userSubDepartments as $sub)
                                             @if($selectedDepartmentId && $sub->department_id == $selectedDepartmentId)
                                                 <option value="{{ $sub->id }}" @selected($selectedSubDepartmentId == $sub->id)>
@@ -103,11 +103,11 @@
 
                                 {{-- Service (from service_user, filtered by selected sub-department) --}}
                                 <div class="col-md-4">
-                                    <label class="form-label small mb-1">Service</label>
+                                    <label class="form-label small mb-1">{{ ui_t('pages.upload.services') }}</label>
                                     <select class="form-select @error('currentInfo.service_id') is-invalid @enderror"
                                             wire:model.change="currentInfo.service_id"
                                             @if(!$selectedSubDepartmentId || $lockHierarchyFromCategory) disabled @endif>
-                                        <option value="">Select service</option>
+                                        <option value="">{{ ui_t('pages.upload.select_service') }}</option>
                                         @foreach($userServices as $service)
                                             @if($selectedSubDepartmentId && $service->sub_department_id == $selectedSubDepartmentId)
                                                 <option value="{{ $service->id }}" @selected($selectedServiceId == $service->id)>
@@ -124,9 +124,9 @@
 
                             <small class="text-muted d-block mt-1">
                                 @if($lockHierarchyFromCategory)
-                                    {{ __('This document was opened from a category, so Department / Sub-Department / Service are locked.') }}
+                                    {{ ui_t('pages.upload.hierarchy_locked_message') }}
                                 @else
-                                    Select a department (from your assignments), then a sub-department and service. All options come from your assigned organizations and reflect the parent selection.
+                                    {{ ui_t(&#39;pages.upload.hierarchy_help_text&#39;) }}
                                 @endif
                             </small>
                         </div>
@@ -182,7 +182,7 @@
 
                         <!-- Creation Date -->
                         <div class="col-md-6">
-                            <label for="created_at" class="form-label">{{ ui_t('pages.upload.created_at') }} <span class="text-danger">*</span></label>
+                            <label for="created_at" class="form-label">{{ ui_t('pages.upload.date_and_time') }} <span class="text-danger">*</span></label>
                             <input
                                 type="datetime-local"
                                 class="form-control @error('currentInfo.created_at') is-invalid @enderror"
