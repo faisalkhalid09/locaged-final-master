@@ -578,6 +578,8 @@ return [
         'select_folder' => 'اختيار مجلد',
         'file_sent_successfully' => 'تم إرسال الملف بنجاح!',
         'review_status_message' => 'بعد مراجعة ملفك، سنزودك بتحديث حول حالته',
+        'documents_uploaded_successfully' => '{1} تم رفع :count وثيقة بنجاح.|[2,*] تم رفع :count وثيقة بنجاح.',
+        'files_skipped' => '{1} تم تجاوز :count ملف.|[2,*] تم تجاوز :count ملف.',
         'upload_documents' => 'رفع الوثائق',
         'upload_new_version_for' => 'رفع إصدار جديد للوثيقة ":title"',
         'upload_new_version' => 'رفع إصدار جديد',

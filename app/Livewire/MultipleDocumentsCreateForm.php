@@ -1044,9 +1044,9 @@ class MultipleDocumentsCreateForm extends Component
             return redirect()->route('documents.create')->with('error', 'Failed to upload document(s). Please fix the errors and try again.');
         }
 
-        $message = "$successCount document(s) uploaded successfully.";
+        $message = trans_choice('pages.upload.documents_uploaded_successfully', $successCount, ['count' => $successCount]);
         if ($skippedCount > 0) {
-            $message .= " $skippedCount file(s) skipped.";
+            $message .= ' ' . trans_choice('pages.upload.files_skipped', $skippedCount, ['count' => $skippedCount]);
         }
 
         return redirect()->route('documents.success')->with('success', $message);

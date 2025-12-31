@@ -587,6 +587,8 @@ return [
         'select_folder' => 'Sélectionner un dossier',
         'file_sent_successfully' => 'Fichier envoyé avec succès !',
         'review_status_message' => 'Après avoir examiné votre fichier, nous vous fournirons une mise à jour sur son statut',
+        'documents_uploaded_successfully' => '{1} :count document téléversé avec succès.|[2,*] :count documents téléversés avec succès.',
+        'files_skipped' => '{1} :count fichier ignoré.|[2,*] :count fichiers ignorés.',
         'upload_documents' => 'Téléverser des documents',
         'upload_new_version_for' => 'Téléverser une nouvelle version pour le document ":title"',
         'upload_new_version' => 'Téléverser une nouvelle version',

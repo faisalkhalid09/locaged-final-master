@@ -591,6 +591,8 @@ return [
         'select_folder' => 'Select Folder',
         'file_sent_successfully' => 'File Sent Successfully!',
         'review_status_message' => 'Upon reviewing your file, we will provide you with an update on its status',
+        'documents_uploaded_successfully' => '{1} :count document uploaded successfully.|[2,*] :count documents uploaded successfully.',
+        'files_skipped' => '{1} :count file skipped.|[2,*] :count files skipped.',
         'upload_documents' => 'Upload Documents',
         'upload_new_version_for' => 'Upload New Version for Document ":title"',
         'upload_new_version' => 'Upload New Version',
