@@ -126,7 +126,7 @@
                                 @if($lockHierarchyFromCategory)
                                     {{ ui_t('pages.upload.hierarchy_locked_message') }}
                                 @else
-                                    {{ ui_t(&#39;pages.upload.hierarchy_help_text&#39;) }}
+                                    {{ ui_t('pages.upload.hierarchy_help_text') }}
                                 @endif
                             </small>
                         </div>
