@@ -576,6 +576,8 @@ return [
         'drag_drop_here' => 'اسحب وأفلت الملف هنا',
         'browse_file' => 'تصفح الملف',
         'select_folder' => 'اختيار مجلد',
+        'file_sent_successfully' => 'تم إرسال الملف بنجاح!',
+        'review_status_message' => 'بعد مراجعة ملفك، سنزودك بتحديث حول حالته',
         'upload_documents' => 'رفع الوثائق',
         'upload_new_version_for' => 'رفع إصدار جديد للوثيقة ":title"',
         'upload_new_version' => 'رفع إصدار جديد',

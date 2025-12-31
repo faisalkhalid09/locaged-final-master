@@ -589,6 +589,8 @@ return [
         'drag_drop' => 'Drag and drop the file here',
         'browse_file' => 'Browse File',
         'select_folder' => 'Select Folder',
+        'file_sent_successfully' => 'File Sent Successfully!',
+        'review_status_message' => 'Upon reviewing your file, we will provide you with an update on its status',
         'upload_documents' => 'Upload Documents',
         'upload_new_version_for' => 'Upload New Version for Document ":title"',
         'upload_new_version' => 'Upload New Version',
