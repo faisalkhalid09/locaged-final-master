@@ -40,7 +40,7 @@
                     <i class="fa-solid fa-file-arrow-up me-2"></i> {{ ui_t('pages.upload.browse_file') }}
                 </button>
                 <button type="button" class="btn btn-dark mt-2" @click.stop="$refs.folderInput.click()">
-                    <i class="fa-solid fa-folder-open me-2"></i> {{ 'Select Folder' }}
+                    <i class="fa-solid fa-folder-open me-2"></i> {{ ui_t('pages.upload.select_folder') }}
                 </button>
             </div>
 
@@ -60,6 +60,13 @@
             </template>
 
         </div>
+
+        {{-- Display upload errors --}}
+        @error('upload')
+            <div class="alert alert-danger mt-3" role="alert">
+                <i class="fa-solid fa-exclamation-triangle me-2"></i>{{ $message }}
+            </div>
+        @enderror
 
         <div class="container-fluid doc-file p-0 mt-4">
             @foreach($documents as $index => $document)

@@ -584,6 +584,7 @@ return [
         'upload_file' => 'Téléverser un fichier',
         'drag_drop_here' => 'Glissez-déposez le fichier ici',
         'browse_file' => 'Parcourir',
+        'select_folder' => 'Sélectionner un dossier',
         'upload_documents' => 'Téléverser des documents',
         'upload_new_version_for' => 'Téléverser une nouvelle version pour le document ":title"',
         'upload_new_version' => 'Téléverser une nouvelle version',

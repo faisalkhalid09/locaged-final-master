@@ -575,6 +575,7 @@ return [
         'upload_file' => 'رفع ملف',
         'drag_drop_here' => 'اسحب وأفلت الملف هنا',
         'browse_file' => 'تصفح الملف',
+        'select_folder' => 'اختيار مجلد',
         'upload_documents' => 'رفع الوثائق',
         'upload_new_version_for' => 'رفع إصدار جديد للوثيقة ":title"',
         'upload_new_version' => 'رفع إصدار جديد',

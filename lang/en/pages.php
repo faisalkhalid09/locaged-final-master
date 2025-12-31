@@ -588,6 +588,7 @@ return [
         'drag_drop_here' => 'Drag and drop the file here',
         'drag_drop' => 'Drag and drop the file here',
         'browse_file' => 'Browse File',
+        'select_folder' => 'Select Folder',
         'upload_documents' => 'Upload Documents',
         'upload_new_version_for' => 'Upload New Version for Document ":title"',
         'upload_new_version' => 'Upload New Version',

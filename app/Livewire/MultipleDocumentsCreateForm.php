@@ -329,26 +329,84 @@ class MultipleDocumentsCreateForm extends Component
 
     public function updatedNewDocuments($value = null)
     {
-        // Livewire v3 passes the new value into this hook for file inputs bound with
-        // wire:model. Use that when provided (single or multiple files), otherwise
-        // fall back to the property value.
-        $files = $value ?? $this->newDocuments;
+        try {
+            // Livewire v3 passes the new value into this hook for file inputs bound with
+            // wire:model. Use that when provided (single or multiple files), otherwise
+            // fall back to the property value.
+            $files = $value ?? $this->newDocuments;
 
-        if (! is_array($files)) {
-            $files = $files ? [$files] : [];
+            if (! is_array($files)) {
+                $files = $files ? [$files] : [];
+            }
+
+            // Log the number of files being processed
+            Log::info('Processing file upload', [
+                'file_count' => count($files),
+                'user_id' => auth()->id()
+            ]);
+
+            if (! empty($files)) {
+                $this->mergeNewFiles($files);
+            }
+
+            // Clear staging property so it is ready for the next selection.
+            $this->newDocuments = [];
+        } catch (\Exception $e) {
+            Log::error('Error processing uploaded files', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'user_id' => auth()->id()
+            ]);
+            
+            $this->addError('upload', 'Failed to process uploaded files. Please try again or contact support if the problem persists.');
         }
-
-        if (! empty($files)) {
-            $this->mergeNewFiles($files);
-        }
-
-        // Clear staging property so it is ready for the next selection.
-        $this->newDocuments = [];
     }
+
 
     private function mergeNewFiles($files): void
     {
+        // Filter out invalid files before adding them
+        $validFiles = [];
         foreach ($files as $file) {
+            // Skip if not a valid uploaded file object
+            if (!is_object($file) || !method_exists($file, 'getClientOriginalName')) {
+                continue;
+            }
+
+            $filename = $file->getClientOriginalName();
+            
+            // Filter out hidden files (starting with .)
+            if (str_starts_with($filename, '.')) {
+                continue;
+            }
+            
+            // Filter out common system files
+            $systemFiles = ['.DS_Store', 'Thumbs.db', 'desktop.ini', '._.DS_Store'];
+            if (in_array($filename, $systemFiles, true)) {
+                continue;
+            }
+            
+            // Skip files with empty names
+            if (empty($filename) || trim($filename) === '') {
+                continue;
+            }
+            
+            // Skip if file has no extension (likely a folder or invalid file)
+            $extension = pathinfo($filename, PATHINFO_EXTENSION);
+            if (empty($extension)) {
+                continue;
+            }
+            
+            // Validate that file size is greater than 0
+            if (method_exists($file, 'getSize') && $file->getSize() <= 0) {
+                continue;
+            }
+            
+            $validFiles[] = $file;
+        }
+
+        // Add only valid files to documents array
+        foreach ($validFiles as $file) {
             $this->documents[] = $file;
         }
 
@@ -358,6 +416,14 @@ class MultipleDocumentsCreateForm extends Component
             if (!isset($oldDocumentInfos[$index])) {
                 // Prefer relative path (for folders) as default title; fall back to filename
                 $relative = $this->relativePaths[$index] ?? $file->getClientOriginalName();
+                
+                // For folder uploads, extract just the filename from the relative path
+                // Remove folder names from the path to get clean file title
+                if (isset($this->relativePaths[$index])) {
+                    // Get the filename from the path (last segment)
+                    $relative = basename($relative);
+                }
+                
                 $baseName = pathinfo($relative, PATHINFO_FILENAME);
 
                 $oldDocumentInfos[$index] = [
