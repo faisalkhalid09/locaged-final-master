@@ -984,7 +984,10 @@
                                 @can('view',$doc)
                                     @if($doc->latestVersion)
                                         @php
-                                            $previewParams = ['id' => $doc->latestVersion->id];
+                                            $previewParams = [
+                                                'id' => $doc->latestVersion->id,
+                                                'nav_ids' => implode(',', $documentsIds)
+                                            ];
                                         @endphp
                                         <a href="{{ route('document-versions.fullscreen', $previewParams) }}"
                                            class="btn-table btn-table-preview" title="{{ ui_t('actions.preview') }}" aria-label="{{ ui_t('actions.preview') }}">

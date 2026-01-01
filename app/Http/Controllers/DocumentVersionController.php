@@ -498,34 +498,49 @@ class DocumentVersionController extends Controller
                 }
             }
 
-            // Build navigation for document browsing (skip expired documents)
+            // Build navigation for document browsing
             $prevDocUrl = null;
             $nextDocUrl = null;
             $prevDocTitle = null;
             $nextDocTitle = null;
 
-            // Get all non-expired documents visible to the user, ordered by latest first
-            $nonExpiredIds = Document::where(function($query) {
-                    $query->where('is_expired', false)
-                          ->orWhereNull('is_expired');
-                })
-                ->whereHas('latestVersion')
-                ->orderByDesc('created_at')
-                ->orderByDesc('id')
-                ->pluck('id');
+            // Check if navigation IDs were passed from the table
+            $navIdsParam = request()->get('nav_ids');
+            
+            if ($navIdsParam) {
+                // Use the filtered list from the table for navigation
+                $documentIds = collect(explode(',', $navIdsParam))
+                    ->map(fn($id) => (int)$id)
+                    ->filter()
+                    ->values();
+            } else {
+                // Fallback: get all non-expired documents visible to the user
+                $documentIds = Document::where(function($query) {
+                        $query->where('is_expired', false)
+                              ->orWhereNull('is_expired');
+                    })
+                    ->whereHas('latestVersion')
+                    ->latest()
+                    ->pluck('id');
+            }
 
-            if ($nonExpiredIds->isNotEmpty()) {
+            if ($documentIds->isNotEmpty()) {
                 $currentDocId = $document->id;
-                $currentIndex = $nonExpiredIds->search($currentDocId);
+                $currentIndex = $documentIds->search($currentDocId);
 
                 if ($currentIndex !== false) {
-                    $prevId = $nonExpiredIds[$currentIndex - 1] ?? null;
-                    $nextId = $nonExpiredIds[$currentIndex + 1] ?? null;
+                    $prevId = $documentIds[$currentIndex - 1] ?? null;
+                    $nextId = $documentIds[$currentIndex + 1] ?? null;
 
                     if ($prevId) {
                         $prevDoc = Document::with('latestVersion')->find($prevId);
                         if ($prevDoc && $prevDoc->latestVersion) {
-                            $prevDocUrl = route('document-versions.fullscreen', ['id' => $prevDoc->latestVersion->id]);
+                            $routeParams = ['id' => $prevDoc->latestVersion->id];
+                            // Persist navigation IDs
+                            if (request()->has('nav_ids')) {
+                                $routeParams['nav_ids'] = request()->get('nav_ids');
+                            }
+                            $prevDocUrl = route('document-versions.fullscreen', $routeParams);
                             $prevDocTitle = $prevDoc->title;
                         }
                     }
@@ -533,7 +548,12 @@ class DocumentVersionController extends Controller
                     if ($nextId) {
                         $nextDoc = Document::with('latestVersion')->find($nextId);
                         if ($nextDoc && $nextDoc->latestVersion) {
-                            $nextDocUrl = route('document-versions.fullscreen', ['id' => $nextDoc->latestVersion->id]);
+                            $routeParams = ['id' => $nextDoc->latestVersion->id];
+                            // Persist navigation IDs
+                            if (request()->has('nav_ids')) {
+                                $routeParams['nav_ids'] = request()->get('nav_ids');
+                            }
+                            $nextDocUrl = route('document-versions.fullscreen', $routeParams);
                             $nextDocTitle = $nextDoc->title;
                         }
                     }
