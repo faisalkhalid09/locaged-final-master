@@ -209,8 +209,7 @@ class DocumentVersionController extends Controller
                 // way as on the status page (latest first).
                 $pendingIds = Document::where('status', 'pending')
                     ->whereHas('latestVersion')
-                    ->orderByDesc('created_at')
-                    ->orderByDesc('id')
+                    ->latest()
                     ->pluck('id');
 
                 if ($pendingIds->isNotEmpty()) {
