@@ -63,6 +63,7 @@
     "Current Password": "Mot de passe actuel",
     "Dashboard": "Tableau de bord",
     "Date/Time": "Date/Heure",
+    "Department": "Département",
     "Delete": "Supprimer",
     "Delete :name": "Supprimer :name",
     "Delete Account": "Supprimer le compte",
@@ -323,5 +324,16 @@
     "You are receiving this email because we received a password reset request for your account.": "Vous recevez cet e-mail car nous avons reçu une demande de réinitialisation de mot de passe pour votre compte.",
     "You're logged in!": "Vous êtes connecté·e !",
     "Your email address is unverified.": "Votre adresse e-mail n'est pas vérifiée.",
-    "Deletion log": "Fichier supprimé"
+    "Deletion log": "Fichier supprimé",
+    "N/A": "N/A",
+    "Permanently deleted": "Supprimé définitivement",
+    "Updated": "Mis à jour",
+    "Deleted": "Supprimé",
+    "Viewed": "Consulté",
+    "Downloaded": "Téléchargé",
+    "Uploaded": "Téléversé",
+    "Approved": "Approuvé",
+    "Rejected": "Rejeté",
+    "Postponed": "Reporté",
+    "Failed login": "Échec de connexion"
 }

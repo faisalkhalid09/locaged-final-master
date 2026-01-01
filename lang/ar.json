@@ -63,6 +63,7 @@
     "Current Password": "كلمة المرور الحالية",
     "Dashboard": "لوحة التحكم",
     "Date/Time": "التاريخ/الوقت",
+    "Department": "القسم",
     "Delete": "حذف",
     "Delete :name": "حذف :name",
     "Delete Account": "حذف الحساب",
@@ -324,5 +325,16 @@
     "You are receiving this email because we received a password reset request for your account.": "لقد استلمت هذا الإيميل لأننا استقبلنا طلباً لاستعادة كلمة مرور حسابك.",
     "You're logged in!": "لقد قمت بتسجيل الدخول!",
     "Your email address is unverified.": "لم يتم التحقق من عنوان بريدك الإلكتروني.",
-    "Deletion log": "سجل الحذف"
+    "Deletion log": "سجل الحذف",
+    "N/A": "غير متوفر",
+    "Permanently deleted": "محذوف نهائياً",
+    "Updated": "محدث",
+    "Deleted": "محذوف",
+    "Viewed": "تم العرض",
+    "Downloaded": "تم التنزيل",
+    "Uploaded": "تم الرفع",
+    "Approved": "تمت الموافقة",
+    "Rejected": "مرفوض",
+    "Postponed": "مؤجل",
+    "Failed login": "فشل تسجيل الدخول"
 }

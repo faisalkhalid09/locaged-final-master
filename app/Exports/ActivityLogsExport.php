@@ -61,22 +61,54 @@ class ActivityLogsExport implements FromCollection, WithHeadings, WithMapping, S
         if ($this->logType === 'authentication') {
             return [
                 $log->occurred_at?->format('d/m/Y H:i:s') ?? '—',
-                $log->user?->full_name ?? 'N/A',
-                $log->email ?? 'N/A',
-                ucfirst(str_replace('_', ' ', $log->type ?? '')),
-                $log->ip_address ?? 'N/A',
-                $log->user_agent ?? 'N/A',
+                $log->user?->full_name ?? __('N/A'),
+                $log->email ?? __('N/A'),
+                $this->translateAction($log->type ?? ''),
+                $log->ip_address ?? __('N/A'),
+                $log->user_agent ?? __('N/A'),
             ];
         }
 
         return [
             $log->occurred_at?->format('d/m/Y H:i:s') ?? '—',
-            $log->user?->full_name ?? 'N/A',
-            $log->document?->department?->name ?? 'N/A',
-            ucfirst(str_replace('_', ' ', $log->action ?? '')),
-            $log->document?->title ?? 'N/A',
-            $log->ip_address ?? 'N/A',
+            $log->user?->full_name ?? __('N/A'),
+            $log->document?->department?->name ?? __('N/A'),
+            $this->translateAction($log->action ?? ''),
+            $log->document?->title ?? __('(Deleted document)'),
+            $log->ip_address ?? __('N/A'),
         ];
+    }
+
+    /**
+     * Translate action/type strings
+     */
+    protected function translateAction(string $action): string
+    {
+        if (empty($action)) {
+            return __('N/A');
+        }
+
+        // Common action translations
+        $translations = [
+            'permanently_deleted' => __('Permanently deleted'),
+            'created' => __('Created'),
+            'updated' => __('Updated'),
+            'deleted' => __('Deleted'),
+            'restored' => __('Restored'),
+            'viewed' => __('Viewed'),
+            'downloaded' => __('Downloaded'),
+            'uploaded' => __('Uploaded'),
+            'approved' => __('Approved'),
+            'rejected' => __('Rejected'),
+            'postponed' => __('Postponed'),
+            'archived' => __('Archived'),
+            'login' => __('Login'),
+            'logout' => __('Logout'),
+            'failed_login' => __('Failed login'),
+        ];
+
+        // Return translation if exists, otherwise format the action nicely
+        return $translations[$action] ?? __(ucfirst(str_replace('_', ' ', $action)));
     }
 
     public function registerEvents(): array
