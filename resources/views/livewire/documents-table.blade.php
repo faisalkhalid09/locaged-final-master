@@ -955,7 +955,7 @@
                                             $previewParams = [
                                                 'id' => $doc->latestVersion->id,
                                                 'approval' => 1,
-                                                'nav_ids' => implode(',', $documentsIds)
+                                                'nav_ids' => implode(',', $this->documentsIds ?? [])
                                             ];
                                         @endphp
                                         <a href="{{ route('document-versions.preview', $previewParams) }}"
