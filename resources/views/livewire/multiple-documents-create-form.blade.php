@@ -1,13 +1,15 @@
 <div>
-    {{-- Loading overlay for transitions --}}
-    <x-loading-overlay 
-        target="nextStep" 
-        message="Preparing metadata form for {{ count($documents) }} file(s)..." 
-    />
-    <x-loading-overlay 
-        target="submit,performSubmit" 
-        message="Uploading {{ count($documents) }} document(s)..." 
-    />
+    {{-- Loading overlay for transitions - only show when there are documents --}}
+    @if(count($documents) > 0)
+        <x-loading-overlay 
+            target="nextStep" 
+            message="Preparing metadata form for {{ count($documents) }} file(s)..." 
+        />
+        <x-loading-overlay 
+            target="submit,performSubmit" 
+            message="Uploading {{ count($documents) }} document(s)..." 
+        />
+    @endif
 
     <div class="form-section">
         <div class="form-title">{{ ui_t('pages.upload.upload_documents') }}</div>
