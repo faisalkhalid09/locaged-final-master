@@ -189,13 +189,7 @@
                                 </button>
                             </div>
                             
-                            <!-- Clear Filter Button -->
-                            <button class="hierarchy-clear-all" type="button" wire:click="clearHierarchy">
-                                <i class="fas fa-times-circle me-2"></i>
-                                <span>Clear Filter</span>
-                            </button>
-                            
-                            <div class="hierarchy-divider"></div>
+                            <!-- Clear Filter removed from top -->
                             
                             <!-- Hierarchy List -->
                             <div class="hierarchy-scroll-container">
@@ -273,6 +267,10 @@
                                     <p class="mb-0">No matching items found</p>
                                 </div>
                             </div>
+                            <!-- Clear Filter Button (Footer) -->
+                            <button class="hierarchy-clear-all" type="button" wire:click="clearHierarchy">
+                                <span>Clear Filter</span>
+                            </button>
                         </div>
                     </div>
                 @endunless
@@ -353,15 +351,15 @@
                     }
                     
                     /* Dropdown Menu */
+                    /* Dropdown Menu */
                     .hierarchy-dropdown .dropdown-menu.hierarchy-menu {
-                        min-width: 380px;
-                        max-width: 450px;
+                        min-width: 320px;
+                        max-width: 360px;
                         padding: 0;
-                        border: 1px solid #e5e7eb;
-                        border-radius: 8px;
-                        box-shadow: 0 6px 18px rgba(15, 23, 42, 0.12);
-                        overflow-x: hidden;
-                        overflow-y: visible;
+                        border: 1px solid rgba(0,0,0,0.08);
+                        border-radius: 12px;
+                        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+                        overflow: hidden;
                         margin-top: 8px;
                         background: #ffffff;
                     }
@@ -370,9 +368,8 @@
                     .hierarchy-search-wrapper {
                         position: relative;
                         padding: 12px;
-                        background: #f8f9fa;
-                        border-bottom: 1px solid #e9ecef;
-                        border-radius: 12px 12px 0 0;
+                        background: #fff;
+                        border-bottom: 1px solid #f1f5f9;
                     }
                     
                     .hierarchy-search-icon {
@@ -380,24 +377,27 @@
                         left: 24px;
                         top: 50%;
                         transform: translateY(-50%);
-                        color: #6c757d;
+                        color: #94a3b8;
                         font-size: 0.9rem;
+                        pointer-events: none;
                     }
                     
                     .hierarchy-search-input {
                         width: 100%;
-                        padding: 10px 36px 10px 36px;
-                        border: 2px solid #e9ecef;
+                        padding: 8px 36px 8px 36px;
+                        border: 1px solid #e2e8f0;
                         border-radius: 8px;
-                        font-size: 0.875rem;
+                        font-size: 0.85rem;
                         transition: all 0.2s ease;
-                        background: white;
+                        background: #f8fafc;
+                        color: #334155;
                     }
                     
                     .hierarchy-search-input:focus {
                         outline: none;
-                        border-color: #667eea;
-                        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+                        border-color: #cbd5e1;
+                        background: #fff;
+                        box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.1);
                     }
                     
                     .hierarchy-search-clear {
@@ -407,7 +407,7 @@
                         transform: translateY(-50%);
                         background: none;
                         border: none;
-                        color: #6c757d;
+                        color: #94a3b8;
                         cursor: pointer;
                         padding: 4px;
                         display: flex;
@@ -417,34 +417,33 @@
                     }
                     
                     .hierarchy-search-clear:hover {
-                        color: #dc3545;
+                        color: #ef4444;
                     }
                     
-                    /* Clear All Button */
+                    /* Clear All Link */
                     .hierarchy-clear-all {
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
                         width: 100%;
-                        background: #fff;
+                        background: #f8fafc;
                         border: none;
-                        padding: 12px 16px;
-                        text-align: left;
-                        color: #dc3545;
-                        font-size: 0.9rem;
+                        border-top: 1px solid #f1f5f9;
+                        padding: 10px;
+                        color: #64748b;
+                        font-size: 0.8rem;
                         font-weight: 500;
                         cursor: pointer;
                         transition: all 0.2s ease;
-                        display: flex;
-                        align-items: center;
                     }
                     
                     .hierarchy-clear-all:hover {
-                        background: #fff5f5;
-                        color: #c82333;
+                        background: #f1f5f9;
+                        color: #ef4444;
                     }
-                    
+
                     .hierarchy-divider {
-                        height: 1px;
-                        background: #e9ecef;
-                        margin: 0;
+                        display: none;
                     }
                     
                     /* Scroll Container */
