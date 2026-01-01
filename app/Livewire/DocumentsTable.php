@@ -288,9 +288,13 @@ class DocumentsTable extends Component
         // Apply remaining filters identically for both approvals and normal views
         $documents = $documentsQuery
             // Status filter (overrides defaults above when explicitly set)
-            ->when($this->status && $this->status !== 'all', fn($q) =>
-                $q->where('status', $this->status)
-            )
+            ->when($this->status && $this->status !== 'all', function($q) {
+                if ($this->status === 'expired') {
+                    $q->where('is_expired', true);
+                } else {
+                    $q->where('status', $this->status);
+                }
+            })
             ->when($this->fileType, fn($q) =>
                 $q->whereHas('latestVersion', function ($q) {
                     $q->where('file_type', $this->fileType);

@@ -112,8 +112,11 @@
                     <select class="form-select" wire:model.change="status">
                         <option value="all">{{ ui_t('filters.all') }}</option>
                         @foreach(\App\Enums\DocumentStatus::activeCases() as $status)
-                            <option value="{{ $status->value }}">{{ ui_t('pages.documents.status.' . $status->value) }}</option>
+                            @if(!in_array($status->value, ['archived', 'destroyed']))
+                                <option value="{{ $status->value }}">{{ ui_t('pages.documents.status.' . $status->value) }}</option>
+                            @endif
                         @endforeach
+                        <option value="expired">{{ ui_t('pages.documents.status.expired') }}</option>
 
                     </select>
 

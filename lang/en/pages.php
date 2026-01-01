@@ -783,6 +783,7 @@ return [
             'rejected' => 'Rejected',
             'postponed' => 'Postponed',
             'implemented' => 'Implemented',
+            'expired' => 'Expired',
         ],
         'rename_button' => 'Rename',
         'rename_placeholder' => 'new name',
