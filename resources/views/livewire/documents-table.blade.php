@@ -985,7 +985,7 @@
                                     @if($doc->latestVersion)
                                         @php
                                             $baseUrl = route('document-versions.fullscreen', ['id' => $doc->latestVersion->id]);
-                                            $navIds = implode(',', $this->documentsIds ?? []);
+                                            $navIds = implode(',', $documentsIds ?? []);
                                             $fullUrl = $baseUrl . '?nav_ids=' . urlencode($navIds);
                                         @endphp
                                         <a href="{{ $fullUrl }}"
