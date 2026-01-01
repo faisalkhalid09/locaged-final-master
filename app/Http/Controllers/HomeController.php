@@ -866,7 +866,7 @@ class HomeController extends Controller
             ->groupBy('day')
             ->get();
 
-        $daysOrder = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+        $daysOrder = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
         $weekly = [];
         foreach ($daysOrder as $day) {
             $weekly[$day] = array_fill_keys($statuses, 0);
