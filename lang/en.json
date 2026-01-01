@@ -339,5 +339,9 @@
     "Destruction pending": "Destruction pending",
     "Destroyed": "Destroyed",
     "Pending": "Pending",
-    "Declined": "Declined"
+    "Declined": "Declined",
+    "Category": "Category",
+    "Service": "Service",
+    "Status": "Status",
+    "Structure": "Structure"
 }

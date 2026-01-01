@@ -343,5 +343,9 @@
     "Destruction pending": "Destruction en attente",
     "Destroyed": "Détruit",
     "Pending": "En attente",
-    "Declined": "Refusé"
+    "Declined": "Refusé",
+    "Category": "Catégorie",
+    "Service": "Service",
+    "Status": "Statut",
+    "Structure": "Structure"
 }

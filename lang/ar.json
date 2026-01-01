@@ -344,5 +344,9 @@
     "Destruction pending": "الإتلاف قيد الانتظار",
     "Destroyed": "تم الإتلاف",
     "Pending": "قيد الانتظار",
-    "Declined": "مرفوض"
+    "Declined": "مرفوض",
+    "Category": "الفئة",
+    "Service": "الخدمة",
+    "Status": "الحالة",
+    "Structure": "البنية"
 }
