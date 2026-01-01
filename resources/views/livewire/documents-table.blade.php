@@ -951,7 +951,12 @@
                                     @if($doc->latestVersion)
                                         @php
                                             // In approvals view, use the rich preview with metadata sidebar
-                                            $previewParams = ['id' => $doc->latestVersion->id, 'approval' => 1];
+                                            // Pass the current filtered document IDs for proper navigation
+                                            $previewParams = [
+                                                'id' => $doc->latestVersion->id,
+                                                'approval' => 1,
+                                                'nav_ids' => implode(',', $documentsIds)
+                                            ];
                                         @endphp
                                         <a href="{{ route('document-versions.preview', $previewParams) }}"
                                            class="btn-table btn-table-preview ms-1" title="{{ ui_t('actions.preview') }}" aria-label="{{ ui_t('actions.preview') }}">

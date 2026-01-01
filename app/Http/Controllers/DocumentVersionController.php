@@ -205,28 +205,39 @@ class DocumentVersionController extends Controller
             }
 
             if ($isApprovalContext) {
-                // Build the same query as the approvals table, including permission filters
-                $pendingQuery = Document::where('status', 'pending')
-                    ->whereHas('latestVersion');
+                // Check if navigation IDs were passed from the table
+                $navIdsParam = request()->get('nav_ids');
                 
-                // Apply the same permission-based restrictions as the approvals table
-                $user = auth()->user();
-                if ($user && ! $user->can('approve', Document::class)) {
-                    $canViewAny        = $user->can('view any document');
-                    $canViewDepartment = $user->can('view department document');
-                    $canViewService    = $user->can('view service document');
-                    $canViewOwn        = $user->can('view own document');
+                if ($navIdsParam) {
+                    // Use the filtered list from the table for navigation
+                    $pendingIds = collect(explode(',', $navIdsParam))
+                        ->map(fn($id) => (int)$id)
+                        ->filter()
+                        ->values();
+                } else {
+                    // Fallback: build the same query as the approvals table, including permission filters
+                    $pendingQuery = Document::where('status', 'pending')
+                        ->whereHas('latestVersion');
+                    
+                    // Apply the same permission-based restrictions as the approvals table
+                    $user = auth()->user();
+                    if ($user && ! $user->can('approve', Document::class)) {
+                        $canViewAny        = $user->can('view any document');
+                        $canViewDepartment = $user->can('view department document');
+                        $canViewService    = $user->can('view service document');
+                        $canViewOwn        = $user->can('view own document');
 
-                    if (! $canViewAny && ! $canViewDepartment && ! $canViewService && $canViewOwn) {
-                        $pendingQuery->where('created_by', $user->id);
+                        if (! $canViewAny && ! $canViewDepartment && ! $canViewService && $canViewOwn) {
+                            $pendingQuery->where('created_by', $user->id);
+                        }
                     }
+                    
+                    // All pending documents visible to this user, ordered the same
+                    // way as on the status page (latest first).
+                    $pendingIds = $pendingQuery
+                        ->latest()
+                        ->pluck('id');
                 }
-                
-                // All pending documents visible to this user, ordered the same
-                // way as on the status page (latest first).
-                $pendingIds = $pendingQuery
-                    ->latest()
-                    ->pluck('id');
 
                 if ($pendingIds->isNotEmpty()) {
                     $currentDocId = $document->id;
@@ -253,6 +264,10 @@ class DocumentVersionController extends Controller
                             if (request()->boolean('approval')) {
                                 $routeParams['approval'] = 1;
                             }
+                            // Persist navigation IDs to maintain consistent navigation
+                            if (request()->has('nav_ids')) {
+                                $routeParams['nav_ids'] = request()->get('nav_ids');
+                            }
                             $prevApprovalUrl = route('document-versions.preview', $routeParams);
                             $prevApprovalTitle = $prevDoc->title;
                         }
@@ -264,6 +279,10 @@ class DocumentVersionController extends Controller
                             $routeParams = ['id' => $nextDoc->latestVersion->id];
                             if (request()->boolean('approval')) {
                                 $routeParams['approval'] = 1;
+                            }
+                            // Persist navigation IDs to maintain consistent navigation
+                            if (request()->has('nav_ids')) {
+                                $routeParams['nav_ids'] = request()->get('nav_ids');
                             }
                             $nextApprovalUrl = route('document-versions.preview', $routeParams);
                             $nextApprovalTitle = $nextDoc->title;
