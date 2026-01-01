@@ -338,5 +338,8 @@
     "Failed login": "Échec de connexion",
     "Login success": "Connexion réussie",
     "Login failed": "Échec de connexion",
-    "Disconnection": "Déconnexion"
+    "Disconnection": "Déconnexion",
+    "Draft": "Brouillon",
+    "Destruction pending": "Destruction en attente",
+    "Destroyed": "Détruit"
 }

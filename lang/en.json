@@ -334,5 +334,8 @@
     "Failed login": "Failed login",
     "Login success": "Login success",
     "Login failed": "Login failed",
-    "Disconnection": "Disconnection"
+    "Disconnection": "Disconnection",
+    "Draft": "Draft",
+    "Destruction pending": "Destruction pending",
+    "Destroyed": "Destroyed"
 }

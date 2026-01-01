@@ -339,5 +339,8 @@
     "Failed login": "فشل تسجيل الدخول",
     "Login success": "تسجيل دخول ناجح",
     "Login failed": "فشل تسجيل الدخول",
-    "Disconnection": "قطع الاتصال"
+    "Disconnection": "قطع الاتصال",
+    "Draft": "مسودة",
+    "Destruction pending": "الإتلاف قيد الانتظار",
+    "Destroyed": "تم الإتلاف"
 }
