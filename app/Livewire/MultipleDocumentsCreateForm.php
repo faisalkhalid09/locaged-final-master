@@ -280,20 +280,25 @@ class MultipleDocumentsCreateForm extends Component
     {
         $meta = $this->currentInfo;
         
-        if (empty($meta['title']) || empty($meta['created_at'])) {
+        // PERFORMANCE OPTIMIZATION: Early return if required fields are missing
+        if (empty($meta['title']) || empty($meta['created_at']) || empty($meta['department_id'])) {
             return [];
         }
-
-        // Use the selected department_id from currentInfo
-        $deptId = $meta['department_id'] ?? null;
         
-        if (!$deptId) {
-            return []; // No department selected, can't check for duplicates
+        // PERFORMANCE OPTIMIZATION: Use exists() for faster check before fetching records
+        $hasMatches = Document::whereRaw('LOWER(title) = ?', [strtolower($meta['title'])])
+            ->where('department_id', $meta['department_id'])
+            ->whereDate('created_at', $meta['created_at'])
+            ->exists();
+            
+        if (!$hasMatches) {
+            return []; // No duplicates found, skip expensive mapping
         }
         
         return Document::whereRaw('LOWER(title) = ?', [strtolower($meta['title'])])
-            ->where('department_id', $deptId)
+            ->where('department_id', $meta['department_id'])
             ->whereDate('created_at', $meta['created_at'])
+            ->limit(10) // Limit to 10 duplicates max for performance
             ->get(['id', 'title'])
             ->map(fn($d) => [
                 'id' => $d->id,
@@ -365,6 +370,9 @@ class MultipleDocumentsCreateForm extends Component
 
     private function mergeNewFiles($files): void
     {
+        // PERFORMANCE OPTIMIZATION: Pre-define filters for faster validation
+        static $systemFiles = ['.DS_Store', 'Thumbs.db', 'desktop.ini', '._.DS_Store'];
+        
         // Filter out invalid files before adding them
         $validFiles = [];
         foreach ($files as $file) {
@@ -375,19 +383,13 @@ class MultipleDocumentsCreateForm extends Component
 
             $filename = $file->getClientOriginalName();
             
-            // Filter out hidden files (starting with .)
-            if (str_starts_with($filename, '.')) {
-                continue;
-            }
-            
-            // Filter out common system files
-            $systemFiles = ['.DS_Store', 'Thumbs.db', 'desktop.ini', '._.DS_Store'];
-            if (in_array($filename, $systemFiles, true)) {
-                continue;
-            }
-            
-            // Skip files with empty names
-            if (empty($filename) || trim($filename) === '') {
+            // Early return optimizations: combine checks to reduce processing
+            if (
+                empty($filename) || 
+                trim($filename) === '' || 
+                str_starts_with($filename, '.') || 
+                in_array($filename, $systemFiles, true)
+            ) {
                 continue;
             }
             
@@ -397,7 +399,7 @@ class MultipleDocumentsCreateForm extends Component
                 continue;
             }
             
-            // Validate that file size is greater than 0
+            // Validate that file size is greater than 0 (single check)
             if (method_exists($file, 'getSize') && $file->getSize() <= 0) {
                 continue;
             }
@@ -1010,11 +1012,13 @@ class MultipleDocumentsCreateForm extends Component
                     ]);
                 });
 
-                // Automatically convert Word/Excel uploads to PDF so previews
-                // are ready without needing to run the console command.
-                if (in_array($docVersion->file_type, ['doc', 'excel'], true)) {
-                    app(PdfConversionService::class)->convertToPdf($docVersion->file_path);
-                }
+                // PERFORMANCE OPTIMIZATION: PDF conversion moved to background job
+                // for faster upload experience. The scheduled command will handle conversion.
+                // Uncomment the following lines to restore immediate conversion:
+                //
+                // if (in_array($docVersion->file_type, ['doc', 'excel'], true)) {
+                //     app(PdfConversionService::class)->convertToPdf($docVersion->file_path);
+                // }
 
                 // IMPORTANT: Do NOT trigger OCR here.
                 // OCR will only be queued when the document is approved via

@@ -1,4 +1,14 @@
 <div>
+    {{-- Loading overlay for transitions --}}
+    <x-loading-overlay 
+        target="nextStep" 
+        message="Preparing metadata form for {{ count($documents) }} file(s)..." 
+    />
+    <x-loading-overlay 
+        target="submit,performSubmit" 
+        message="Uploading {{ count($documents) }} document(s)..." 
+    />
+
     <div class="form-section">
         <div class="form-title">{{ ui_t('pages.upload.upload_documents') }}</div>
 
@@ -28,8 +38,14 @@
         <div class="step-content mt-4 {{ $step !== 1 ? 'd-none' : '' }}">
             @include('documents.step1-attach')
             <div class="d-flex justify-content-end">
-                <button type="button" class="btn btn-outline-secondary btn-nav doc-history next-step" wire:click="nextStep">
-                    {{ ui_t('actions.next') }} &gt;
+                <button type="button" class="btn btn-outline-secondary btn-nav doc-history next-step" wire:click="nextStep" wire:loading.attr="disabled" wire:loading.class="opacity-50">
+                    <span wire:loading.remove wire:target="nextStep">
+                        {{ ui_t('actions.next') }} &gt;
+                    </span>
+                    <span wire:loading wire:target="nextStep">
+                        <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                        Processing {{ count($documents) }} file(s)...
+                    </span>
                 </button>
             </div>
         </div>

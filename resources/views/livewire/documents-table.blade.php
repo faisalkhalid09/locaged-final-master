@@ -15,10 +15,6 @@
                 </p>
             </div>
         @endif
-    @elseif($this->showOnlyPendingApprovals && !request()->routeIs('documents.status'))
-        <div class="mb-5 mt-4">
-            <h4 class="fw-bold">{{ ui_t('pages.dashboard.pending_documents') }}</h4>
-        </div>
     @endif
     <div class="section-header justify-content-end">
         <div class="section-actions ">
