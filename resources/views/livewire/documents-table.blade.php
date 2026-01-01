@@ -723,6 +723,15 @@
             <thead>
             <tr>
                 <th>
+                    @if(config('app.debug'))
+                        <div class="alert alert-warning p-1 m-0" style="font-size: 10px;">
+                            <strong>DEBUG:</strong>
+                            Count: {{ count($documentsIds ?? []) }}
+                            First 5: {{ implode(',', array_slice($documentsIds ?? [], 0, 5)) }}
+                            <br>
+                            Var Type: {{ gettype($documentsIds ?? null) }}
+                        </div>
+                    @endif
                     <input
                         type="checkbox"
                         wire:click="toggleSelectAll"
