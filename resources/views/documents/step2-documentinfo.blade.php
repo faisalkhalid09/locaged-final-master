@@ -321,52 +321,34 @@
 
                             @if($multiUpload && $useSharedMetadata)
                                 {{-- Multiple files with shared metadata: one form applies to all --}}
-                                <button type="button" class="btn btn-outline-secondary" wire:click="prevStep" wire:loading.attr="disabled" wire:loading.class="opacity-50">&lt; {{ ui_t('pages.upload.back') }}</button>
+                                <button type="button" class="btn btn-outline-secondary" wire:click="prevStep">&lt; {{ ui_t('pages.upload.back') }}</button>
                                 <button type="button" 
                                         class="btn btn-danger" 
                                         wire:click="submit"
-                                        wire:loading.attr="disabled"
-                                        wire:loading.class="opacity-50"
                                         @if(!$canProceed) disabled title="{{ ui_t('pages.upload.must_assigned_to_submit') }}" @endif>
-                                    <span wire:loading.remove wire:target="submit">{{ ui_t('pages.upload.submit') }}</span>
-                                    <span wire:loading wire:target="submit">
-                                        <span class="spinner-border spinner-border-sm me-2" role="status"></span>
-                                        Uploading...
-                                    </span>
+                                    {{ ui_t('pages.upload.submit') }}
                                 </button>
                             @else
                                 {{-- Per-file metadata (single file or multi with separate metadata) --}}
                                 @if($currentDocumentIndex === 0)
-                                    <button type="button" class="btn btn-outline-secondary" wire:click="prevStep" wire:loading.attr="disabled" wire:loading.class="opacity-50">&lt; {{ ui_t('pages.upload.back') }}</button>
+                                    <button type="button" class="btn btn-outline-secondary" wire:click="prevStep">&lt; {{ ui_t('pages.upload.back') }}</button>
                                 @else
-                                    <button type="button" class="btn btn-outline-secondary" wire:click="prevDocument" wire:loading.attr="disabled" wire:loading.class="opacity-50">&lt; {{ ui_t('pages.upload.back') }}</button>
+                                    <button type="button" class="btn btn-outline-secondary" wire:click="prevDocument">&lt; {{ ui_t('pages.upload.back') }}</button>
                                 @endif
 
                                 @if($currentDocumentIndex < count($documentInfos) - 1)
                                     <button type="button" 
                                             class="btn btn-outline-secondary" 
                                             wire:click="nextDocument"
-                                            wire:loading.attr="disabled"
-                                            wire:loading.class="opacity-50"
                                             @if(!$canProceed) disabled title="{{ ui_t('pages.upload.must_assigned_to_proceed') }}" @endif>
-                                        <span wire:loading.remove wire:target="nextDocument">{{ ui_t('pages.upload.next') }} &gt;</span>
-                                        <span wire:loading wire:target="nextDocument">
-                                            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
-                                            Processing...
-                                        </span>
+                                        {{ ui_t('pages.upload.next') }} &gt;
                                     </button>
                                 @else
                                     <button type="button" 
                                             class="btn btn-danger" 
                                             wire:click="submit"
-                                            wire:loading.attr="disabled"
-                                            wire:loading.class="opacity-50"
                                             @if(!$canProceed) disabled title="{{ ui_t('pages.upload.must_assigned_to_submit') }}" @endif>
-                                        <span wire:loading.remove wire:target="submit">{{ ui_t('pages.upload.submit') }}</span>
-                                        <span wire:loading wire:target="submit">
-                                            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
-                                            Uploading...
-                                        </span>
+                                        {{ ui_t('pages.upload.submit') }}
                                     </button>
                                 @endif
                             @endif
