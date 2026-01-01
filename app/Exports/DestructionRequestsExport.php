@@ -27,7 +27,13 @@ class DestructionRequestsExport implements FromQuery, WithHeadings, WithMapping,
 
     public function headings(): array
     {
-        return ['Document Title', 'File Name', 'Status', 'Requested By', 'Requested At'];
+        return [
+            __('Document title'),
+            __('File Name'),
+            __('Status'),
+            __('Requested By'),
+            __('Requested At')
+        ];
     }
 
     public function map($req): array
@@ -36,11 +42,21 @@ class DestructionRequestsExport implements FromQuery, WithHeadings, WithMapping,
         $doc = $req->document;
         $latestPath = $doc?->latestVersion?->file_path;
         $fileName = $latestPath ? basename($latestPath) : '';
+        
+        // Translate status
+        $statusTranslations = [
+            'pending' => __('Pending'),
+            'approved' => __('Approved'),
+            'rejected' => __('Rejected'),
+            'completed' => __('Completed'),
+        ];
+        $statusLabel = $statusTranslations[$req->status] ?? __(ucfirst($req->status));
+        
         return [
-            $doc?->title ?? '',
-            $fileName,
-            $req->status,
-            $req->requestedBy?->full_name ?? '',
+            $doc?->title ?? __('N/A'),
+            $fileName ?: __('N/A'),
+            $statusLabel,
+            $req->requestedBy?->full_name ?? __('N/A'),
             optional($req->requested_at)->format('Y-m-d H:i:s'),
         ];
     }
@@ -54,7 +70,7 @@ class DestructionRequestsExport implements FromQuery, WithHeadings, WithMapping,
                 $this->applyDefaultSheetStyles($event, $lastRow, $lastCol);
                 $sheet = $event->sheet->getDelegate();
                 $sheet->insertNewRowBefore(1, 1);
-                $sheet->setCellValue('A1', 'Destruction Requests');
+                $sheet->setCellValue('A1', __('Destruction Requests'));
                 $sheet->mergeCells('A1:' . $lastCol . '1');
                 $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(16);
                 $sheet->getRowDimension(2)->setRowHeight(22);

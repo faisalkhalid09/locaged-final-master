@@ -348,5 +348,11 @@
     "Category": "الفئة",
     "Service": "الخدمة",
     "Status": "الحالة",
-    "Structure": "البنية"
+    "Structure": "البنية",
+    "File Name": "اسم الملف",
+    "Requested By": "مطلوب من قبل",
+    "Requested At": "مطلوب في",
+    "Destruction Requests": "طلبات الإتلاف",
+    "Completed": "مكتمل",
+    "Rejected": "مرفوض"
 }

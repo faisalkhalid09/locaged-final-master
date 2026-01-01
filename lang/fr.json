@@ -347,5 +347,11 @@
     "Category": "Catégorie",
     "Service": "Service",
     "Status": "Statut",
-    "Structure": "Structure"
+    "Structure": "Structure",
+    "File Name": "Nom du fichier",
+    "Requested By": "Demandé par",
+    "Requested At": "Demandé le",
+    "Destruction Requests": "Demandes de destruction",
+    "Completed": "Terminé",
+    "Rejected": "Rejeté"
 }

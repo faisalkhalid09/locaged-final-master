@@ -343,5 +343,11 @@
     "Category": "Category",
     "Service": "Service",
     "Status": "Status",
-    "Structure": "Structure"
+    "Structure": "Structure",
+    "File Name": "File Name",
+    "Requested By": "Requested By",
+    "Requested At": "Requested At",
+    "Destruction Requests": "Destruction Requests",
+    "Completed": "Completed",
+    "Rejected": "Rejected"
 }
