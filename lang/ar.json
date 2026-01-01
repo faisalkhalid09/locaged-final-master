@@ -354,5 +354,17 @@
     "Requested At": "مطلوب في",
     "Destruction Requests": "طلبات الإتلاف",
     "Completed": "مكتمل",
-    "Rejected": "مرفوض"
+    "Rejected": "مرفوض",
+    "Name": "الاسم",
+    "Role(s)": "الدور(الأدوار)",
+    "Structure(s)": "البنية(البنى)",
+    "Service(s)": "الخدمة(الخدمات)",
+    "Last login": "آخر تسجيل دخول",
+    "Active": "نشط",
+    "Deactivated": "معطل",
+    "No role": "بدون دور",
+    "No structure": "بدون بنية",
+    "No filters (all users)": "لا توجد فلاتر (جميع المستخدمين)",
+    "Users Report": "تقرير المستخدمين",
+    "Total users:": "إجمالي المستخدمين:"
 }

@@ -11,20 +11,12 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
-use Maatwebsite\Excel\Concerns\WithCharts;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Events\AfterSheet;
-use PhpOffice\PhpSpreadsheet\Chart\Chart;
-use PhpOffice\PhpSpreadsheet\Chart\DataSeries;
-use PhpOffice\PhpSpreadsheet\Chart\DataSeriesValues;
-use PhpOffice\PhpSpreadsheet\Chart\Layout;
-use PhpOffice\PhpSpreadsheet\Chart\Legend;
-use PhpOffice\PhpSpreadsheet\Chart\PlotArea;
-use PhpOffice\PhpSpreadsheet\Chart\Title;
 
-class UsersExport implements FromQuery, WithHeadings, WithMapping, ShouldAutoSize, WithEvents, WithCharts
+class UsersExport implements FromQuery, WithHeadings, WithMapping, ShouldAutoSize, WithEvents
 {
     use DefaultStyles;
 
@@ -138,14 +130,14 @@ class UsersExport implements FromQuery, WithHeadings, WithMapping, ShouldAutoSiz
     public function headings(): array
     {
         return [
-            'Nom',
-            'E‑mail',
-            'Rôle(s)',
-            'Structure(s)',
-            'Service(s)',
-            'Date de création',
-            'Dernière connexion',
-            'Statut',
+            __('Name'),
+            __('Email'),
+            __('Role(s)'),
+            __('Structure(s)'),
+            __('Service(s)'),
+            __('Creation date'),
+            __('Last login'),
+            __('Status'),
         ];
     }
 
@@ -153,9 +145,9 @@ class UsersExport implements FromQuery, WithHeadings, WithMapping, ShouldAutoSiz
     {
         $this->rowCount++;
 
-        $roles = $user->roles->pluck('name')->join(', ');
-        $departments = $user->departments->pluck('name')->join(', ');
-        $services = $user->services->pluck('name')->join(', ');
+        $roles = $user->roles->pluck('name')->join(', ') ?: __('N/A');
+        $departments = $user->departments->pluck('name')->join(', ') ?: __('N/A');
+        $services = $user->services->pluck('name')->join(', ') ?: __('N/A');
 
         // Approximate last login using sessions table (max last_activity)
         $lastLogin = DB::table('sessions')
@@ -163,7 +155,7 @@ class UsersExport implements FromQuery, WithHeadings, WithMapping, ShouldAutoSiz
             ->max('last_activity');
         $lastLoginFormatted = $lastLogin
             ? date('d/m/Y H:i', $lastLogin)
-            : 'N/A';
+            : __('N/A');
 
         return [
             $user->full_name,
@@ -171,9 +163,9 @@ class UsersExport implements FromQuery, WithHeadings, WithMapping, ShouldAutoSiz
             $roles,
             $departments,
             $services,
-            optional($user->created_at)?->format('d/m/Y H:i'),
+            optional($user->created_at)->format('d/m/Y H:i'),
             $lastLoginFormatted,
-            $user->active ? 'Actif' : 'Désactivé',
+            $user->active ? __('Active') : __('Deactivated'),
         ];
     }
 
@@ -187,11 +179,11 @@ class UsersExport implements FromQuery, WithHeadings, WithMapping, ShouldAutoSiz
         $this->totalUsers = $users->count();
 
         $this->byRole = $users->groupBy(function ($user) {
-            return $user->roles->pluck('name')->first() ?? 'Sans rôle';
+            return $user->roles->pluck('name')->first() ?? __('No role');
         })->map->count()->toArray();
 
         $this->byDepartment = $users->groupBy(function ($user) {
-            return $user->departments->pluck('name')->first() ?? 'Sans structure';
+            return $user->departments->pluck('name')->first() ?? __('No structure');
         })->map->count()->toArray();
     }
 
@@ -215,44 +207,7 @@ class UsersExport implements FromQuery, WithHeadings, WithMapping, ShouldAutoSiz
             $parts[] = 'Statut=' . ($r->status === 'active' ? 'Actif' : 'Désactivé');
         }
 
-        return $parts ? implode(' ; ', $parts) : 'Aucun filtre (tous les utilisateurs)';
-    }
-
-    protected function addDonutChart(\PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $sheet, string $name, string $title, string $labelsRange, string $valuesRange, string $topLeft, string $bottomRight): void
-    {
-        $dataseriesLabels = [
-            new DataSeriesValues('String', $valuesRange, null, 1),
-        ];
-
-        $xAxisTickValues = [
-            new DataSeriesValues('String', $labelsRange, null, null),
-        ];
-
-        $dataSeriesValues = [
-            new DataSeriesValues('Number', $valuesRange, null, null),
-        ];
-
-        $series = new DataSeries(
-            DataSeries::TYPE_DONUTCHART,
-            null,
-            range(0, count($dataSeriesValues) - 1),
-            $dataseriesLabels,
-            $xAxisTickValues,
-            $dataSeriesValues
-        );
-
-        $layout = new Layout();
-        $layout->setShowPercent(true);
-
-        $plotArea = new PlotArea($layout, [$series]);
-        $legend = new Legend(Legend::POSITION_RIGHT, null, false);
-        $chartTitle = new Title($title);
-
-        $chart = new Chart($name, $chartTitle, $legend, $plotArea);
-        $chart->setTopLeftPosition($topLeft);
-        $chart->setBottomRightPosition($bottomRight);
-
-        $sheet->addChart($chart);
+        return $parts ? implode(' ; ', $parts) : __('No filters (all users)');
     }
 
     public function registerEvents(): array
@@ -270,57 +225,19 @@ class UsersExport implements FromQuery, WithHeadings, WithMapping, ShouldAutoSiz
                 // Insert header rows above table
                 $sheet->insertNewRowBefore(1, 5);
 
-                $sheet->setCellValue('A1', 'Rapport sur les utilisateurs');
+                $sheet->setCellValue('A1', __('Users Report'));
                 $sheet->mergeCells('A1:H1');
                 $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(16);
 
-                $sheet->setCellValue('A2', 'Généré le : ' . now()->format('d/m/Y H:i'));
-                $sheet->setCellValue('A3', 'Filtres actifs : ' . $this->buildFiltersSummary());
+                $sheet->setCellValue('A2', __('Generated on:') . ' ' . now()->format('d/m/Y H:i'));
+                $sheet->setCellValue('A3', __('Active filters:') . ' ' . $this->buildFiltersSummary());
 
                 $total = $this->totalUsers ?? ($this->rowCount - 1);
-                $sheet->setCellValue('A4', 'Total des utilisateurs : ' . $total);
-
-                // Stats tables for charts
-                $sheet->setCellValue('J1', 'Par rôle');
-                $sheet->setCellValue('J2', 'Rôle');
-                $sheet->setCellValue('K2', 'Total');
-                $rowRole = 3;
-                foreach ($this->byRole as $role => $count) {
-                    $sheet->setCellValue("J{$rowRole}", $role ?: 'N/A');
-                    $sheet->setCellValue("K{$rowRole}", $count);
-                    $rowRole++;
-                }
-
-                $sheet->setCellValue('M1', 'Par structure');
-                $sheet->setCellValue('M2', 'Structure');
-                $sheet->setCellValue('N2', 'Total');
-                $rowDept = 3;
-                foreach ($this->byDepartment as $dept => $count) {
-                    $sheet->setCellValue("M{$rowDept}", $dept ?: 'N/A');
-                    $sheet->setCellValue("N{$rowDept}", $count);
-                    $rowDept++;
-                }
-
-                if ($rowRole > 3) {
-                    $labelsRange = "'{$sheetTitle}'!J3:J" . ($rowRole - 1);
-                    $valuesRange = "'{$sheetTitle}'!K3:K" . ($rowRole - 1);
-                    $this->addDonutChart($sheet, 'users_by_role', 'Utilisateurs par rôle', $labelsRange, $valuesRange, 'J6', 'O20');
-                }
-
-                if ($rowDept > 3) {
-                    $labelsRange = "'{$sheetTitle}'!M3:M" . ($rowDept - 1);
-                    $valuesRange = "'{$sheetTitle}'!N3:N" . ($rowDept - 1);
-                    $this->addDonutChart($sheet, 'users_by_department', 'Utilisateurs par structure', $labelsRange, $valuesRange, 'J21', 'O35');
-                }
+                $sheet->setCellValue('A4', __('Total users:') . ' ' . $total);
 
                 // Freeze data header row (now at 6)
                 $sheet->freezePane('A6');
             },
         ];
-    }
-
-    public function charts(): array
-    {
-        return [];
     }
 }

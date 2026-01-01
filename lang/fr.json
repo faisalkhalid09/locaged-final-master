@@ -353,5 +353,17 @@
     "Requested At": "Demandé le",
     "Destruction Requests": "Demandes de destruction",
     "Completed": "Terminé",
-    "Rejected": "Rejeté"
+    "Rejected": "Rejeté",
+    "Name": "Nom",
+    "Role(s)": "Rôle(s)",
+    "Structure(s)": "Structure(s)",
+    "Service(s)": "Service(s)",
+    "Last login": "Dernière connexion",
+    "Active": "Actif",
+    "Deactivated": "Désactivé",
+    "No role": "Sans rôle",
+    "No structure": "Sans structure",
+    "No filters (all users)": "Aucun filtre (tous les utilisateurs)",
+    "Users Report": "Rapport sur les utilisateurs",
+    "Total users:": "Total des utilisateurs :"
 }
