@@ -984,6 +984,11 @@
                                 @can('view',$doc)
                                     @if($doc->latestVersion)
                                         @php
+                                            \Log::info('Documents nav_ids debug', [
+                                                'count' => count($this->documentsIds ?? []),
+                                                'first_5' => array_slice($this->documentsIds ?? [], 0, 5),
+                                            ]);
+                                            
                                             $previewParams = [
                                                 'id' => $doc->latestVersion->id,
                                                 'nav_ids' => implode(',', $this->documentsIds ?? [])
