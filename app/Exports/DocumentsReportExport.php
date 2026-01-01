@@ -138,7 +138,7 @@ class DocumentsReportExport implements FromQuery, WithHeadings, WithMapping, Sho
         $categoryName = $doc->category?->name
             ?? $doc->subcategory?->category?->name
             ?? optional($doc->subcategory)->name
-            ?? 'N/A';
+            ?? __('N/A');
 
         // Translated status labels
         $statusMap = [
@@ -160,7 +160,7 @@ class DocumentsReportExport implements FromQuery, WithHeadings, WithMapping, Sho
             ->with('changedBy')
             ->first();
 
-        $lastApproverName = $lastApprover?->changedBy?->full_name ?? 'N/A';
+        $lastApproverName = $lastApprover?->changedBy?->full_name ?? __('N/A');
 
         // File size from latest version if available
         $fileSizeDisplay = 'N/A';
@@ -172,19 +172,19 @@ class DocumentsReportExport implements FromQuery, WithHeadings, WithMapping, Sho
                     $fileSizeDisplay = number_format($sizeMb, 2, ',', ' ') . ' Mo';
                 }
             } catch (\Throwable $e) {
-                $fileSizeDisplay = 'N/A';
+                $fileSizeDisplay = __('N/A');
             }
         }
 
         return [
             $doc->title,
             $categoryName,
-            optional($doc->department)->name ?? 'N/A',
-            optional($doc->service)->name ?? 'N/A',
+            optional($doc->department)->name ?? __('N/A'),
+            optional($doc->service)->name ?? __('N/A'),
             $statusLabel,
             optional($doc->created_at)?->format('d/m/Y H:i'),
             optional($doc->expire_at)?->format('d/m/Y'),
-            optional($doc->createdBy)->full_name ?? 'N/A',
+            optional($doc->createdBy)->full_name ?? __('N/A'),
             $lastApproverName,
             $fileSizeDisplay,
         ];
