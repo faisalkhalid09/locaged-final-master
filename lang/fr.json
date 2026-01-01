@@ -341,5 +341,7 @@
     "Disconnection": "Déconnexion",
     "Draft": "Brouillon",
     "Destruction pending": "Destruction en attente",
-    "Destroyed": "Détruit"
+    "Destroyed": "Détruit",
+    "Pending": "En attente",
+    "Declined": "Refusé"
 }

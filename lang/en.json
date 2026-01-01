@@ -337,5 +337,7 @@
     "Disconnection": "Disconnection",
     "Draft": "Draft",
     "Destruction pending": "Destruction pending",
-    "Destroyed": "Destroyed"
+    "Destroyed": "Destroyed",
+    "Pending": "Pending",
+    "Declined": "Declined"
 }

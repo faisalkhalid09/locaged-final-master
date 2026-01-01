@@ -342,5 +342,7 @@
     "Disconnection": "قطع الاتصال",
     "Draft": "مسودة",
     "Destruction pending": "الإتلاف قيد الانتظار",
-    "Destroyed": "تم الإتلاف"
+    "Destroyed": "تم الإتلاف",
+    "Pending": "قيد الانتظار",
+    "Declined": "مرفوض"
 }
