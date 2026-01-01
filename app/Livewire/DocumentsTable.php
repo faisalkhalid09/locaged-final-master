@@ -348,7 +348,8 @@ class DocumentsTable extends Component
             ->orderBy('id', 'desc');
         
         // Get ALL filtered document IDs for navigation (before pagination)
-        $this->documentsIds = $documentsQuery->pluck('id')->toArray();
+        // Clone the query to avoid any side effects from pluck()
+        $this->documentsIds = (clone $documentsQuery)->pluck('id')->toArray();
         
         // Now paginate for display
         $documents = $documentsQuery->paginate($this->perPage);
