@@ -336,5 +336,8 @@
     "Approved": "تمت الموافقة",
     "Rejected": "مرفوض",
     "Postponed": "مؤجل",
-    "Failed login": "فشل تسجيل الدخول"
+    "Failed login": "فشل تسجيل الدخول",
+    "Login success": "تسجيل دخول ناجح",
+    "Login failed": "فشل تسجيل الدخول",
+    "Disconnection": "قطع الاتصال"
 }

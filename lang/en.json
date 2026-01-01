@@ -331,5 +331,8 @@
     "Approved": "Approved",
     "Rejected": "Rejected",
     "Postponed": "Postponed",
-    "Failed login": "Failed login"
+    "Failed login": "Failed login",
+    "Login success": "Login success",
+    "Login failed": "Login failed",
+    "Disconnection": "Disconnection"
 }

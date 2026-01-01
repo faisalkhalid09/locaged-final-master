@@ -335,5 +335,8 @@
     "Approved": "Approuvé",
     "Rejected": "Rejeté",
     "Postponed": "Reporté",
-    "Failed login": "Échec de connexion"
+    "Failed login": "Échec de connexion",
+    "Login success": "Connexion réussie",
+    "Login failed": "Échec de connexion",
+    "Disconnection": "Déconnexion"
 }

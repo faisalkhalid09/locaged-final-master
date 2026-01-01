@@ -105,6 +105,11 @@ class ActivityLogsExport implements FromCollection, WithHeadings, WithMapping, S
             'login' => __('Login'),
             'logout' => __('Logout'),
             'failed_login' => __('Failed login'),
+            // Authentication specific actions
+            'login_success' => __('Login success'),
+            'login_failed' => __('Login failed'),
+            'disconnection' => __('Disconnection'),
+            'deconnexion' => __('Disconnection'),
         ];
 
         // Return translation if exists, otherwise format the action nicely
