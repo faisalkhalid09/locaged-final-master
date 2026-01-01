@@ -1,14 +1,4 @@
 <div class="mt-5">
-    {{-- Loading Overlay - Minimal UI --}}
-    <div wire:loading class="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" 
-         style="background: rgba(255,255,255,0.85); z-index: 9999; backdrop-filter: blur(2px);">
-        <div class="text-center">
-            <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
-                <span class="visually-hidden">Loading...</span>
-            </div>
-            <p class="mt-3 text-muted fw-semibold">Loading documents...</p>
-        </div>
-    </div>
     @if($boxId)
         @php
             $box = \App\Models\Box::with('shelf.row.room')->find($boxId);
