@@ -57,7 +57,7 @@
             @else
                 @if(request()->routeIs('documents.index'))
                     {{-- File Audit: export all documents --}}
-                    <a href="{{ route('documents.export') }}" class="btn btn-success btn-sm">
+                    <a href="{{ route('documents.export') }}" class="btn btn-success">
                         <i class="fas fa-file-excel me-2"></i>{{ ui_t('pages.documents.export') ?? 'Export' }}
                     </a>
                 @else

@@ -16,7 +16,11 @@ if (chartEl) {
     const expiredLabel = chartEl.dataset.expiredLabel || 'Expired';
 
 
-    const labelsWeekly = weeklyData.map(item => item.day.substring(0, 3).toUpperCase());
+    const dayTranslations = chartEl.dataset.days ? JSON.parse(chartEl.dataset.days) : null;
+    const labelsWeekly = weeklyData.map(item => {
+        const dayKey = item.day.substring(0, 3).toLowerCase();
+        return dayTranslations && dayTranslations[dayKey] ? dayTranslations[dayKey].toUpperCase() : item.day.substring(0, 3).toUpperCase();
+    });
     const labelsMonthly = monthlyData.map(item => {
         const [year, month] = item.month.split('-');
         return new Date(year, month - 1).toLocaleString('default', { month: 'short' }).toUpperCase();
@@ -52,7 +56,16 @@ if (chartEl) {
             },
             plugins: {
                 legend: {
-                    display: true
+                    display: true,
+                    position: 'left',
+                    align: 'start',
+                    labels: {
+                        boxWidth: 12,
+                        padding: 8,
+                        font: {
+                            size: 11
+                        }
+                    }
                 }
             },
             scales: {

@@ -14,7 +14,7 @@
     </div>
 
     <div class="row h-100">
-        <div class="col-md-10" style="overflow-x: visible;">
+        <div class="col-md-9" style="overflow-x: visible;">
             <div style="height: 100%; overflow-x: visible;">
                 <canvas
                     id="approvalChart"
@@ -25,11 +25,20 @@
                     data-pending-label="{{ ui_t('pages.chart.pending') }}"
                     data-declined-label="{{ ui_t('pages.chart.rejected') }}"
                     data-expired-label="{{ ui_t('pages.chart.expired') }}"
+                    data-days='@json([
+                        "sun" => ui_t("pages.chart.days.sun"),
+                        "mon" => ui_t("pages.chart.days.mon"),
+                        "tue" => ui_t("pages.chart.days.tue"),
+                        "wed" => ui_t("pages.chart.days.wed"),
+                        "thu" => ui_t("pages.chart.days.thu"),
+                        "fri" => ui_t("pages.chart.days.fri"),
+                        "sat" => ui_t("pages.chart.days.sat")
+                    ])'
                 ></canvas>
 
             </div>
         </div>
-        <div class="col-md-2 d-flex align-items-center ps-3">
+        <div class="col-md-3 d-flex align-items-center ps-3">
             <div class="border-chart ps-2 d-flex align-items-center">
                 <div class="">
                     <div
