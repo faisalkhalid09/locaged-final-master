@@ -344,10 +344,13 @@ class DocumentsTable extends Component
             ->when($this->dateTo, fn($q) =>
                 $q->whereDate('created_at', '<=', $this->dateTo)
             )
-            ->latest()
-            ->paginate($this->perPage);
-
-        $this->documentsIds = $documents->pluck('id')->toArray();
+            ->latest();
+        
+        // Get ALL filtered document IDs for navigation (before pagination)
+        $this->documentsIds = $documentsQuery->pluck('id')->toArray();
+        
+        // Now paginate for display
+        $documents = $documentsQuery->paginate($this->perPage);
 
         // Folders for current level
         // - Hidden when showing only pending approvals (dashboard)
@@ -366,9 +369,6 @@ class DocumentsTable extends Component
                     ->get();
             }
         }
-
-
-        $this->documentsIds = $documents->pluck('id')->toArray();
 
         // Folders for current level
         // - Hidden when showing only pending approvals (dashboard)
