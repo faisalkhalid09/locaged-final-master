@@ -356,9 +356,9 @@
                         min-width: 320px;
                         max-width: 360px;
                         padding: 0;
-                        border: 1px solid rgba(0,0,0,0.08);
-                        border-radius: 12px;
-                        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+                        border: 1px solid #e2e8f0;
+                        border-radius: 8px;
+                        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
                         overflow: hidden;
                         margin-top: 8px;
                         background: #ffffff;
@@ -386,7 +386,7 @@
                         width: 100%;
                         padding: 8px 36px 8px 36px;
                         border: 1px solid #e2e8f0;
-                        border-radius: 8px;
+                        border-radius: 6px;
                         font-size: 0.85rem;
                         transition: all 0.2s ease;
                         background: #f8fafc;
@@ -426,7 +426,7 @@
                         align-items: center;
                         justify-content: center;
                         width: 100%;
-                        background: #f8fafc;
+                        background: #fff;
                         border: none;
                         border-top: 1px solid #f1f5f9;
                         padding: 10px;
@@ -438,8 +438,8 @@
                     }
                     
                     .hierarchy-clear-all:hover {
-                        background: #f1f5f9;
-                        color: #ef4444;
+                        background: #f8f9fa;
+                        color: #dc3545;
                     }
 
                     .hierarchy-divider {
