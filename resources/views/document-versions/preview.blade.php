@@ -333,48 +333,47 @@
                                 <button type="submit" class="btn py-2 px-4 btn-outline-primary">{{ ui_t('pages.versions.modify') }}</button>
                             @endcan
 
+
                         </div>
+
+                        {{-- Navigation buttons for approval context --}}
+                        @if($isApprovalContext && ($prevApprovalUrl || $nextApprovalUrl))
+                            <div class="border-top mt-3 pt-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    @if($prevApprovalUrl)
+                                        <a href="{{ $prevApprovalUrl }}" 
+                                           class="btn btn-outline-secondary"
+                                           title="{{ $prevApprovalTitle }}"
+                                           data-bs-toggle="tooltip"
+                                           data-bs-placement="top">
+                                            <i class="fas fa-chevron-left me-2"></i>
+                                            {{ ui_t('pages.versions.previous_document') }}
+                                        </a>
+                                    @else
+                                        <div></div>
+                                    @endif
+
+                                    @if($nextApprovalUrl)
+                                        <a href="{{ $nextApprovalUrl }}" 
+                                           class="btn btn-outline-secondary"
+                                           title="{{ $nextApprovalTitle }}"
+                                           data-bs-toggle="tooltip"
+                                           data-bs-placement="top">
+                                            {{ ui_t('pages.versions.next_document') }}
+                                            <i class="fas fa-chevron-right ms-2"></i>
+                                        </a>
+                                    @else
+                                        <div></div>
+                                    @endif
+                                </div>
+                            </div>
+                        @endif
                     </form>
                 </div>
             </div>
             @endunless
         </div>
     </div>
-
-    {{-- Navigation buttons for approval context --}}
-    @if($isApprovalContext && ($prevApprovalUrl || $nextApprovalUrl))
-        <div class="fixed-bottom bg-white border-top shadow-sm p-3">
-            <div class="container-fluid">
-                <div class="d-flex justify-content-between align-items-center">
-                    @if($prevApprovalUrl)
-                        <a href="{{ $prevApprovalUrl }}" 
-                           class="btn btn-outline-secondary"
-                           title="{{ $prevApprovalTitle }}"
-                           data-bs-toggle="tooltip"
-                           data-bs-placement="top">
-                            <i class="fas fa-chevron-left me-2"></i>
-                            {{ ui_t('pages.versions.previous_document') }}
-                        </a>
-                    @else
-                        <div></div>
-                    @endif
-
-                    @if($nextApprovalUrl)
-                        <a href="{{ $nextApprovalUrl }}" 
-                           class="btn btn-outline-secondary"
-                           title="{{ $nextApprovalTitle }}"
-                           data-bs-toggle="tooltip"
-                           data-bs-placement="top">
-                            {{ ui_t('pages.versions.next_document') }}
-                            <i class="fas fa-chevron-right ms-2"></i>
-                        </a>
-                    @else
-                        <div></div>
-                    @endif
-                </div>
-            </div>
-        </div>
-    @endif
 
         @include('components.modals.confirm-modal')
 
