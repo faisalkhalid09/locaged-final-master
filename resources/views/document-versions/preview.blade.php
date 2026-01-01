@@ -338,11 +338,11 @@
 
                         {{-- Navigation buttons for approval context --}}
                         @if($isApprovalContext && ($prevApprovalUrl || $nextApprovalUrl))
-                            <div class="border-top mt-3 pt-3">
+                            <div class="border-top mt-3 pt-3 px-2">
                                 <div class="d-flex justify-content-between align-items-center">
                                     @if($prevApprovalUrl)
                                         <a href="{{ $prevApprovalUrl }}" 
-                                           class="btn btn-outline-secondary"
+                                           class="btn btn-outline-secondary py-2 px-4"
                                            title="{{ $prevApprovalTitle }}"
                                            data-bs-toggle="tooltip"
                                            data-bs-placement="top">
@@ -355,7 +355,7 @@
 
                                     @if($nextApprovalUrl)
                                         <a href="{{ $nextApprovalUrl }}" 
-                                           class="btn btn-outline-secondary"
+                                           class="btn btn-outline-secondary py-2 px-4"
                                            title="{{ $nextApprovalTitle }}"
                                            data-bs-toggle="tooltip"
                                            data-bs-placement="top">
