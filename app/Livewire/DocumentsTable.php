@@ -462,6 +462,7 @@ class DocumentsTable extends Component
             'movements' => $movements,
             'rooms'     => $rooms,
             'hierarchyDepartments' => $hierarchyDepartments,
+            'documentsIds' => $this->documentsIds,
         ]);
     }
 
