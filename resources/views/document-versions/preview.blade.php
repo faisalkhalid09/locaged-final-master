@@ -393,23 +393,28 @@
         const shelfSelect = document.getElementById('preview_shelf_id');
         const boxSelect = document.getElementById('preview_box_id');
         
+        // Capture the server-side selected values before any JavaScript manipulation
+        const initialRowId = rowSelect.value ? parseInt(rowSelect.value) : null;
+        const initialShelfId = shelfSelect.value ? parseInt(shelfSelect.value) : null;
+        const initialBoxId = boxSelect.value ? parseInt(boxSelect.value) : null;
+        
         if (roomSelect) {
             // If document has a box, initialize all dropdowns properly
             if (currentBoxId && roomSelect.value) {
                 const roomId = parseInt(roomSelect.value);
-                updatePreviewRows(roomId);
+                updatePreviewRows(roomId, initialRowId);
                 
                 // After rows are populated, check if there's a selected row and enable shelf
                 setTimeout(() => {
                     if (rowSelect.value) {
                         const rowId = parseInt(rowSelect.value);
-                        updatePreviewShelves(roomId, rowId);
+                        updatePreviewShelves(roomId, rowId, initialShelfId);
                         
                         // After shelves are populated, check if there's a selected shelf and enable box
                         setTimeout(() => {
                             if (shelfSelect.value) {
                                 const shelfId = parseInt(shelfSelect.value);
-                                updatePreviewBoxes(roomId, rowId, shelfId);
+                                updatePreviewBoxes(roomId, rowId, shelfId, initialBoxId);
                             }
                         }, 50);
                     }
@@ -426,7 +431,7 @@
             });
         }
         
-        function updatePreviewRows(roomId) {
+        function updatePreviewRows(roomId, selectedRowId = null) {
             rowSelect.innerHTML = '<option value="">' + translations.selectRow + '</option>';
             
             if (!roomId) return;
@@ -437,6 +442,9 @@
                     const option = document.createElement('option');
                     option.value = row.id;
                     option.textContent = row.name;
+                    if (selectedRowId && row.id === selectedRowId) {
+                        option.selected = true;
+                    }
                     rowSelect.appendChild(option);
                 });
                 rowSelect.disabled = false;
@@ -453,7 +461,7 @@
             });
         }
         
-        function updatePreviewShelves(roomId, rowId) {
+        function updatePreviewShelves(roomId, rowId, selectedShelfId = null) {
             shelfSelect.innerHTML = '<option value="">' + translations.selectShelf + '</option>';
             
             if (!roomId || !rowId) return;
@@ -466,6 +474,9 @@
                         const option = document.createElement('option');
                         option.value = shelf.id;
                         option.textContent = shelf.name;
+                        if (selectedShelfId && shelf.id === selectedShelfId) {
+                            option.selected = true;
+                        }
                         shelfSelect.appendChild(option);
                     });
                     shelfSelect.disabled = false;
@@ -482,7 +493,7 @@
             });
         }
         
-        function updatePreviewBoxes(roomId, rowId, shelfId) {
+        function updatePreviewBoxes(roomId, rowId, shelfId, selectedBoxId = null) {
             boxSelect.innerHTML = '<option value="">' + translations.selectBox + '</option>';
             
             if (!roomId || !rowId || !shelfId) return;
@@ -497,7 +508,7 @@
                             const option = document.createElement('option');
                             option.value = box.id;
                             option.textContent = box.name;
-                            if (currentBoxId && box.id === currentBoxId) {
+                            if (selectedBoxId && box.id === selectedBoxId) {
                                 option.selected = true;
                             }
                             boxSelect.appendChild(option);
