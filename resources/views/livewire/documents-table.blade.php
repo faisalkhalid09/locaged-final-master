@@ -984,17 +984,11 @@
                                 @can('view',$doc)
                                     @if($doc->latestVersion)
                                         @php
-                                            \Log::info('Documents nav_ids debug', [
-                                                'count' => count($this->documentsIds ?? []),
-                                                'first_5' => array_slice($this->documentsIds ?? [], 0, 5),
-                                            ]);
-                                            
-                                            $previewParams = [
-                                                'id' => $doc->latestVersion->id,
-                                                'nav_ids' => implode(',', $this->documentsIds ?? [])
-                                            ];
+                                            $baseUrl = route('document-versions.fullscreen', ['id' => $doc->latestVersion->id]);
+                                            $navIds = implode(',', $this->documentsIds ?? []);
+                                            $fullUrl = $baseUrl . '?nav_ids=' . urlencode($navIds);
                                         @endphp
-                                        <a href="{{ route('document-versions.fullscreen', $previewParams) }}"
+                                        <a href="{{ $fullUrl }}"
                                            class="btn-table btn-table-preview" title="{{ ui_t('actions.preview') }}" aria-label="{{ ui_t('actions.preview') }}">
                                             <i class="fa-solid fa-eye"></i>
                                         </a>
