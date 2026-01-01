@@ -221,7 +221,7 @@
                             </div>
 
                             <div class="col-md-6">
-                                <label for="tags" class="form-label">{{ ui_t('tables.tags') }}</label>
+                                <label for="tags" class="form-label">{{ ui_t('pages.versions.tags') }}</label>
                                 <select class="form-select" id="tags" name="tags[]" multiple @if($isExpired) disabled @endif>
                                     @foreach($tags as $tag)
                                         <option value="{{ $tag->id }}"
@@ -394,9 +394,26 @@
         const boxSelect = document.getElementById('preview_box_id');
         
         if (roomSelect) {
-            // If document has a box, enable row dropdown
+            // If document has a box, initialize all dropdowns properly
             if (currentBoxId && roomSelect.value) {
-                updatePreviewRows(parseInt(roomSelect.value));
+                const roomId = parseInt(roomSelect.value);
+                updatePreviewRows(roomId);
+                
+                // After rows are populated, check if there's a selected row and enable shelf
+                setTimeout(() => {
+                    if (rowSelect.value) {
+                        const rowId = parseInt(rowSelect.value);
+                        updatePreviewShelves(roomId, rowId);
+                        
+                        // After shelves are populated, check if there's a selected shelf and enable box
+                        setTimeout(() => {
+                            if (shelfSelect.value) {
+                                const shelfId = parseInt(shelfSelect.value);
+                                updatePreviewBoxes(roomId, rowId, shelfId);
+                            }
+                        }, 50);
+                    }
+                }, 50);
             }
             
             roomSelect.addEventListener('change', function() {
