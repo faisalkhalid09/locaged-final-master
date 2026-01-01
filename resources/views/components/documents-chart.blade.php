@@ -25,15 +25,18 @@
                     data-pending-label="{{ ui_t('pages.chart.pending') }}"
                     data-declined-label="{{ ui_t('pages.chart.rejected') }}"
                     data-expired-label="{{ ui_t('pages.chart.expired') }}"
-                    data-days='@json([
-                        "sun" => ui_t("pages.chart.days.sun"),
-                        "mon" => ui_t("pages.chart.days.mon"),
-                        "tue" => ui_t("pages.chart.days.tue"),
-                        "wed" => ui_t("pages.chart.days.wed"),
-                        "thu" => ui_t("pages.chart.days.thu"),
-                        "fri" => ui_t("pages.chart.days.fri"),
-                        "sat" => ui_t("pages.chart.days.sat")
-                    ])'
+                    @php
+                        $dayNames = [
+                            'sun' => ui_t('pages.chart.days.sun'),
+                            'mon' => ui_t('pages.chart.days.mon'),
+                            'tue' => ui_t('pages.chart.days.tue'),
+                            'wed' => ui_t('pages.chart.days.wed'),
+                            'thu' => ui_t('pages.chart.days.thu'),
+                            'fri' => ui_t('pages.chart.days.fri'),
+                            'sat' => ui_t('pages.chart.days.sat'),
+                        ];
+                    @endphp
+                    data-days='@json($dayNames)'
                 ></canvas>
 
             </div>
