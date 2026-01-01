@@ -344,7 +344,8 @@ class DocumentsTable extends Component
             ->when($this->dateTo, fn($q) =>
                 $q->whereDate('created_at', '<=', $this->dateTo)
             )
-            ->latest();
+            ->orderBy('created_at', 'desc')
+            ->orderBy('id', 'desc');
         
         // Get ALL filtered document IDs for navigation (before pagination)
         $this->documentsIds = $documentsQuery->pluck('id')->toArray();

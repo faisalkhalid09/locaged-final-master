@@ -235,7 +235,8 @@ class DocumentVersionController extends Controller
                     // All pending documents visible to this user, ordered the same
                     // way as on the status page (latest first).
                     $pendingIds = $pendingQuery
-                        ->latest()
+                        ->orderBy('created_at', 'desc')
+                        ->orderBy('id', 'desc')
                         ->pluck('id');
                 }
 
@@ -520,7 +521,8 @@ class DocumentVersionController extends Controller
                               ->orWhereNull('is_expired');
                     })
                     ->whereHas('latestVersion')
-                    ->latest()
+                    ->orderBy('created_at', 'desc')
+                    ->orderBy('id', 'desc')
                     ->pluck('id');
             }
 
