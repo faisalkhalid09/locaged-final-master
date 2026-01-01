@@ -370,6 +370,8 @@ return [
         'reject' => 'Rejeter',
         'approve' => 'Approuver',
         'modify' => 'Modifier',
+        'previous_document' => 'Précédent',
+        'next_document' => 'Suivant',
         'search_by_name' => 'Rechercher par nom',
         'filters' => [
             'all_status' => 'Tous les statuts',

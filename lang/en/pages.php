@@ -371,6 +371,8 @@ return [
         'reject' => 'Reject',
         'approve' => 'Approve',
         'modify' => 'Modify',
+        'previous_document' => 'Previous',
+        'next_document' => 'Next',
         'search_by_name' => 'Search by name',
         'filters' => [
             'all_status' => 'All Status',

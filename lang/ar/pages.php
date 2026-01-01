@@ -360,6 +360,8 @@ return [
         'reject' => 'رفض',
         'approve' => 'موافقة',
         'modify' => 'تعديل',
+        'previous_document' => 'السابق',
+        'next_document' => 'التالي',
         'search_by_name' => 'ابحث بالاسم',
         'filters' => [
             'all_status' => 'كل الحالات',

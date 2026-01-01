@@ -1,0 +1,15 @@
+Columns in document_versions table:
+id: Type=bigint(20) unsigned, Null=NO, Default=NULL
+document_id: Type=bigint(20) unsigned, Null=NO, Default=NULL
+version_number: Type=decimal(3,1), Null=NO, Default=NULL
+file_path: Type=text, Null=NO, Default=NULL
+uploaded_by: Type=bigint(20) unsigned, Null=YES, Default=NULL
+uploaded_at: Type=timestamp(6), Null=NO, Default=current_timestamp(6)
+ocr_text: Type=longtext, Null=YES, Default=NULL
+locked_by: Type=bigint(20) unsigned, Null=YES, Default=NULL
+locked_at: Type=timestamp(6), Null=YES, Default=NULL
+unlocked_at: Type=timestamp(6), Null=YES, Default=NULL
+created_at: Type=timestamp, Null=YES, Default=NULL
+updated_at: Type=timestamp, Null=YES, Default=NULL
+deleted_at: Type=timestamp, Null=YES, Default=NULL
+file_type: Type=varchar(255), Null=YES, Default=NULL
