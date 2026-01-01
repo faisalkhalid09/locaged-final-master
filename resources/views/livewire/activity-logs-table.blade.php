@@ -69,14 +69,14 @@
             <a class="nav-link {{ $logType === 'documents' ? 'active fw-bold border-bottom-0' : '' }}" 
                href="#" wire:click.prevent="setLogType('documents')"
                style="{{ $logType === 'documents' ? 'border-top: 3px solid var(--bs-primary);' : 'color: var(--bs-secondary);' }}">
-                <i class="fas fa-file-alt me-2"></i>Document Activity
+                <i class="fas fa-file-alt me-2"></i>{{ ui_t('pages.activity.tabs.document_activity') }}
             </a>
         </li>
         <li class="nav-item">
             <a class="nav-link {{ $logType === 'authentication' ? 'active fw-bold border-bottom-0' : '' }}" 
                href="#" wire:click.prevent="setLogType('authentication')"
                style="{{ $logType === 'authentication' ? 'border-top: 3px solid var(--bs-primary);' : 'color: var(--bs-secondary);' }}">
-                <i class="fas fa-user-shield me-2"></i>Authentication Activity
+                <i class="fas fa-user-shield me-2"></i>{{ ui_t('pages.activity.tabs.authentication_activity') }}
             </a>
         </li>
     </ul>

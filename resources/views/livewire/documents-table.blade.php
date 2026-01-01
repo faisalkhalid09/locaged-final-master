@@ -57,8 +57,8 @@
             @else
                 @if(request()->routeIs('documents.index'))
                     {{-- File Audit: export all documents --}}
-                    <a href="{{ route('documents.export') }}" class="btn btn-sm btn-danger me-2">
-                        <i class="fas fa-download me-1"></i>{{ ui_t('pages.documents.export') ?? 'Export' }}
+                    <a href="{{ route('documents.export') }}" class="btn btn-success btn-sm">
+                        <i class="fas fa-file-excel me-2"></i>{{ ui_t('pages.documents.export') ?? 'Export' }}
                     </a>
                 @else
                     {{-- Normal documents view: export selected documents --}}
@@ -70,12 +70,12 @@
                         <i class="fa-solid fa-arrow-up-from-bracket" style="color: #e63946"></i>
                         {{ ui_t('pages.documents.export') }}
                     </button>
+                    @can('create', \App\Models\Document::class)
+                        <a href="{{ route('documents.create', ['folder_id' => $this->currentFolderId]) }}" class="btn btn-dark text-white d-inline-flex gap-1 align-items-center" style="font-size: 0.9rem;">
+                            <i class="fas fa-plus"></i> {{ ui_t('pages.documents.upload_documents') }}
+                        </a>
+                    @endcan
                 @endif
-                @can('create', \App\Models\Document::class)
-                    <a href="{{ route('documents.create', ['folder_id' => $this->currentFolderId]) }}" class="btn btn-dark text-white d-inline-flex gap-1 align-items-center" style="font-size: 0.9rem;">
-                        <i class="fas fa-plus"></i> {{ ui_t('pages.documents.upload_documents') }}
-                    </a>
-                @endcan
             @endif
 
         </div>
