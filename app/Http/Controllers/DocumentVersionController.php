@@ -537,12 +537,13 @@ class DocumentVersionController extends Controller
                     if ($prevId) {
                         $prevDoc = Document::with('latestVersion')->find($prevId);
                         if ($prevDoc && $prevDoc->latestVersion) {
-                            $routeParams = ['id' => $prevDoc->latestVersion->id];
-                            // Persist navigation IDs
+                            $baseUrl = route('document-versions.fullscreen', ['id' => $prevDoc->latestVersion->id]);
+                            // Manually append nav_ids as query parameter
                             if (request()->has('nav_ids')) {
-                                $routeParams['nav_ids'] = request()->get('nav_ids');
+                                $prevDocUrl = $baseUrl . '?nav_ids=' . urlencode(request()->get('nav_ids'));
+                            } else {
+                                $prevDocUrl = $baseUrl;
                             }
-                            $prevDocUrl = route('document-versions.fullscreen', $routeParams);
                             $prevDocTitle = $prevDoc->title;
                         }
                     }
@@ -550,12 +551,13 @@ class DocumentVersionController extends Controller
                     if ($nextId) {
                         $nextDoc = Document::with('latestVersion')->find($nextId);
                         if ($nextDoc && $nextDoc->latestVersion) {
-                            $routeParams = ['id' => $nextDoc->latestVersion->id];
-                            // Persist navigation IDs
+                            $baseUrl = route('document-versions.fullscreen', ['id' => $nextDoc->latestVersion->id]);
+                            // Manually append nav_ids as query parameter
                             if (request()->has('nav_ids')) {
-                                $routeParams['nav_ids'] = request()->get('nav_ids');
+                                $nextDocUrl = $baseUrl . '?nav_ids=' . urlencode(request()->get('nav_ids'));
+                            } else {
+                                $nextDocUrl = $baseUrl;
                             }
-                            $nextDocUrl = route('document-versions.fullscreen', $routeParams);
                             $nextDocTitle = $nextDoc->title;
                         }
                     }
