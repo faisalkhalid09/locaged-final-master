@@ -142,9 +142,10 @@
                             <option value="destroyed">{{ ui_t('pages.activity.actions.destroyed') }}</option>
                             <option value="failed_access">{{ ui_t('pages.activity.actions.failed_access') }}</option>
                         @else
-                            <option value="login_success">Login Success</option>
-                            <option value="login_failed">Login Failed</option>
-                            <option value="logout">Logout</option>
+                            <option value="login_success">{{ __('Login success') }}</option>
+                            <option value="login_failed">{{ __('Login failed') }}</option>
+                            <option value="logout">{{ __('Logout') }}</option>
+                            <option value="disconnection">{{ __('Disconnection') }}</option>
                         @endif
                     </select>
                 </div>
@@ -186,8 +187,8 @@
                                 <th style="width: 120px;">{{ ui_t('pages.activity.table.action') }}</th>
                                 <th>{{ ui_t('pages.activity.table.document') }}</th>
                             @else
-                                <th>Email</th>
-                                <th style="width: 120px;">Type</th>
+                                <th>{{ __('Email') }}</th>
+                                <th style="width: 120px;">{{ __('Type') }}</th>
                             @endif
                             <th style="width: 150px;">{{ ui_t('pages.activity.table.ip_device') }}</th>
                         </tr>
@@ -263,9 +264,19 @@
                                         <span class="badge 
                                             @if($log->type === 'login_success') bg-success-subtle text-success
                                             @elseif($log->type === 'login_failed') bg-danger-subtle text-danger
+                                            @elseif($log->type === 'logout') bg-secondary-subtle text-secondary
+                                            @elseif($log->type === 'disconnection') bg-secondary-subtle text-secondary
                                             @else bg-secondary-subtle text-secondary
                                             @endif rounded-pill px-2 py-1">
-                                            {{ ucfirst(str_replace('_', ' ', $log->type)) }}
+                                            @php
+                                                $typeTranslations = [
+                                                    'login_success' => __('Login success'),
+                                                    'login_failed' => __('Login failed'),
+                                                    'logout' => __('Logout'),
+                                                    'disconnection' => __('Disconnection'),
+                                                ];
+                                            @endphp
+                                            {{ $typeTranslations[$log->type] ?? __(ucfirst(str_replace('_', ' ', $log->type))) }}
                                         </span>
                                     </td>
                                 @endif
