@@ -57,14 +57,15 @@ if (chartEl) {
             plugins: {
                 legend: {
                     display: true,
-                    position: 'left',
-                    align: 'start',
+                    position: 'top',
+                    align: 'center',
                     labels: {
                         boxWidth: 12,
-                        padding: 8,
+                        padding: 15,
                         font: {
                             size: 11
-                        }
+                        },
+                        usePointStyle: true
                     }
                 }
             },
