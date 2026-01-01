@@ -205,10 +205,26 @@ class DocumentVersionController extends Controller
             }
 
             if ($isApprovalContext) {
+                // Build the same query as the approvals table, including permission filters
+                $pendingQuery = Document::where('status', 'pending')
+                    ->whereHas('latestVersion');
+                
+                // Apply the same permission-based restrictions as the approvals table
+                $user = auth()->user();
+                if ($user && ! $user->can('approve', Document::class)) {
+                    $canViewAny        = $user->can('view any document');
+                    $canViewDepartment = $user->can('view department document');
+                    $canViewService    = $user->can('view service document');
+                    $canViewOwn        = $user->can('view own document');
+
+                    if (! $canViewAny && ! $canViewDepartment && ! $canViewService && $canViewOwn) {
+                        $pendingQuery->where('created_by', $user->id);
+                    }
+                }
+                
                 // All pending documents visible to this user, ordered the same
                 // way as on the status page (latest first).
-                $pendingIds = Document::where('status', 'pending')
-                    ->whereHas('latestVersion')
+                $pendingIds = $pendingQuery
                     ->latest()
                     ->pluck('id');
 
