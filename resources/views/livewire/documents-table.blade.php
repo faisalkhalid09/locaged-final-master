@@ -986,7 +986,7 @@
                                         @php
                                             $previewParams = [
                                                 'id' => $doc->latestVersion->id,
-                                                'nav_ids' => implode(',', $documentsIds)
+                                                'nav_ids' => implode(',', $this->documentsIds ?? [])
                                             ];
                                         @endphp
                                         <a href="{{ route('document-versions.fullscreen', $previewParams) }}"
