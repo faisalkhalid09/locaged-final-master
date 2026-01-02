@@ -158,19 +158,16 @@ class DocumentsByCategoryTable extends Component
             'subcategory', 'department', 'box.shelf.row.room', 'createdBy', 'latestVersion', 'auditLogs.user'
         ]);
 
-        // By default, hide expired documents (is_expired = true)
+        // By default, hide expired documents (is_expired = 1/true)
         // They are only shown when the 'expired' status filter is specifically selected
         if ($this->status === 'expired') {
             // Show ONLY expired documents - bypass global scopes that might hide them
             $documentsQuery = Document::withoutGlobalScopes()->with([
                 'subcategory', 'department', 'box.shelf.row.room', 'createdBy', 'latestVersion', 'auditLogs.user'
-            ])->where('is_expired', 1);
+            ])->whereRaw('is_expired = 1');
         } else {
-            // Hide expired documents by default (exclude documents where is_expired = 1/true)
-            $documentsQuery->where(function ($q) {
-                $q->whereNull('is_expired')
-                  ->orWhere('is_expired', '!=', 1);
-            });
+            // Hide expired documents by default using raw SQL for reliable boolean check
+            $documentsQuery->whereRaw('(is_expired IS NULL OR is_expired = 0 OR is_expired = false)');
             
             // Apply regular status filter if set
             if ($this->status && $this->status !== 'all' && $this->status !== '') {
