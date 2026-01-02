@@ -4,7 +4,7 @@
 @section('content')
     <div class=" mt-4">
         {{-- Hide breadcrumb when navigating from dashboard cards (they pass page_title parameter) --}}
-        @unless(request()->has('page_title'))
+        @unless(request()->query('page_title'))
         <div class=" d-flex justify-content-between mb-5">
             <div class="d-flex align-items-center all-cat">
                 <a href="{{ route('documents.all') }}">
