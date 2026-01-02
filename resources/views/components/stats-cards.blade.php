@@ -1,5 +1,5 @@
 <div class="stats-grid">
-    <a href="{{ route('documents.all', ['page_title' => 'all_documents']) }}" class="text-decoration-none text-reset">
+    <a href="{{ route('documents.all', ['show_expired' => 1, 'page_title' => 'all_documents']) }}" class="text-decoration-none text-reset">
     <div class="stat-card red">
         <div class="stat-icon">
             <i class="fa-solid fa-file"></i>
@@ -16,7 +16,7 @@
     </div>
     </a>
 
-    <a href="{{ route('documents.status') }}" class="text-decoration-none text-reset">
+    <a href="{{ route('documents.status', ['show_expired' => 1]) }}" class="text-decoration-none text-reset">
     <div class="stat-card blue">
         <div class="stat-icon">
             <i class="fas fa-clock"></i>
@@ -34,7 +34,7 @@
     </a>
 
 
-    <a href="{{ route('documents.all', ['status' => \App\Enums\DocumentStatus::Approved->value, 'page_title' => 'approved_documents']) }}" class="text-decoration-none text-reset">
+    <a href="{{ route('documents.all', ['status' => \App\Enums\DocumentStatus::Approved->value, 'page_title' => 'approved_documents', 'show_expired' => 1]) }}" class="text-decoration-none text-reset">
     <div class="stat-card green">
         <div class="stat-icon">
             <i class="fas fa-check-circle"></i>
@@ -52,7 +52,7 @@
     </a>
 
 
-    <a href="{{ route('documents.all', ['status' => \App\Enums\DocumentStatus::Declined->value, 'page_title' => 'declined_documents']) }}" class="text-decoration-none text-reset">
+    <a href="{{ route('documents.all', ['status' => \App\Enums\DocumentStatus::Declined->value, 'page_title' => 'declined_documents', 'show_expired' => 1]) }}" class="text-decoration-none text-reset">
     <div class="stat-card yellow">
         <div class="stat-icon">
             <i class="fa-solid fa-user-group"></i>
