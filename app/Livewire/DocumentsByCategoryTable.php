@@ -251,7 +251,12 @@ class DocumentsByCategoryTable extends Component
         // Load rooms for move modal hierarchical selection
         $rooms = \App\Models\Room::with(['rows.shelves.boxes'])->get();
 
-        return view('livewire.documents-by-category-table', compact('documents', 'movements', 'rooms', 'documentsIds'));
+        return view('livewire.documents-by-category-table', [
+            'documents' => $documents,
+            'movements' => $movements,
+            'rooms' => $rooms,
+            'documentsIds' => $this->documentsIds,
+        ]);
     }
 
     public function toggleFavorite(int $documentId): void
