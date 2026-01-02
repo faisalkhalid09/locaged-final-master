@@ -352,11 +352,11 @@ class DocumentsTable extends Component
             ->orderBy('id', 'desc');
         
         // Get ALL filtered document IDs for navigation (before pagination)
-        // Clone the query to avoid any side effects from pluck()
-        $this->documentsIds = (clone $documentsQuery)->pluck('id')->toArray();
+        // IMPORTANT: Clone the query AFTER ordering is applied so navigation matches table order
+        $this->documentsIds = (clone $documents)->pluck('id')->toArray();
         
         // Now paginate for display
-        $documents = $documentsQuery->paginate($this->perPage);
+        $documents = $documents->paginate($this->perPage);
 
         // Folders for current level
         // - Hidden when showing only pending approvals (dashboard)
