@@ -5,13 +5,15 @@
     <div class=" mt-4">
         {{-- Hide breadcrumb when navigating from dashboard cards or when any filter is applied --}}
         @php
-            $hasFilters = request()->query('page_title') 
-                || (request()->query('status') && request()->query('status') !== 'all')
-                || request()->query('search')
-                || request()->query('dateFrom')
-                || request()->query('dateTo')
-                || request()->query('fileType')
-                || request()->query('favoritesOnly');
+            $filterParams = ['page_title', 'status', 'search', 'dateFrom', 'dateTo', 'fileType', 'favoritesOnly', 'show_expired'];
+            $hasFilters = false;
+            foreach ($filterParams as $param) {
+                $val = request()->get($param);
+                if ($val !== null && $val !== '' && $val !== 'all') {
+                    $hasFilters = true;
+                    break;
+                }
+            }
         @endphp
         @unless($hasFilters)
         <div class=" d-flex justify-content-between mb-5">

@@ -158,8 +158,23 @@ class DocumentsByCategoryTable extends Component
             'subcategory', 'department', 'box.shelf.row.room', 'createdBy', 'latestVersion', 'auditLogs.user'
         ]);
 
-        // Note: Expired documents are now always shown in the listing
-        // The is_expired flag is maintained for visual indicators only
+        // By default, hide expired documents (is_expired = true)
+        // They are only shown when the 'expired' status filter is specifically selected
+        if ($this->status === 'expired') {
+            // Show ONLY expired documents
+            $documentsQuery->where('is_expired', true);
+        } else {
+            // Hide expired documents by default
+            $documentsQuery->where(function ($q) {
+                $q->where('is_expired', false)
+                  ->orWhereNull('is_expired');
+            });
+            
+            // Apply regular status filter if set
+            if ($this->status && $this->status !== 'all') {
+                $documentsQuery->where('status', $this->status);
+            }
+        }
 
         // Handle category/subcategory filter
         if ($this->filterId) {
@@ -174,16 +189,6 @@ class DocumentsByCategoryTable extends Component
                 }
             });
         }
-
-        // Status filter (with special handling for 'expired')
-        $documentsQuery->when($this->status && $this->status !== 'all', function ($q) {
-            if ($this->status === 'expired') {
-                // Filter by expired flag instead of status column
-                $q->where('is_expired', true);
-            } else {
-                $q->where('status', $this->status);
-            }
-        });
 
         // Box filter (physical location)
         $documentsQuery->when($this->boxId, function ($q) {
