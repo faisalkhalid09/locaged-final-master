@@ -3,6 +3,8 @@
 
 @section('content')
     <div class=" mt-4">
+        {{-- Hide breadcrumb when navigating from dashboard cards (they pass page_title parameter) --}}
+        @unless(request()->has('page_title'))
         <div class=" d-flex justify-content-between mb-5">
             <div class="d-flex align-items-center all-cat">
                 <a href="{{ route('documents.all') }}">
@@ -15,6 +17,7 @@
                 <h5 class="me-3">{{ $category ? $category->name : ui_t('nav.all_documents') }}</h5>
             </div>
         </div>
+        @endunless
 
         <livewire:documents-by-category-table
             :filter-id="$category?->id"
