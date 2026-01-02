@@ -402,6 +402,19 @@ class DocumentVersionController extends Controller
             }
 
             $fileUrl = route('documents.versions.file', ['id' => $id]);
+            $fileType = $doc->file_type;
+
+            // For Word/Excel, attempt to resolve or create a converted PDF
+            // This matches the behavior in viewFullscreen
+            $pdfUrl = null;
+            if (in_array($fileType, ['doc', 'excel'], true)) {
+                $converter = app(PdfConversionService::class);
+                $pdfPath = $converter->convertToPdf($doc->file_path);
+
+                if ($pdfPath) {
+                    $pdfUrl = route('documents.versions.pdf', ['id' => $id]);
+                }
+            }
 
             // Reuse the same lightweight previews for OCR view when needed
             $excelPreviewRows = null;
@@ -445,7 +458,8 @@ class DocumentVersionController extends Controller
 
             return view('document-versions.view-ocr', [
                 'fileUrl'              => $fileUrl,
-                'fileType'             => $doc->file_type,
+                'fileType'             => $fileType,
+                'pdfUrl'               => $pdfUrl,
                 'excelPreviewRows'     => $excelPreviewRows,
                 'wordPreviewParagraphs'=> $wordPreviewParagraphs,
                 'doc'                  => $doc,
