@@ -168,7 +168,7 @@ class DocumentsByCategoryTable extends Component
             // Show ONLY expired documents - bypass global scopes that might hide them
             $documentsQuery = Document::withoutGlobalScopes()->with([
                 'subcategory', 'department', 'box.shelf.row.room', 'createdBy', 'latestVersion', 'auditLogs.user'
-            ])->whereRaw('is_expired = 1');
+            ])->where('is_expired', true);
         } elseif ($showExpiredBool === true) {
             // Dashboard "All Documents" card: show ALL documents including expired
             // Don't filter by is_expired at all
@@ -178,7 +178,10 @@ class DocumentsByCategoryTable extends Component
             }
         } else {
             // Default: Hide expired documents (showExpired is false or not set)
-            $documentsQuery->whereRaw('(is_expired IS NULL OR is_expired = 0)');
+            $documentsQuery->where(function ($q) {
+                $q->where('is_expired', false)
+                  ->orWhereNull('is_expired');
+            });
             
             // Apply regular status filter if set
             if ($this->status && $this->status !== 'all' && $this->status !== '') {
