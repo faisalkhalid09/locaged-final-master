@@ -175,9 +175,14 @@ class DocumentsByCategoryTable extends Component
             });
         }
 
-        // Status filter
+        // Status filter (with special handling for 'expired')
         $documentsQuery->when($this->status && $this->status !== 'all', function ($q) {
-            $q->where('status', $this->status);
+            if ($this->status === 'expired') {
+                // Filter by expired flag instead of status column
+                $q->where('is_expired', true);
+            } else {
+                $q->where('status', $this->status);
+            }
         });
 
         // Box filter (physical location)

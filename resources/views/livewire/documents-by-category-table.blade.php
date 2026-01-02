@@ -102,7 +102,7 @@
                     @foreach(\App\Enums\DocumentStatus::activeCases() as $status)
                         <option value="{{ $status->value }}">{{ ui_t('pages.documents.status.' . $status->value) }}</option>
                     @endforeach
-
+                    <option value="expired">{{ ui_t('pages.documents.status.expired') }}</option>
                 </select>
 
                 <select class="form-select" wire:model.change="fileType">

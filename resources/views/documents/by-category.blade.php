@@ -3,8 +3,17 @@
 
 @section('content')
     <div class=" mt-4">
-        {{-- Hide breadcrumb when navigating from dashboard cards (they pass page_title parameter) --}}
-        @unless(request()->query('page_title'))
+        {{-- Hide breadcrumb when navigating from dashboard cards or when any filter is applied --}}
+        @php
+            $hasFilters = request()->query('page_title') 
+                || (request()->query('status') && request()->query('status') !== 'all')
+                || request()->query('search')
+                || request()->query('dateFrom')
+                || request()->query('dateTo')
+                || request()->query('fileType')
+                || request()->query('favoritesOnly');
+        @endphp
+        @unless($hasFilters)
         <div class=" d-flex justify-content-between mb-5">
             <div class="d-flex align-items-center all-cat">
                 <a href="{{ route('documents.all') }}">
