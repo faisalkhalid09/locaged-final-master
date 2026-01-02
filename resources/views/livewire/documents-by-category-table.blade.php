@@ -292,7 +292,12 @@
                             </button>
                             @can('view',$doc)
                                 @if($doc->latestVersion)
-                                    <a href="{{ route('document-versions.fullscreen',['id' => $doc->latestVersion->id]) }}"
+                                    @php
+                                        $baseUrl = route('document-versions.fullscreen', ['id' => $doc->latestVersion->id]);
+                                        $navIds = implode(',', $documentsIds ?? []);
+                                        $fullUrl = $baseUrl . '?nav_ids=' . urlencode($navIds);
+                                    @endphp
+                                    <a href="{{ $fullUrl }}"
                                        class="btn-table btn-table-preview" title="{{ ui_t('pages.documents.preview') }}" aria-label="{{ ui_t('pages.documents.preview') }}">
                                         <i class="fa-solid fa-eye"></i>
                                     </a>

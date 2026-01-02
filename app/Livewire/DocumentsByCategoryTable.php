@@ -237,17 +237,21 @@ class DocumentsByCategoryTable extends Component
             });
         }
 
-        $documents = $documentsQuery
-            ->latest()
-            ->paginate($this->perPage);
+        // Apply ordering - latest first (same order as displayed in the table)
+        $documentsQuery->latest()->orderBy('id', 'desc');
+        
+        // Get ALL filtered document IDs for navigation BEFORE pagination
+        // This ensures navigation works across all pages in the correct order
+        $this->documentsIds = (clone $documentsQuery)->pluck('id')->toArray();
 
-        $this->documentsIds = $documents->pluck('id')->toArray();
+        // Now paginate for display
+        $documents = $documentsQuery->paginate($this->perPage);
 
         $movements = DocumentMovement::all();
         // Load rooms for move modal hierarchical selection
         $rooms = \App\Models\Room::with(['rows.shelves.boxes'])->get();
 
-        return view('livewire.documents-by-category-table', compact('documents', 'movements', 'rooms'));
+        return view('livewire.documents-by-category-table', compact('documents', 'movements', 'rooms', 'documentsIds'));
     }
 
     public function toggleFavorite(int $documentId): void
