@@ -1,4 +1,27 @@
 <div class="mt-5">
+    {{-- Dynamic breadcrumb - hides when any filter is active --}}
+    @php
+        $hasActiveFilters = $pageTitle 
+            || ($status && $status !== 'all' && $status !== '')
+            || $search 
+            || $dateFrom 
+            || $dateTo 
+            || $fileType 
+            || $favoritesOnly;
+    @endphp
+    @unless($hasActiveFilters)
+    <div class=" d-flex justify-content-between mb-5">
+        <div class="d-flex align-items-center all-cat">
+            <a href="{{ route('documents.all') }}">
+                <h4 class="me-3">{{ ui_t('nav.documents') }}  <i class="fa-solid fa-angle-right"></i> </h4>
+            </a>
+            <a href="{{ route('categories.index') }}">
+                <h5 class="me-3">{{ ui_t('pages.categories_page.all_categories') }} <i class="fa-solid fa-angle-right"></i></h5>
+            </a>
+            <h5 class="me-3">{{ $contextLabel ?? ui_t('nav.all_documents') }}</h5>
+        </div>
+    </div>
+    @endunless
     @if($boxId)
         @php
             $box = \App\Models\Box::with('shelf.row.room')->find($boxId);
