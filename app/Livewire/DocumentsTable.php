@@ -233,8 +233,14 @@ class DocumentsTable extends Component
             'createdBy', 'latestVersion', 'auditLogs.user'
         ]);
 
-        // Note: Expired documents are now always shown in the listing
-        // The is_expired flag is maintained for visual indicators only
+        // Hide expired documents by default (unless explicitly filtered for "expired")
+        // Only show expired documents when user selects the "expired" status filter
+        if ($this->status !== 'expired') {
+            $documentsQuery->where(function ($q) {
+                $q->where('is_expired', false)
+                  ->orWhereNull('is_expired');
+            });
+        }
 
         // Apply hierarchy filter (department / sub-department / service)
         $this->applyHierarchyToQuery($documentsQuery);
