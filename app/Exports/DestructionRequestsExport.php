@@ -3,7 +3,7 @@
 namespace App\Exports;
 
 use App\Exports\Concerns\DefaultStyles;
-use App\Models\DocumentDestructionRequest;
+use App\Models\Document;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
@@ -18,46 +18,57 @@ class DestructionRequestsExport implements FromQuery, WithHeadings, WithMapping,
 
     protected int $rowCount = 1;
 
+    /**
+     * Query expired documents - same logic as the index method in controller.
+     * Uses withoutGlobalScopes() because Document model has a global scope
+     * that hides expired documents from normal queries.
+     */
     public function query(): Builder
     {
-        return DocumentDestructionRequest::query()
-            ->with(['document.latestVersion', 'requestedBy'])
-            ->orderBy('id');
+        return Document::withoutGlobalScopes()
+            ->with(['latestVersion', 'createdBy'])
+            ->whereNotNull('expire_at')
+            ->where('expire_at', '<=', now())
+            ->whereNull('deleted_at')
+            ->orderByDesc('expire_at');
     }
 
     public function headings(): array
     {
         return [
-            __('Document title'),
-            __('File Name'),
-            __('Status'),
-            __('Requested By'),
-            __('Requested At')
+            ui_t('pages.destructions.document_name'),
+            ui_t('pages.destructions.author'),
+            ui_t('pages.destructions.created_by'),
+            ui_t('pages.destructions.creation_date'),
+            ui_t('pages.destructions.expiration_date'),
+            ui_t('pages.destructions.status'),
         ];
     }
 
-    public function map($req): array
+    public function map($doc): array
     {
         $this->rowCount++;
-        $doc = $req->document;
-        $latestPath = $doc?->latestVersion?->file_path;
-        $fileName = $latestPath ? basename($latestPath) : '';
+
+        // Get author from metadata if available
+        $author = $doc->metadata['author'] ?? '—';
         
-        // Translate status
-        $statusTranslations = [
-            'pending' => __('Pending'),
-            'approved' => __('Approved'),
-            'rejected' => __('Rejected'),
-            'completed' => __('Completed'),
-        ];
-        $statusLabel = $statusTranslations[$req->status] ?? __(ucfirst($req->status));
+        // Get created by user's full name
+        $createdBy = $doc->createdBy?->full_name ?? '—';
         
+        // Format dates
+        $creationDate = $doc->created_at?->format('Y-m-d') ?? '—';
+        $expirationDate = $doc->expire_at?->format('Y-m-d') ?? '—';
+        
+        // Status is always "Expired" for documents in this queue
+        $statusLabel = ui_t('pages.destructions.status_values.expired');
+
         return [
-            $doc?->title ?? __('N/A'),
-            $fileName ?: __('N/A'),
+            $doc->title ?? '—',
+            $author,
+            $createdBy,
+            $creationDate,
+            $expirationDate,
             $statusLabel,
-            $req->requestedBy?->full_name ?? __('N/A'),
-            optional($req->requested_at)->format('Y-m-d H:i:s'),
         ];
     }
 
@@ -66,11 +77,11 @@ class DestructionRequestsExport implements FromQuery, WithHeadings, WithMapping,
         return [
             AfterSheet::class => function (AfterSheet $event) {
                 $lastRow = $this->rowCount;
-                $lastCol = 'E';
+                $lastCol = 'F';
                 $this->applyDefaultSheetStyles($event, $lastRow, $lastCol);
                 $sheet = $event->sheet->getDelegate();
                 $sheet->insertNewRowBefore(1, 1);
-                $sheet->setCellValue('A1', __('Destruction Requests'));
+                $sheet->setCellValue('A1', ui_t('pages.destructions.title'));
                 $sheet->mergeCells('A1:' . $lastCol . '1');
                 $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(16);
                 $sheet->getRowDimension(2)->setRowHeight(22);
@@ -78,5 +89,3 @@ class DestructionRequestsExport implements FromQuery, WithHeadings, WithMapping,
         ];
     }
 }
-
-
