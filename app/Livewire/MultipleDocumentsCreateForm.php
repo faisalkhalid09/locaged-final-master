@@ -152,12 +152,55 @@ class MultipleDocumentsCreateForm extends Component
     }
 
     // Methods to get child options for cascading dropdowns
+    // Filter to only show rooms that contain accessible boxes
+    public function getRoomsProperty()
+    {
+        $user = auth()->user();
+        
+        // Get all room IDs that have accessible boxes
+        $accessibleRoomIds = Box::forUser($user)
+            ->with('shelf.row.room')
+            ->get()
+            ->pluck('shelf.row.room.id')
+            ->unique()
+            ->filter();
+        
+        if ($accessibleRoomIds->isEmpty()) {
+            return collect();
+        }
+        
+        return Room::whereIn('id', $accessibleRoomIds)
+            ->orderBy('name')
+            ->get();
+    }
+
     public function getRowsProperty()
     {
         if (!$this->selectedRoomId) {
             return collect();
         }
-        return Row::where('room_id', $this->selectedRoomId)->get();
+        
+        $user = auth()->user();
+        
+        // Get row IDs that have accessible boxes in the selected room
+        $accessibleRowIds = Box::forUser($user)
+            ->whereHas('shelf.row.room', function ($q) {
+                $q->where('id', $this->selectedRoomId);
+            })
+            ->with('shelf.row')
+            ->get()
+            ->pluck('shelf.row.id')
+            ->unique()
+            ->filter();
+        
+        if ($accessibleRowIds->isEmpty()) {
+            return collect();
+        }
+        
+        return Row::where('room_id', $this->selectedRoomId)
+            ->whereIn('id', $accessibleRowIds)
+            ->orderBy('name')
+            ->get();
     }
 
     public function getShelvesProperty()
@@ -165,7 +208,26 @@ class MultipleDocumentsCreateForm extends Component
         if (!$this->selectedRowId) {
             return collect();
         }
-        return Shelf::where('row_id', $this->selectedRowId)->get();
+        
+        $user = auth()->user();
+        
+        // Get shelf IDs that have accessible boxes in the selected row
+        $accessibleShelfIds = Box::forUser($user)
+            ->whereHas('shelf', function ($q) {
+                $q->where('row_id', $this->selectedRowId);
+            })
+            ->pluck('shelf_id')
+            ->unique()
+            ->filter();
+        
+        if ($accessibleShelfIds->isEmpty()) {
+            return collect();
+        }
+        
+        return Shelf::where('row_id', $this->selectedRowId)
+            ->whereIn('id', $accessibleShelfIds)
+            ->orderBy('name')
+            ->get();
     }
 
     public function getBoxesProperty()
