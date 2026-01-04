@@ -61,7 +61,7 @@ class DocumentsReportExport implements FromQuery, WithHeadings, WithMapping, Sho
 
         // Department
         if ($r->filled('department_id')) {
-            $query->where('department_id', $r->department_id);
+            $query->where('documents.department_id', $r->department_id);
         }
 
         // Creator (super admins only)
