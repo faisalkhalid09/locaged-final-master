@@ -12,22 +12,33 @@ class AddPendingDocumentsHeadingTranslationSeeder extends Seeder
      */
     public function run(): void
     {
-        $translation = [
-            'key' => 'pages.dashboard.pending_documents',
-            'en_text' => 'Pending Documents',
-            'fr_text' => 'Documents en attente',
-            'ar_text' => 'المستندات المعلقة',
+        $translations = [
+            [
+                'key' => 'pages.dashboard.pending_documents',
+                'en_text' => 'Pending Documents',
+                'fr_text' => 'Documents en attente',
+                'ar_text' => 'المستندات المعلقة',
+            ],
+            [
+                'key' => 'pages.dashboard.approvals',
+                'en_text' => 'Approvals',
+                'fr_text' => 'Approbations',
+                'ar_text' => 'الموافقات',
+            ],
         ];
 
-        UiTranslation::updateOrCreate(
-            ['key' => $translation['key']],
-            [
-                'en_text' => $translation['en_text'],
-                'fr_text' => $translation['fr_text'],
-                'ar_text' => $translation['ar_text'],
-            ]
-        );
 
-        $this->command->info('Pending Documents heading translation added successfully.');
+        foreach ($translations as $translation) {
+            UiTranslation::updateOrCreate(
+                ['key' => $translation['key']],
+                [
+                    'en_text' => $translation['en_text'],
+                    'fr_text' => $translation['fr_text'],
+                    'ar_text' => $translation['ar_text'],
+                ]
+            );
+        }
+
+        $this->command->info('Pending Documents and Approvals heading translations added successfully.');
     }
 }
