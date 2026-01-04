@@ -23,8 +23,9 @@ class ProcessOcrJob implements ShouldQueue
     
     /**
      * The number of seconds the job can run before timing out.
+     * Increased to 1 hour to handle large PDFs (100+ pages)
      */
-    public int $timeout = 1800; // 30 minutes
+    public int $timeout = 3600; // 1 hour (was 30 minutes)
     
     /**
      * The number of times the job may be attempted.

@@ -34,10 +34,12 @@ class OcrService
                 return $this->extractTextFromPdf($absoluteFilePath);
             }
 
-            // Image formats → Tesseract OCR
+            // Image formats → Tesseract OCR with optimization flags
             if (in_array($extension, ['jpg', 'jpeg', 'png', 'tiff', 'tif', 'bmp', 'webp'], true)) {
                 return (new TesseractOCR($absoluteFilePath))
-                    ->lang('fra','ara','eng') // French and Arabic languages
+                    ->lang('fra','ara','eng') // French, Arabic and English languages
+                    ->psm(3)  // Page Segmentation Mode 3: Fully automatic (best for mixed layouts)
+                    ->oem(1)  // OCR Engine Mode 1: LSTM neural net (faster + more accurate than legacy)
                     ->run();
             }
 
@@ -145,35 +147,40 @@ class OcrService
                         }
                     }
 
-                    // Apply image enhancements (these are generally safe)
+                    // Apply image enhancements in optimal order for OCR accuracy
+                    // Note: Normalize FIRST to improve contrast before other operations
+                    
                     try {
-                        $pageImagick->thresholdImage(0.5 * \Imagick::getQuantum());
-                    } catch (\ImagickException $e) {
-                        Log::warning("Threshold failed for page {$pageIndex}: " . $e->getMessage());
-                    }
-
-                    try {
-                        $pageImagick->normalizeImage(); // Improve contrast
+                        $pageImagick->normalizeImage(); // Step 1: Improve contrast (MOVED TO FIRST)
                     } catch (\ImagickException $e) {
                         Log::warning("Normalize failed for page {$pageIndex}: " . $e->getMessage());
                     }
 
                     try {
-                        $pageImagick->sharpenImage(0, 1.0); // Sharpen text
-                    } catch (\ImagickException $e) {
-                        Log::warning("Sharpen failed for page {$pageIndex}: " . $e->getMessage());
-                    }
-
-                    try {
-                        $pageImagick->despeckleImage(); // Remove speckles
+                        $pageImagick->despeckleImage(); // Step 2: Remove speckles early
                     } catch (\ImagickException $e) {
                         Log::warning("Despeckle failed for page {$pageIndex}: " . $e->getMessage());
                     }
 
                     try {
-                        $pageImagick->deskewImage(0.0); // Basic deskewing
+                        // Step 3: Enhanced deskewing with threshold (40% = 0.4 * full range)
+                        // This detects and corrects rotation more aggressively than default
+                        $pageImagick->deskewImage(0.4 * \Imagick::getQuantum());
                     } catch (\ImagickException $e) {
                         Log::warning("Deskew failed for page {$pageIndex}: " . $e->getMessage());
+                    }
+
+                    try {
+                        $pageImagick->sharpenImage(0, 1.0); // Step 4: Sharpen text
+                    } catch (\ImagickException $e) {
+                        Log::warning("Sharpen failed for page {$pageIndex}: " . $e->getMessage());
+                    }
+
+                    try {
+                        // Step 5: Adaptive thresholding for better binarization
+                        $pageImagick->thresholdImage(0.5 * \Imagick::getQuantum());
+                    } catch (\ImagickException $e) {
+                        Log::warning("Threshold failed for page {$pageIndex}: " . $e->getMessage());
                     }
 
                 } catch (\Exception $e) {
@@ -189,9 +196,11 @@ class OcrService
                     throw new Exception("Failed to convert page {$pageIndex} to image");
                 }
 
-                // OCR on the converted image
+                // OCR on the converted image with optimization flags
                 $pageText = (new TesseractOCR($outputPath))
                     ->lang('fra','ara','eng')
+                    ->psm(3)  // Fully automatic page segmentation
+                    ->oem(1)  // LSTM neural net mode
                     ->run();
 
                 $fullText .= $pageText . "\n";

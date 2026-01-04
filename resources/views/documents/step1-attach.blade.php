@@ -44,6 +44,23 @@
                 </button>
             </div>
 
+            {{-- File Size Limits Information --}}
+            @php
+                $maxFileSizeMB = floor(config('uploads.max_file_size_kb', 51200) / 1024);
+                $maxBatchFiles = config('uploads.max_batch_files', 50);
+                $maxBatchSizeMB = floor(config('uploads.max_batch_size_kb', 512000) / 1024);
+            @endphp
+            <div class="mt-3">
+                <small class="text-muted d-block">
+                    <i class="fa-solid fa-info-circle me-1"></i>
+                    {{ ui_t('pages.upload.max_file_size', ['size' => $maxFileSizeMB]) }}
+                </small>
+                <small class="text-muted d-block">
+                    <i class="fa-solid fa-info-circle me-1"></i>
+                    {{ ui_t('pages.upload.max_batch_info', ['count' => $maxBatchFiles, 'size' => $maxBatchSizeMB]) }}
+                </small>
+            </div>
+
             {{-- File selection (allow multiple files, same behaviour as folder selection). No accept filter so any file type can be selected. --}}
             <input type="file" wire:model="newDocuments" x-ref="fileInput" class="d-none" multiple />
 
