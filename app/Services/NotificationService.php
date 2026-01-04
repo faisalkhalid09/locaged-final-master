@@ -81,6 +81,8 @@ class NotificationService
             'Admin de departments',
             'Admin de cellule'
         ])->get();
+        
+        \Log::info("NotificationService: Found " . $admins->count() . " admins for action '$action'. IDs: " . $admins->pluck('id')->implode(', '));
 
         foreach ($admins as $admin) {
             // Broadcast once for admins or separately per admin as needed

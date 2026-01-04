@@ -38,6 +38,11 @@ Schedule::call(function () {
 
     $oneWeekAgo = $now->clone()->subWeek();
     $oneMonthAgo = $now->clone()->subMonth();
+    
+    \Log::info("Running Approval Reminders", [
+        'now' => $now->toDateTimeString(), 
+        '1_week_threshold' => $oneWeekAgo->toDateTimeString()
+    ]);
 
     // 1-week reminders
     $weekDocuments = \App\Models\Document::where('status', 'pending')
@@ -45,9 +50,14 @@ Schedule::call(function () {
         ->where('created_at', '<=', $oneWeekAgo)
         ->with(['latestVersion', 'createdBy'])
         ->get();
+        
+    \Log::info("Found " . $weekDocuments->count() . " documents for 1-week reminder.");
 
     foreach ($weekDocuments as $document) {
+        \Log::info("Processing document: {$document->id} - {$document->title}", ['created_at' => $document->created_at]);
+        
         if (! $document->createdBy) {
+            \Log::warning("Skipping document {$document->id}: No creator found.");
             continue;
         }
 
@@ -59,6 +69,7 @@ Schedule::call(function () {
         );
 
         $notificationService->notifyAdmins('pending_approval_1w');
+        \Log::info("Notification sent for document {$document->id}");
 
         $document->forceFill([
             'first_reminder_sent_at' => $now,
