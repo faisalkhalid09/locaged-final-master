@@ -26,6 +26,18 @@ class AddUploadLimitTranslationsSeeder extends Seeder
                 'ar_text' => 'الحد الأقصى :count ملفات لكل تحميل (الإجمالي: :size ميجابايت)',
             ],
             [
+                'key' => 'pages.upload.upload_blocked',
+                'en_text' => 'Upload Blocked',
+                'fr_text' => 'Téléchargement Bloqué',
+                'ar_text' => 'التحميل محظور',
+            ],
+            [
+                'key' => 'actions.ok',
+                'en_text' => 'OK',
+                'fr_text' => 'OK',
+                'ar_text' => 'حسناً',
+            ],
+            [
                 'key' => 'pages.upload.file_too_large',
                 'en_text' => 'File ":filename" exceeds the maximum size of :max MB',
                 'fr_text' => 'Le fichier ":filename" dépasse la taille maximale de :max Mo',

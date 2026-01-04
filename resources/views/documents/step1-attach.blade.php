@@ -3,7 +3,6 @@
          x-data="{ 
             isUploading: false, 
             progress: 0,
-            validationError: '',
             maxFileSizeMB: {{ floor(config('uploads.max_file_size_kb', 51200) / 1024) }},
             maxBatchFiles: {{ config('uploads.max_batch_files', 50) }},
             
@@ -38,12 +37,13 @@
             
             handleDrop(event) {
                 event.preventDefault();
-                this.validationError = '';
                 const files = event.dataTransfer?.files;
                 const validation = this.validateFiles(files);
                 
                 if (!validation.valid) {
-                    this.validationError = validation.message;
+                    window.dispatchEvent(new CustomEvent('show-validation-error', { 
+                        detail: validation.message 
+                    }));
                     return false;
                 }
                 
@@ -70,21 +70,29 @@
             @endif
         </div>
 
-        {{-- Validation Error Display --}}
-        <div x-show="validationError" 
-             x-transition
-             class="alert alert-danger mt-3 mb-3" 
-             role="alert"
-             style="display: none;">
-            <div class="d-flex align-items-start">
-                <i class="fa-solid fa-exclamation-triangle me-2 mt-1"></i>
-                <div>
-                    <strong>Upload Blocked!</strong>
-                    <p class="mb-0 mt-1" x-text="validationError"></p>
+        {{-- File Size Validation Error Modal --}}
+        <div class="modal fade" id="fileSizeErrorModal" tabindex="-1" aria-hidden="true"
+             x-data="{ errorMessage: '' }"
+             @show-validation-error.window="errorMessage = $event.detail; new bootstrap.Modal(document.getElementById('fileSizeErrorModal')).show()">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title">
+                            <i class="fa-solid fa-exclamation-triangle me-2"></i>
+                            {{ ui_t('pages.upload.upload_blocked') }}
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="mb-0" x-text="errorMessage"></p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+                            {{ ui_t('actions.ok') }}
+                        </button>
+                    </div>
                 </div>
             </div>
-            <button type="button" class="btn-close position-absolute top-0 end-0 m-2" 
-                    @click="validationError = ''" aria-label="Close"></button>
         </div>
 
         <div id="upload-box" 
@@ -94,14 +102,13 @@
              @dragover.prevent
              x-data="{
                 validateAndUpload(files, isFolder = false) {
-                    // Clear any previous errors
-                    validationError = '';
-                    
                     // Use parent scope's validateFiles function
                     const validation = validateFiles(files);
                     
                     if (!validation.valid) {
-                        validationError = validation.message;
+                        window.dispatchEvent(new CustomEvent('show-validation-error', { 
+                            detail: validation.message 
+                        }));
                         return false;
                     }
 
