@@ -37,7 +37,7 @@ class DeletionLogsTable extends Component
     public function mount(): void
     {
         $user = auth()->user();
-        if (! $user || ! $user->hasAnyRole(['master', 'Super Administrator', 'super administrator', 'Admin de pole', 'admin de pôle'])) {
+        if (! $user || ! $user->hasAnyRole(['master', 'Super Administrator', 'super administrator', 'Admin de pole', 'admin de pôle', 'Admin de departments', 'Department Administrator', 'Admin de cellule', 'Service Manager'])) {
             abort(403);
         }
     }
@@ -70,7 +70,12 @@ class DeletionLogsTable extends Component
         $current = auth()->user();
         $isDeptAdmin = $current && (
             $current->hasRole('Department Administrator') ||
-            $current->hasRole('Admin de pole')
+            $current->hasRole('Admin de pole') ||
+            $current->hasRole('Admin de departments')
+        );
+        $isServiceManager = $current && (
+            $current->hasRole('Admin de cellule') ||
+            $current->hasRole('Service Manager')
         );
         
         return AuditLog::with(['user', 'document' => function ($q) {
@@ -92,6 +97,25 @@ class DeletionLogsTable extends Component
                         $q2->whereIn('name', $allowedRoleNames);
                     });
                 });
+            })
+            // Service Manager: only see logs from their service
+            ->when($isServiceManager, function($q) use ($current) {
+                $serviceIds = collect();
+                if ($current->service_id) {
+                    $serviceIds->push($current->service_id);
+                }
+                if ($current->relationLoaded('services') || method_exists($current, 'services')) {
+                   $serviceIds = $serviceIds->merge($current->services->pluck('id'));
+                }
+                $serviceIds = $serviceIds->unique()->filter();
+
+                if ($serviceIds->isNotEmpty()) {
+                    $q->whereHas('document', function($q2) use ($serviceIds) {
+                        $q2->withTrashed()->whereIn('service_id', $serviceIds);
+                    });
+                } else {
+                    $q->whereRaw('1 = 0');
+                }
             })
             // Search by document title
             ->when($this->search, function($q) {
@@ -135,7 +159,7 @@ class DeletionLogsTable extends Component
     public function export()
     {
         $user = auth()->user();
-        if (! $user || ! $user->hasAnyRole(['master', 'Super Administrator', 'super administrator', 'Admin de pole', 'admin de pôle'])) {
+        if (! $user || ! $user->hasAnyRole(['master', 'Super Administrator', 'super administrator', 'Admin de pole', 'admin de pôle', 'Admin de departments', 'Department Administrator', 'Admin de cellule', 'Service Manager'])) {
             abort(403);
         }
 
@@ -148,7 +172,7 @@ class DeletionLogsTable extends Component
     public function exportSinglePdf($logId)
     {
         $user = auth()->user();
-        if (! $user || ! $user->hasAnyRole(['master', 'Super Administrator', 'super administrator', 'Admin de pole', 'admin de pôle'])) {
+        if (! $user || ! $user->hasAnyRole(['master', 'Super Administrator', 'super administrator', 'Admin de pole', 'admin de pôle', 'Admin de departments', 'Department Administrator', 'Admin de cellule', 'Service Manager'])) {
             abort(403);
         }
 
@@ -228,6 +252,23 @@ class DeletionLogsTable extends Component
                     $q2->whereIn('name', $allowedRoleNames);
                 });
             });
+        } elseif ($isServiceManager ?? false) { // Use check from buildQuery logic or re-derive
+             $serviceIds = collect();
+            if ($current->service_id) {
+                $serviceIds->push($current->service_id);
+            }
+            if ($current->relationLoaded('services') || method_exists($current, 'services')) {
+               $serviceIds = $serviceIds->merge($current->services->pluck('id'));
+            }
+            $serviceIds = $serviceIds->unique()->filter();
+
+            if ($serviceIds->isNotEmpty()) {
+                 $statsBase->whereHas('document', function($q2) use ($serviceIds) {
+                    $q2->withTrashed()->whereIn('service_id', $serviceIds);
+                });
+            } else {
+                 $statsBase->whereRaw('1 = 0');
+            }
         }
         
         $totalDeleted = (clone $statsBase)->count();
@@ -242,7 +283,12 @@ class DeletionLogsTable extends Component
         $current = auth()->user();
         $isDeptAdmin = $current && (
             $current->hasRole('Department Administrator') ||
-            $current->hasRole('Admin de pole')
+            $current->hasRole('Admin de pole') ||
+            $current->hasRole('Admin de departments')
+        );
+        $isServiceManager = $current && (
+            $current->hasRole('Admin de cellule') ||
+            $current->hasRole('Service Manager')
         );
         
         if ($isDeptAdmin) {
@@ -259,6 +305,31 @@ class DeletionLogsTable extends Component
                 ->orderBy('full_name')
                 ->get();
             $departments = Department::whereIn('id', $deptIds)->orderBy('name')->get();
+        } elseif ($isServiceManager) {
+            // Service Manager: restricted dropdowns
+             $serviceIds = collect();
+            if ($current->service_id) {
+                $serviceIds->push($current->service_id);
+            }
+            if ($current->relationLoaded('services') || method_exists($current, 'services')) {
+               $serviceIds = $serviceIds->merge($current->services->pluck('id'));
+            }
+            $serviceIds = $serviceIds->unique()->filter();
+            
+            // Users: only subordinates in my services
+            // Assuming getAccessibleServiceIds or similar logic logic for users
+            // For now, simplify to users in my service. 
+            // In ActivityLogsTable we used a complex query. Let's start simple: specific service users.
+            $users = User::whereHas('services', function($q) use ($serviceIds) {
+                    $q->whereIn('services.id', $serviceIds);
+                 })->orWhere('service_id', $serviceIds)
+                 ->orderBy('full_name')
+                 ->get();
+
+             // Only relevant departments (departments OF my services)
+             $deptIdsFromServices = \App\Models\Service::whereIn('id', $serviceIds)->with('subDepartment.department')->get()->pluck('subDepartment.department.id')->unique();
+             $departments = Department::whereIn('id', $deptIdsFromServices)->orderBy('name')->get();
+
         } else {
             $users = User::orderBy('full_name')->get();
             $departments = Department::orderBy('name')->get();
