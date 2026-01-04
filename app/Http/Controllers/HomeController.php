@@ -79,7 +79,18 @@ class HomeController extends Controller
         }
 
         // Determine what to show in donut chart based on user's department access
-        $userDepartments = auth()->user()->departments ?? collect();
+        $user = auth()->user();
+        
+        // For master/super admin, populate with all departments
+        $isMaster = $user && $user->hasRole('master');
+        $isSuperAdmin = $user && ($user->hasRole('Super Administrator') || $user->hasRole('super administrator') || $user->hasRole('super_admin'));
+        
+        if ($isMaster || $isSuperAdmin || $user->can('view any department')) {
+            $userDepartments = Department::all();
+        } else {
+            $userDepartments = $user->departments ?? collect();
+        }
+        
         $donutChartData = $this->getDonutChartData($userDepartments);
 
         // Rooms occupancy (by room) – count only documents the user can see
