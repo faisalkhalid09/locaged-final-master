@@ -141,7 +141,15 @@ class ActivityLogsTable extends Component
     {
         $current = auth()->user();
 
-        $query = AuditLog::with(['user.departments', 'document.department', 'documentVersion'])
+        $query = AuditLog::with([
+                'user.departments', 
+                'document' => function($q) {
+                    // Include soft-deleted documents so audit logs show the document name
+                    $q->withTrashed();
+                },
+                'document.department', 
+                'documentVersion'
+            ])
             // Exclude OCR view activity from logs
             ->where('action', '!=', 'viewed_ocr')
             // Scope to current user's departments for department-level roles only
@@ -157,7 +165,7 @@ class ActivityLogsTable extends Component
                 
                 if ($deptIds->isNotEmpty()) {
                     $q->whereHas('document', function($q2) use ($deptIds) {
-                        $q2->whereIn('department_id', $deptIds);
+                        $q2->withTrashed()->whereIn('department_id', $deptIds);
                     })
                     // CRITICAL: Also filter by user role - only show logs from subordinate users
                     ->whereHas('user.roles', function($q2) use ($allowedRoleNames) {
@@ -225,7 +233,7 @@ class ActivityLogsTable extends Component
         $query = $this->buildQuery();
         $logs = $query->paginate($this->perPage);
 
-        // Get statistics for cards (respect same department scoping)
+        // Get statistics for cards (respect same department scoping and role filtering)
         $current = auth()->user();
         $deptIds = $current && $current->departments ? $current->departments->pluck('id') : collect();
         $isSuper = $current && $current->hasRole(['master','super administrator','super_admin']);
@@ -238,9 +246,16 @@ class ActivityLogsTable extends Component
         );
 
         $statsBase = AuditLog::query()
-            ->when($current && $isDeptScopedRole && $deptIds->isNotEmpty() && ! $isSuper, function($q) use ($deptIds) {
+            ->where('action', '!=', 'viewed_ocr')
+            ->when($current && $isDeptScopedRole && $deptIds->isNotEmpty() && ! $isSuper, function($q) use ($deptIds, $current) {
+                $allowedRoleNames = \App\Support\RoleHierarchy::allowedRoleNamesFor($current);
+                
                 $q->whereHas('document', function($q2) use ($deptIds) {
-                    $q2->whereIn('department_id', $deptIds);
+                    $q2->withTrashed()->whereIn('department_id', $deptIds);
+                })
+                // CRITICAL: Also filter stats by user role
+                ->whereHas('user.roles', function($q2) use ($allowedRoleNames) {
+                    $q2->whereIn('name', $allowedRoleNames);
                 });
             });
 
