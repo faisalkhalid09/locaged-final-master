@@ -90,7 +90,29 @@ class ActivityLogsTable extends Component
 
     private function buildAuthenticationQuery()
     {
+        $current = auth()->user();
+        $isDeptAdmin = $current && (
+            $current->hasRole('Department Administrator') ||
+            $current->hasRole('Admin de pole')
+        );
+        
         return \App\Models\AuthenticationLog::with('user')
+            // Department Administrator: only see logs from their department and users below their rank
+            ->when($isDeptAdmin, function($q) use ($current) {
+                $deptIds = $current->departments?->pluck('id') ?? collect();
+                $allowedRoleNames = \App\Support\RoleHierarchy::allowedRoleNamesFor($current);
+                
+                $q->whereHas('user', function($q2) use ($deptIds, $allowedRoleNames) {
+                    // User must be in one of the admin's departments
+                    $q2->whereHas('departments', function($q3) use ($deptIds) {
+                        $q3->whereIn('departments.id', $deptIds);
+                    })
+                    // AND user must have a role below the admin's rank
+                    ->whereHas('roles', function($q3) use ($allowedRoleNames) {
+                        $q3->whereIn('name', $allowedRoleNames);
+                    });
+                });
+            })
             ->when($this->dateFrom, function($q) {
                 $q->whereDate('occurred_at', '>=', $this->dateFrom);
             })
@@ -221,10 +243,16 @@ class ActivityLogsTable extends Component
         $thisWeekLogs = (clone $statsBase)->whereBetween('occurred_at', [now()->startOfWeek(), now()->endOfWeek()])->count();
         $uniqueUsers = (clone $statsBase)->distinct('user_id')->count('user_id');
 
-        // Get filter options (respect department scoping)
+        // Get filter options (respect department scoping and role hierarchy)
         if ($current && $isDeptScopedRole && $deptIds->isNotEmpty() && ! $isSuper) {
+            $allowedRoleNames = \App\Support\RoleHierarchy::allowedRoleNamesFor($current);
+            
             $users = User::whereHas('departments', function($q) use ($deptIds) {
                     $q->whereIn('departments.id', $deptIds);
+                })
+                // Only show users with roles below current user's rank
+                ->whereHas('roles', function($q) use ($allowedRoleNames) {
+                    $q->whereIn('name', $allowedRoleNames);
                 })
                 ->orderBy('full_name')
                 ->get();

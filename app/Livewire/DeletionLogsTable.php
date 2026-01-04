@@ -67,10 +67,32 @@ class DeletionLogsTable extends Component
 
     private function buildQuery()
     {
+        $current = auth()->user();
+        $isDeptAdmin = $current && (
+            $current->hasRole('Department Administrator') ||
+            $current->hasRole('Admin de pole')
+        );
+        
         return AuditLog::with(['user', 'document' => function ($q) {
                 $q->withTrashed()->with(['department', 'service.subDepartment']);
             }])
             ->where('action', 'permanently_deleted')
+            // Department Administrator: only see logs from their department and users below their rank
+            ->when($isDeptAdmin, function($q) use ($current) {
+                $deptIds = $current->departments?->pluck('id') ?? collect();
+                $allowedRoleNames = \App\Support\RoleHierarchy::allowedRoleNamesFor($current);
+                
+                $q->where(function($subQuery) use ($deptIds, $allowedRoleNames) {
+                    // Filter by document department
+                    $subQuery->whereHas('document', function($q2) use ($deptIds) {
+                        $q2->withTrashed()->whereIn('department_id', $deptIds);
+                    })
+                    // AND filter by user role (only users below admin's rank)
+                    ->whereHas('user.roles', function($q2) use ($allowedRoleNames) {
+                        $q2->whereIn('name', $allowedRoleNames);
+                    });
+                });
+            })
             // Search by document title
             ->when($this->search, function($q) {
                 $q->whereHas('document', function($q2) {
@@ -191,9 +213,31 @@ class DeletionLogsTable extends Component
             ->whereDate('occurred_at', today())
             ->count();
 
-        // Get filter options
-        $users = User::orderBy('full_name')->get();
-        $departments = Department::orderBy('name')->get();
+        // Get filter options (respect department scoping and role hierarchy)
+        $current = auth()->user();
+        $isDeptAdmin = $current && (
+            $current->hasRole('Department Administrator') ||
+            $current->hasRole('Admin de pole')
+        );
+        
+        if ($isDeptAdmin) {
+            $deptIds = $current->departments?->pluck('id') ?? collect();
+            $allowedRoleNames = \App\Support\RoleHierarchy::allowedRoleNamesFor($current);
+            
+            $users = User::whereHas('departments', function($q) use ($deptIds) {
+                    $q->whereIn('departments.id', $deptIds);
+                })
+                // Only show users with roles below current user's rank
+                ->whereHas('roles', function($q) use ($allowedRoleNames) {
+                    $q->whereIn('name', $allowedRoleNames);
+                })
+                ->orderBy('full_name')
+                ->get();
+            $departments = Department::whereIn('id', $deptIds)->orderBy('name')->get();
+        } else {
+            $users = User::orderBy('full_name')->get();
+            $departments = Department::orderBy('name')->get();
+        }
 
         return view('livewire.deletion-logs-table', compact(
             'logs', 

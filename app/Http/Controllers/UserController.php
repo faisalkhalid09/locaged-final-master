@@ -170,16 +170,42 @@ class UserController extends Controller
 
         $current = auth()->user();
         $allowedRoleNames = RoleHierarchy::allowedRoleNamesFor($current);
-
-        $users = User::with('roles')
-            ->when(!empty($allowedRoleNames), function ($q) use ($allowedRoleNames) {
+        $isDeptAdmin = $current && (
+            $current->hasRole('Department Administrator') ||
+            $current->hasRole('Admin de pole')
+        );
+        
+        $usersQuery = User::with('roles');
+        
+        // Department Administrator: only see users from their departments with lower roles
+        if ($isDeptAdmin) {
+            $deptIds = $current->departments?->pluck('id') ?? collect();
+            
+            $usersQuery->when($deptIds->isNotEmpty(), function($q) use ($deptIds, $allowedRoleNames) {
+                // User must be in one of the admin's departments
+                $q->whereHas('departments', function($q2) use ($deptIds) {
+                    $q2->whereIn('departments.id', $deptIds);
+                })
+                // AND user must have a role below the admin's rank
+                ->whereHas('roles', function($q2) use ($allowedRoleNames) {
+                    $q2->whereIn('name', $allowedRoleNames);
+                });
+            }, function($q) {
+                // If no departments assigned, show nothing
+                $q->whereRaw('1 = 0');
+            });
+        } else {
+            // Other users: apply role hierarchy filtering
+            $usersQuery->when(!empty($allowedRoleNames), function ($q) use ($allowedRoleNames) {
                 $q->whereHas('roles', function ($qr) use ($allowedRoleNames) {
                     $qr->whereIn('name', $allowedRoleNames);
                 });
             }, function ($q) {
                 $q->whereRaw('1 = 0');
-            })
-            ->paginate(10);
+            });
+        }
+        
+        $users = $usersQuery->paginate(10);
 
         return view('users.audit',compact('users'));
     }
