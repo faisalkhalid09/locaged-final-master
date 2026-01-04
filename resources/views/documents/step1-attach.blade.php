@@ -73,7 +73,7 @@
         {{-- File Size Validation Error Modal --}}
         <div class="modal fade" id="fileSizeErrorModal" tabindex="-1" aria-hidden="true"
              x-data="{ errorMessage: '' }"
-             @show-validation-error.window="errorMessage = $event.detail; new bootstrap.Modal(document.getElementById('fileSizeErrorModal')).show()">
+             x-on:show-validation-error.window="errorMessage = $event.detail; new bootstrap.Modal(document.getElementById('fileSizeErrorModal')).show()">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
                     <div class="modal-header bg-danger text-white">
@@ -98,8 +98,8 @@
         <div id="upload-box" 
              class="upload-box border border-dashed rounded-3 text-center p-5" 
              style="cursor: pointer;"
-             @drop.prevent="if (!handleDrop($event)) { $event.stopPropagation(); }"
-             @dragover.prevent
+             x-on:drop.prevent="if (!handleDrop($event)) { $event.stopPropagation(); }"
+             x-on:dragover.prevent
              x-data="{
                 validateAndUpload(files, isFolder = false) {
                     // Use parent scope's validateFiles function
