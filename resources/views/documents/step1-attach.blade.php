@@ -13,7 +13,9 @@
                 if (!filesArray.length) return { valid: true };
 
                 // Validate individual file sizes
-                const maxBytes = this.maxFileSizeMB * 1024 * 1024;
+                // Ensure maxFileSizeMB is treated as a number
+                const maxMB = Number(this.maxFileSizeMB) || 50; 
+                const maxBytes = maxMB * 1024 * 1024;
                 const oversizedFiles = filesArray.filter(f => f.size > maxBytes);
                 
                 if (oversizedFiles.length > 0) {
@@ -131,7 +133,11 @@
         </div>
 
         {{-- Simple Custom Error Modal (No Bootstrap JS dependency) --}}
-        <div class="modal fade show" style="display: block; background-color: rgba(0,0,0,0.5); z-index: 9999;" 
+        <div class="modal fade" 
+             style="background-color: rgba(0,0,0,0.5); z-index: 1055;" 
+             :class="{ 'show d-block': showError }"
+             role="dialog"
+             aria-modal="true"
              x-show="showError" 
              x-transition.opacity
              x-cloak>
