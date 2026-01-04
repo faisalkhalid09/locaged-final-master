@@ -1,6 +1,53 @@
 @if($step === 1)
     <div class="upload-section p-3 mt-2"
-         x-data="{ isUploading: false, progress: 0 }"
+         x-data="{ 
+            isUploading: false, 
+            progress: 0,
+            maxFileSizeMB: {{ floor(config('uploads.max_file_size_kb', 51200) / 1024) }},
+            maxBatchFiles: {{ config('uploads.max_batch_files', 50) }},
+            
+            validateFiles(files) {
+                const filesArray = Array.from(files || []);
+                if (!filesArray.length) return { valid: true };
+
+                // Validate individual file sizes
+                const maxBytes = this.maxFileSizeMB * 1024 * 1024;
+                const oversizedFiles = filesArray.filter(f => f.size > maxBytes);
+                
+                if (oversizedFiles.length > 0) {
+                    const fileNames = oversizedFiles.map(f => f.name).slice(0, 3).join(', ');
+                    const sizeMB = (oversizedFiles[0].size / 1024 / 1024).toFixed(1);
+                    return {
+                        valid: false,
+                        message: `File too large: ${fileNames}\nSize: ${sizeMB} MB (Max: ${this.maxFileSizeMB} MB)`
+                    };
+                }
+
+                // Validate number of files
+                if (filesArray.length > this.maxBatchFiles) {
+                    return {
+                        valid: false,
+                        message: `Too many files: ${filesArray.length} selected\n(Maximum: ${this.maxBatchFiles} files per upload)`
+                    };
+                }
+
+                return { valid: true };
+            },
+            
+            handleDrop(event) {
+                event.preventDefault();
+                const files = event.dataTransfer?.files;
+                const validation = this.validateFiles(files);
+                
+                if (!validation.valid) {
+                    alert('❌ Upload Blocked\n\n' + validation.message);
+                    return false;
+                }
+                
+                // Let Livewire handle the validated files
+                return true;
+            }
+         }"
          x-on:livewire-upload-start="isUploading = true"
          x-on:livewire-upload-finish="isUploading = false; progress = 0"
          x-on:livewire-upload-error="isUploading = false"
@@ -20,54 +67,50 @@
             @endif
         </div>
 
-        <div id="upload-box" class="upload-box border border-dashed rounded-3 text-center p-5" style="cursor: pointer;"
+        <div id="upload-box" 
+             class="upload-box border border-dashed rounded-3 text-center p-5" 
+             style="cursor: pointer;"
+             @drop.prevent="if (!handleDrop($event)) { $event.stopPropagation(); }"
+             @dragover.prevent
              x-data="{
-                maxFileSizeMB: {{ floor(config('uploads.max_file_size_kb', 51200) / 1024) }},
-                maxBatchFiles: {{ config('uploads.max_batch_files', 50) }},
-
                 validateAndUpload(files, isFolder = false) {
-                    const filesArray = Array.from(files || []);
-                    if (!filesArray.length) return;
-
-                    // Validate individual file sizes
-                    const maxBytes = this.maxFileSizeMB * 1024 * 1024;
-                    const oversizedFiles = filesArray.filter(f => f.size > maxBytes);
-
-                    if (oversizedFiles.length > 0) {
-                        const fileNames = oversizedFiles.map(f => f.name).join(', ');
-                        const sizeMB = (oversizedFiles[0].size / 1024 / 1024).toFixed(1);
-                        alert(`{{ ui_t('pages.upload.file_too_large', ['filename' => '${fileNames}', 'max' => '${this.maxFileSizeMB}']) }}\n\n${fileNames} (${sizeMB} MB)`);
-                        return false;
-                    }
-
-                    // Validate number of files
-                    if (filesArray.length > this.maxBatchFiles) {
-                        alert(`Maximum ${this.maxBatchFiles} files allowed per upload. You selected ${filesArray.length} files.`);
+                    // Use parent scope's validateFiles function
+                    const validation = validateFiles(files);
+                    
+                    if (!validation.valid) {
+                        alert('❌ Upload Blocked\n\n' + validation.message);
                         return false;
                     }
 
                     // If folder upload, preserve relative paths
                     if (isFolder) {
+                        const filesArray = Array.from(files || []);
                         const paths = filesArray.map(f => f.webkitRelativePath || f.name);
                         $wire.set('relativePaths', paths);
                     }
 
+                    // Manually trigger Livewire upload after validation passes
+                    $wire.uploadMultiple('newDocuments', files);
                     return true;
                 },
-
+                
                 handleFolderChange(event) {
-                    if (this.validateAndUpload(event.target.files, true)) {
-                        // Files are valid, let Livewire handle upload
-                    } else {
-                        // Clear the input
-                        event.target.value = '';
+                    const files = event.target.files;
+                    if (files && files.length > 0) {
+                        if (!this.validateAndUpload(files, true)) {
+                            // Clear the input on validation failure
+                            event.target.value = '';
+                        }
                     }
                 },
-
+                
                 handleFileChange(event) {
-                    if (!this.validateAndUpload(event.target.files, false)) {
-                        // Clear the input
-                        event.target.value = '';
+                    const files = event.target.files;
+                    if (files && files.length > 0) {
+                        if (!this.validateAndUpload(files, false)) {
+                            // Clear the input on validation failure
+                            event.target.value = '';
+                        }
                     }
                 }
              }">
@@ -102,13 +145,12 @@
                 </small>
             </div>
 
-            {{-- File selection (allow multiple files, same behaviour as folder selection). No accept filter so any file type can be selected. --}}
-            <input type="file" wire:model="newDocuments" x-ref="fileInput" class="d-none" multiple 
+            {{-- File selection without wire:model to prevent auto-upload --}}
+            <input type="file" x-ref="fileInput" class="d-none" multiple 
                    x-on:change="handleFileChange($event)" />
 
-            {{-- Folder selection (all files inside folder). Bound to newDocuments so Livewire
-                 can upload all selected files; handleFolderChange() validates and records relative paths. --}}
-            <input type="file" wire:model="newDocuments" x-ref="folderInput" class="d-none" multiple
+            {{-- Folder selection without wire:model to prevent auto-upload --}}
+            <input type="file" x-ref="folderInput" class="d-none" multiple
                    webkitdirectory directory mozdirectory
                    x-on:change="handleFolderChange($event)" />
 
@@ -121,11 +163,26 @@
         </div>
 
         {{-- Display upload errors --}}
-        @error('upload')
+        @error('documents')
             <div class="alert alert-danger mt-3" role="alert">
-                <i class="fa-solid fa-exclamation-triangle me-2"></i>{{ $message }}
+                <i class="fa-solid fa-exclamation-triangle me-2"></i>
+                <strong>Upload Error:</strong> {{ $message }}
             </div>
         @enderror
+        
+        @error('documents.*')
+            <div class="alert alert-danger mt-3" role="alert">
+                <i class="fa-solid fa-exclamation-triangle me-2"></i>
+                <strong>File Validation Error:</strong> {{ $message }}
+            </div>
+        @enderror
+        
+        @if (session()->has('error'))
+            <div class="alert alert-danger mt-3" role="alert">
+                <i class="fa-solid fa-exclamation-triangle me-2"></i>
+                {{ session('error') }}
+            </div>
+        @endif
 
         <div class="container-fluid doc-file p-0 mt-4">
             @foreach($documents as $index => $document)
