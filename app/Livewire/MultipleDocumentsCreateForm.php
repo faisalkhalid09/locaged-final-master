@@ -490,6 +490,16 @@ class MultipleDocumentsCreateForm extends Component
             if (method_exists($file, 'getSize') && $file->getSize() <= 0) {
                 continue;
             }
+
+            // Check against max file size from config
+            $maxSizeKb = config('uploads.max_file_size_kb', 50000);
+            if (method_exists($file, 'getSize') && $file->getSize() > ($maxSizeKb * 1024)) {
+                $this->addError('documents', __('File ":name" exceeds the maximum size of :max MB.', [
+                    'name' => $filename,
+                    'max' => floor($maxSizeKb / 1024)
+                ]));
+                continue;
+            }
             
             $validFiles[] = $file;
         }

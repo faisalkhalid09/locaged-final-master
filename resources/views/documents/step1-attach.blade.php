@@ -55,7 +55,23 @@
                 }
 
                 // Manually trigger Livewire upload after validation passes
-                $wire.uploadMultiple('newDocuments', files);
+                // We use explicit callbacks to ensure the progress bar updates correctly
+                $wire.uploadMultiple(
+                    'newDocuments', 
+                    files, 
+                    () => { 
+                        this.isUploading = false; 
+                        this.progress = 0; 
+                    }, 
+                    () => { 
+                        this.isUploading = false; 
+                        this.progress = 0;
+                    }, 
+                    (event) => { 
+                        this.isUploading = true; 
+                        this.progress = event.detail.progress; 
+                    }
+                );
                 return true;
             },
             
