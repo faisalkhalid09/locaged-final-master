@@ -25,12 +25,24 @@ class DestructionRequestsExport implements FromQuery, WithHeadings, WithMapping,
      */
     public function query(): Builder
     {
-        return Document::withoutGlobalScopes()
+        $user = auth()->user();
+        $query = Document::withoutGlobalScopes()
             ->with(['latestVersion', 'createdBy'])
             ->whereNotNull('expire_at')
             ->where('expire_at', '<=', now())
-            ->whereNull('deleted_at')
-            ->orderByDesc('expire_at');
+            ->whereNull('deleted_at');
+        
+        // Department Administrator: only export expired documents from their departments
+        // Admin/Super Admin: export all expired documents from all departments
+        $isDeptAdmin = $user && ($user->hasRole('Department Administrator') || $user->hasRole('Admin de pole'));
+        $isAdmin = $user && $user->hasRole(['master', 'Super Administrator', 'super administrator']);
+        
+        if ($isDeptAdmin && !$isAdmin) {
+            $deptIds = $user->departments?->pluck('id') ?? collect();
+            $query->whereIn('documents.department_id', $deptIds->all());
+        }
+        
+        return $query->orderByDesc('expire_at');
     }
 
     public function headings(): array

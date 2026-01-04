@@ -29,13 +29,23 @@ class DocumentDestructionRequestController extends Controller
         // Show documents that have expired in real-time (expire_at is in the past)
         // Must use withoutGlobalScopes() because Document model has a global scope
         // that hides expired documents from normal queries
-        $expiredDocuments = \App\Models\Document::withoutGlobalScopes()
+        $query = \App\Models\Document::withoutGlobalScopes()
             ->with(['latestVersion', 'createdBy', 'department'])
             ->whereNotNull('expire_at')
             ->where('expire_at', '<=', now())
-            ->whereNull('deleted_at')  // Exclude soft-deleted documents
-            ->latest()
-            ->paginate(10);
+            ->whereNull('deleted_at');  // Exclude soft-deleted documents
+        
+        // Department Administrator: only see expired documents from their departments
+        // Admin/Super Admin: see all expired documents from all departments
+        $isDeptAdmin = $user->hasRole('Department Administrator') || $user->hasRole('Admin de pole');
+        $isAdmin = $user->hasRole(['master', 'Super Administrator', 'super administrator']);
+        
+        if ($isDeptAdmin && !$isAdmin) {
+            $deptIds = $user->departments?->pluck('id') ?? collect();
+            $query->whereIn('documents.department_id', $deptIds->all());
+        }
+        
+        $expiredDocuments = $query->latest()->paginate(10);
 
         return view('documents-destructions.index', ['expiredDocuments' => $expiredDocuments]);
     }
