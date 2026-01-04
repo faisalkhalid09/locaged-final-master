@@ -95,10 +95,10 @@
                 return true;
             }
          }"
-         x-on:livewire-upload-start="isUploading = true"
-         x-on:livewire-upload-finish="isUploading = false; progress = 0"
-         x-on:livewire-upload-error="isUploading = false"
-         x-on:livewire-upload-progress="progress = $event.detail.progress"
+         x-on:livewire-upload-start.window="isUploading = true"
+         x-on:livewire-upload-finish.window="isUploading = false; progress = 0"
+         x-on:livewire-upload-error.window="isUploading = false"
+         x-on:livewire-upload-progress.window="progress = $event.detail.progress"
     >
         <div class="d-flex justify-content-between align-items-center mb-1">
             <label class="form-label fw-semibold text-muted mb-0">
