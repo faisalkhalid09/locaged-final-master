@@ -12,17 +12,17 @@ class NotificationService
 
     private $title;
     private $user;
-
+    private $document;
     private $documentId;
-
     private $latestVersionId;
 
-    public function __construct(string $title, User $user,$documentId,$latestVersionId)
+    public function __construct(string $title, User $user, $document)
     {
         $this->title = $title;
         $this->user = $user;
-        $this->documentId = $documentId;
-        $this->latestVersionId = $latestVersionId;
+        $this->document = $document;
+        $this->documentId = is_object($document) ? $document->id : $document;
+        $this->latestVersionId = is_object($document) && $document->latestVersion ? $document->latestVersion->id : null;
     }
 
     protected function getNotificationConfig(string $action): ?array
@@ -77,14 +77,45 @@ class NotificationService
             return;
         }
 
-        $admins = User::role([
-            'master',
-            'Super Administrator',
-            'admin',
-            'Admin de pole',
-            'Admin de departments',
-            'Admin de cellule'
-        ])->get();
+        // Get document relationships for scoping
+        $documentDeptId = is_object($this->document) ? $this->document->department_id : null;
+        $documentServiceId = is_object($this->document) ? $this->document->service_id : null;
+
+        // Always notify Master, Super Administrator, and legacy admin (global scope)
+        $globalAdmins = User::role(['master', 'Super Administrator', 'admin'])->get();
+
+        // Scoped admins: Admin de pole filtered by department
+        $poleAdmins = collect();
+        if ($documentDeptId) {
+            $poleAdmins = User::role('Admin de pole')
+                ->whereHas('departments', function($q) use ($documentDeptId) {
+                    $q->where('departments.id', $documentDeptId);
+                })
+                ->get();
+        }
+
+        // Scoped admins: Admin de departments filtered by department
+        $deptAdmins = collect();
+        if ($documentDeptId) {
+            $deptAdmins = User::role('Admin de departments')
+                ->whereHas('departments', function($q) use ($documentDeptId) {
+                    $q->where('departments.id', $documentDeptId);
+                })
+                ->get();
+        }
+
+        // Scoped admins: Admin de cellule filtered by service
+        $celluleAdmins = collect();
+        if ($documentServiceId) {
+            $celluleAdmins = User::role('Admin de cellule')
+                ->whereHas('services', function($q) use ($documentServiceId) {
+                    $q->where('services.id', $documentServiceId);
+                })
+                ->get();
+        }
+
+        // Merge all relevant admins
+        $admins = $globalAdmins->merge($poleAdmins)->merge($deptAdmins)->merge($celluleAdmins)->unique('id');
 
         foreach ($admins as $admin) {
             // Translate title and body

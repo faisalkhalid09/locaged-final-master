@@ -18,14 +18,14 @@ return [
         'type' => 'pending_approval_1w',
         'title' => 'Approval Reminder',
         'body' => 'The document ":title" has been pending approval for a week.',
-        'icon' => 'heroicon-o-clock',
+        'icon' => 'assets/created.png',
     ],
 
     'pending_approval_1m' => [
         'type' => 'pending_approval_1m',
         'title' => 'Approval Reminder',
         'body' => 'The document ":title" has been pending approval for a month.',
-        'icon' => 'heroicon-o-exclamation-triangle',
+        'icon' => 'assets/expired.png',
     ],
     'unlocked' => [
             'type' => 'success',

@@ -58,8 +58,7 @@ Schedule::call(function () {
         $notificationService = new \App\Services\NotificationService(
             $document->title,
             $document->createdBy,
-            $document->id,
-            optional($document->latestVersion)->id
+            $document
         );
 
         $notificationService->notifyAdmins('pending_approval_1w');
@@ -87,8 +86,7 @@ Schedule::call(function () {
         $notificationService = new \App\Services\NotificationService(
             $document->title,
             $document->createdBy,
-            $document->id,
-            optional($document->latestVersion)->id
+            $document
         );
 
         $notificationService->notifyAdmins('pending_approval_1m');
