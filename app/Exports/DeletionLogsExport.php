@@ -42,15 +42,15 @@ class DeletionLogsExport implements FromCollection, WithHeadings, WithMapping, S
     public function headings(): array
     {
         return [
-            __('Document title'),
-            __('Document ID'),
-            __('Creation date'),
-            __('Expiration date'),
-            __('Deleted on'),
-            __('Deleted by'),
-            __('Pole'),
-            __('Department'),
-            __('Service'),
+            ui_t('pages.deletion_log.export.document_title'),
+            ui_t('pages.deletion_log.export.document_id'),
+            ui_t('pages.deletion_log.export.creation_date'),
+            ui_t('pages.deletion_log.export.expiration_date'),
+            ui_t('pages.deletion_log.export.deleted_on'),
+            ui_t('pages.deletion_log.export.deleted_by'),
+            ui_t('pages.deletion_log.export.pole'),
+            ui_t('pages.deletion_log.export.department'),
+            ui_t('pages.deletion_log.export.service'),
         ];
     }
 
@@ -90,12 +90,12 @@ class DeletionLogsExport implements FromCollection, WithHeadings, WithMapping, S
                 $sheet->insertNewRowBefore(1, 3);
 
                 // Header section
-                $sheet->setCellValue('A1', __('Document Deletion Log'));
+                $sheet->setCellValue('A1', ui_t('pages.deletion_log.export.title'));
                 $sheet->mergeCells('A1:I1');
                 $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(16);
 
-                $sheet->setCellValue('A2', __('Generated on:') . ' ' . now()->format('d/m/Y H:i'));
-                $sheet->setCellValue('A3', __('Total deletions:') . ' ' . ($this->rowCount - 1));
+                $sheet->setCellValue('A2', ui_t('pages.deletion_log.export.generated_on') . ' ' . now()->format('d/m/Y H:i'));
+                $sheet->setCellValue('A3', ui_t('pages.deletion_log.export.total_deletions') . ' ' . ($this->rowCount - 1));
 
                 // Freeze the header row of the data table (now at row 4)
                 $sheet->freezePane('A4');

@@ -46,6 +46,20 @@ class AddDeletionLogPageTranslationsSeeder extends Seeder
             ['key' => 'pages.deletion_log.document_deleted', 'en_text' => '(Document deleted)', 'fr_text' => '(Document supprimé)', 'ar_text' => '(تم حذف الوثيقة)'],
             ['key' => 'pages.deletion_log.export_pdf', 'en_text' => 'Export to PDF', 'fr_text' => 'Exporter en PDF', 'ar_text' => 'تصدير إلى PDF'],
             ['key' => 'pages.deletion_log.no_documents', 'en_text' => 'No permanently deleted documents found.', 'fr_text' => 'Aucun document définitivement supprimé trouvé.', 'ar_text' => 'لم يتم العثور على وثائق محذوفة نهائيا.'],
+            
+            // Export Headers
+            ['key' => 'pages.deletion_log.export.title', 'en_text' => 'Document Deletion Log', 'fr_text' => 'Journal des suppressions de documents', 'ar_text' => 'سجل حذف الوثائق'],
+            ['key' => 'pages.deletion_log.export.generated_on', 'en_text' => 'Generated on:', 'fr_text' => 'Généré le :', 'ar_text' => 'تم الإنشاء في:'],
+            ['key' => 'pages.deletion_log.export.total_deletions', 'en_text' => 'Total deletions:', 'fr_text' => 'Total des suppressions :', 'ar_text' => 'إجمالي عمليات الحذف:'],
+            ['key' => 'pages.deletion_log.export.document_title', 'en_text' => 'Document title', 'fr_text' => 'Titre du document', 'ar_text' => 'عنوان الوثيقة'],
+            ['key' => 'pages.deletion_log.export.document_id', 'en_text' => 'Document ID', 'fr_text' => 'ID du document', 'ar_text' => 'معرف الوثيقة'],
+            ['key' => 'pages.deletion_log.export.creation_date', 'en_text' => 'Creation date', 'fr_text' => 'Date de création', 'ar_text' => 'تاريخ الإنشاء'],
+            ['key' => 'pages.deletion_log.export.expiration_date', 'en_text' => 'Expiration date', 'fr_text' => 'Date d\'expiration', 'ar_text' => 'تاريخ انتهاء الصلاحية'],
+            ['key' => 'pages.deletion_log.export.deleted_on', 'en_text' => 'Deleted on', 'fr_text' => 'Supprimé le', 'ar_text' => 'تاريخ الحذف'],
+            ['key' => 'pages.deletion_log.export.deleted_by', 'en_text' => 'Deleted by', 'fr_text' => 'Supprimé par', 'ar_text' => 'حذف بواسطة'],
+            ['key' => 'pages.deletion_log.export.pole', 'en_text' => 'Pole', 'fr_text' => 'Pôle', 'ar_text' => 'القطب'],
+            ['key' => 'pages.deletion_log.export.department', 'en_text' => 'Department', 'fr_text' => 'Département', 'ar_text' => 'القسم'],
+            ['key' => 'pages.deletion_log.export.service', 'en_text' => 'Service', 'fr_text' => 'Service', 'ar_text' => 'الخدمة'],
         ];
 
         foreach ($translations as $translation) {
