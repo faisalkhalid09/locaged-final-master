@@ -248,14 +248,10 @@ class Document extends Model
                     SubDepartment::whereIn('id', $subDeptIds)->pluck('department_id')
                 );
 
-                // CRITICAL FIX: Only include sub-department services for department-level users, 
-                // NOT for service-level users (Service Manager should only see their directly assigned services)
-                if (! $user->can('view service document')) {
-                    // Services under these sub-departments
-                    $visibleServiceIds = $visibleServiceIds->merge(
-                        Service::whereIn('sub_department_id', $subDeptIds)->pluck('id')
-                    );
-                }
+                // Services under these sub-departments (for ALL users)
+                $visibleServiceIds = $visibleServiceIds->merge(
+                    Service::whereIn('sub_department_id', $subDeptIds)->pluck('id')
+                );
             }
 
             // Services directly assigned to the user
