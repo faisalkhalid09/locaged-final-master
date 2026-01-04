@@ -285,8 +285,19 @@ class MultipleDocumentsCreateForm extends Component
         
         // PERFORMANCE OPTIMIZATION: Early return if required fields are missing
         if (empty($meta['title']) || empty($meta['created_at']) || empty($meta['department_id'])) {
+            Log::info('Duplicate check skipped - missing required fields', [
+                'has_title' => !empty($meta['title']),
+                'has_created_at' => !empty($meta['created_at']),
+                'has_department_id' => !empty($meta['department_id']),
+            ]);
             return [];
         }
+        
+        Log::info('Checking for duplicates', [
+            'title' => $meta['title'],
+            'department_id' => $meta['department_id'],
+            'created_at' => $meta['created_at'],
+        ]);
         
         // PERFORMANCE OPTIMIZATION: Use exists() for faster check before fetching records
         $hasMatches = Document::whereRaw('LOWER(title) = ?', [strtolower($meta['title'])])
@@ -295,8 +306,11 @@ class MultipleDocumentsCreateForm extends Component
             ->exists();
             
         if (!$hasMatches) {
+            Log::info('No duplicates found');
             return []; // No duplicates found, skip expensive mapping
         }
+        
+        Log::info('Duplicates found, fetching details');
         
         return Document::whereRaw('LOWER(title) = ?', [strtolower($meta['title'])])
             ->where('department_id', $meta['department_id'])
