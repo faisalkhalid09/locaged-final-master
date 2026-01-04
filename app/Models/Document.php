@@ -248,13 +248,16 @@ class Document extends Model
                     SubDepartment::whereIn('id', $subDeptIds)->pluck('department_id')
                 );
 
-                // Services under these sub-departments (for ALL users)
-                $visibleServiceIds = $visibleServiceIds->merge(
-                    Service::whereIn('sub_department_id', $subDeptIds)->pluck('id')
-                );
+                // IMPORTANT: Only include sub-department services for NON-service-level users
+                // Service Managers should ONLY see their DIRECTLY assigned services
+                if (! $user->can('view service document')) {
+                    $visibleServiceIds = $visibleServiceIds->merge(
+                        Service::whereIn('sub_department_id', $subDeptIds)->pluck('id')
+                    );
+                }
             }
 
-            // Services directly assigned to the user
+            // Services DIRECTLY assigned to the user (THIS IS THE KEY FOR SERVICE MANAGERS)
             // 1. Check primary service_id column
             if ($user->service_id) {
                 $visibleServiceIds->push($user->service_id);

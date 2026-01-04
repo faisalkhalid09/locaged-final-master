@@ -494,42 +494,50 @@ class HomeController extends Controller
         }
 
         $serviceIds = collect();
+        
+        // Check if this is a service-level user (has 'view service document' permission)
+        $isServiceLevelUser = $user->can('view service document');
 
-        // Direct service assignment
+        // ALWAYS include directly assigned services
+        // 1. Direct service_id column assignment
         if ($user->service_id) {
             $serviceIds->push($user->service_id);
         }
         
-        // Many-to-many service assignments via pivot
+        // 2. Many-to-many service assignments via pivot
         if ($user->relationLoaded('services') || method_exists($user, 'services')) {
             $serviceIds = $serviceIds->merge($user->services->pluck('id'));
         }
 
-        // Sub-department assignment: all services under the primary sub-department
-        if ($user->sub_department_id) {
-            $serviceIds = $serviceIds->merge(
-                Service::where('sub_department_id', $user->sub_department_id)->pluck('id')
-            );
-        }
-
-        // Additional sub-departments via pivot (sub_department_user): include all their services
-        if ($user->relationLoaded('subDepartments') || method_exists($user, 'subDepartments')) {
-            $extraSubDeptIds = $user->subDepartments->pluck('id');
-            if ($extraSubDeptIds->isNotEmpty()) {
+        // ONLY include sub-department/department services for NON-service-level users
+        // Service Managers should ONLY see their directly assigned services above
+        if (! $isServiceLevelUser) {
+            // Sub-department assignment: all services under the primary sub-department
+            if ($user->sub_department_id) {
                 $serviceIds = $serviceIds->merge(
-                    Service::whereIn('sub_department_id', $extraSubDeptIds)->pluck('id')
+                    Service::where('sub_department_id', $user->sub_department_id)->pluck('id')
                 );
             }
-        }
 
-        // Departments assignment: all services under those departments
-        $departmentIds = $user->departments->pluck('id');
-        if ($departmentIds->isNotEmpty()) {
-            $subDeptIds = SubDepartment::whereIn('department_id', $departmentIds)->pluck('id');
-            if ($subDeptIds->isNotEmpty()) {
-                $serviceIds = $serviceIds->merge(
-                    Service::whereIn('sub_department_id', $subDeptIds)->pluck('id')
-                );
+            // Additional sub-departments via pivot: include all their services
+            if ($user->relationLoaded('subDepartments') || method_exists($user, 'subDepartments')) {
+                $extraSubDeptIds = $user->subDepartments->pluck('id');
+                if ($extraSubDeptIds->isNotEmpty()) {
+                    $serviceIds = $serviceIds->merge(
+                        Service::whereIn('sub_department_id', $extraSubDeptIds)->pluck('id')
+                    );
+                }
+            }
+
+            // Departments assignment: all services under those departments
+            $departmentIds = $user->departments->pluck('id');
+            if ($departmentIds->isNotEmpty()) {
+                $subDeptIds = SubDepartment::whereIn('department_id', $departmentIds)->pluck('id');
+                if ($subDeptIds->isNotEmpty()) {
+                    $serviceIds = $serviceIds->merge(
+                        Service::whereIn('sub_department_id', $subDeptIds)->pluck('id')
+                    );
+                }
             }
         }
 
