@@ -21,15 +21,56 @@
         </div>
 
         <div id="upload-box" class="upload-box border border-dashed rounded-3 text-center p-5" style="cursor: pointer;"
-             x-data="{ handleFolderChange(event) {
-                 const files = Array.from(event.target.files || []);
-                 if (!files.length) return;
+             x-data="{
+                maxFileSizeMB: {{ floor(config('uploads.max_file_size_kb', 51200) / 1024) }},
+                maxBatchFiles: {{ config('uploads.max_batch_files', 50) }},
 
-                 // Preserve relative paths from the selected folder so the backend
-                 // can properly create nested folders for all file types.
-                 const paths = files.map(f => f.webkitRelativePath || f.name);
-                 $wire.set('relativePaths', paths);
-             }}">
+                validateAndUpload(files, isFolder = false) {
+                    const filesArray = Array.from(files || []);
+                    if (!filesArray.length) return;
+
+                    // Validate individual file sizes
+                    const maxBytes = this.maxFileSizeMB * 1024 * 1024;
+                    const oversizedFiles = filesArray.filter(f => f.size > maxBytes);
+
+                    if (oversizedFiles.length > 0) {
+                        const fileNames = oversizedFiles.map(f => f.name).join(', ');
+                        const sizeMB = (oversizedFiles[0].size / 1024 / 1024).toFixed(1);
+                        alert(`{{ ui_t('pages.upload.file_too_large', ['filename' => '${fileNames}', 'max' => '${this.maxFileSizeMB}']) }}\n\n${fileNames} (${sizeMB} MB)`);
+                        return false;
+                    }
+
+                    // Validate number of files
+                    if (filesArray.length > this.maxBatchFiles) {
+                        alert(`Maximum ${this.maxBatchFiles} files allowed per upload. You selected ${filesArray.length} files.`);
+                        return false;
+                    }
+
+                    // If folder upload, preserve relative paths
+                    if (isFolder) {
+                        const paths = filesArray.map(f => f.webkitRelativePath || f.name);
+                        $wire.set('relativePaths', paths);
+                    }
+
+                    return true;
+                },
+
+                handleFolderChange(event) {
+                    if (this.validateAndUpload(event.target.files, true)) {
+                        // Files are valid, let Livewire handle upload
+                    } else {
+                        // Clear the input
+                        event.target.value = '';
+                    }
+                },
+
+                handleFileChange(event) {
+                    if (!this.validateAndUpload(event.target.files, false)) {
+                        // Clear the input
+                        event.target.value = '';
+                    }
+                }
+             }">
 
             <div class="mb-3">
                 <img src="{{ asset('assets/Vector (24).svg') }}" alt="upload">
@@ -62,10 +103,11 @@
             </div>
 
             {{-- File selection (allow multiple files, same behaviour as folder selection). No accept filter so any file type can be selected. --}}
-            <input type="file" wire:model="newDocuments" x-ref="fileInput" class="d-none" multiple />
+            <input type="file" wire:model="newDocuments" x-ref="fileInput" class="d-none" multiple 
+                   x-on:change="handleFileChange($event)" />
 
             {{-- Folder selection (all files inside folder). Bound to newDocuments so Livewire
-                 can upload all selected files; handleFolderChange() only records relative paths. --}}
+                 can upload all selected files; handleFolderChange() validates and records relative paths. --}}
             <input type="file" wire:model="newDocuments" x-ref="folderInput" class="d-none" multiple
                    webkitdirectory directory mozdirectory
                    x-on:change="handleFolderChange($event)" />
