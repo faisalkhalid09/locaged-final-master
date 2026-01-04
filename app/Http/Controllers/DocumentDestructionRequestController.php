@@ -20,7 +20,7 @@ class DocumentDestructionRequestController extends Controller
     public function index()
     {
         $user = auth()->user();
-        if (! $user || ! $user->hasAnyRole(['master', 'Super Administrator', 'super administrator', 'Admin de pole', 'admin de pôle', 'Admin de departments', 'Admin de cellule', 'Service Manager'])) {
+        if (! $user || ! $user->hasAnyRole(['master', 'Super Administrator', 'super administrator', 'Admin de pole', 'admin de pôle', 'Admin de departments', 'Admin de cellule', 'Service Manager', 'Department Administrator'])) {
             abort(403);
         }
 
@@ -78,7 +78,14 @@ class DocumentDestructionRequestController extends Controller
         // If 403 persists, we check Policy.
 
         $user = auth()->user();
-        if (! $user || ! $user->hasAnyRole(['master', 'Super Administrator', 'super administrator', 'Admin de pole', 'admin de pôle', 'Admin de departments', 'Admin de cellule', 'Service Manager'])) {
+        
+        // Debug logging
+        if ($user) {
+            \Illuminate\Support\Facades\Log::info("DeletionLog View: User {$user->id} roles: " . $user->getRoleNames()->implode(', '));
+        }
+
+        if (! $user || ! $user->hasAnyRole(['master', 'Super Administrator', 'super administrator', 'Admin de pole', 'admin de pôle', 'Admin de departments', 'Admin de cellule', 'Service Manager', 'Department Administrator'])) {
+            \Illuminate\Support\Facades\Log::warning("DeletionLog View: 403 Forbidden for User {$user->id}");
             abort(403);
         }
 
@@ -127,7 +134,7 @@ class DocumentDestructionRequestController extends Controller
     public function exportDeletionLogs()
     {
         $user = auth()->user();
-        if (! $user || ! $user->hasAnyRole(['master', 'Super Administrator', 'super administrator', 'Admin de pole', 'admin de pôle', 'Admin de departments', 'Admin de cellule', 'Service Manager'])) {
+        if (! $user || ! $user->hasAnyRole(['master', 'Super Administrator', 'super administrator', 'Admin de pole', 'admin de pôle', 'Admin de departments', 'Admin de cellule', 'Service Manager', 'Department Administrator'])) {
             abort(403);
         }
 
