@@ -30,7 +30,7 @@ class TagPolicy
      */
     public function create(User $user): bool
     {
-        return $user->hasAnyRole(['user', 'service user', 'Department Administrator', 'Admin de pole', 'Admin de cellule', 'Service Manager']);
+        return $user->hasAnyRole(['user', 'service user', 'Department Administrator', 'Admin de pole', 'Admin de cellule', 'Service Manager', 'Admin de departments']);
     }
 
     /**
