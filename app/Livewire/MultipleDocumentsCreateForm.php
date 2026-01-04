@@ -157,21 +157,26 @@ class MultipleDocumentsCreateForm extends Component
     {
         $user = auth()->user();
         
-        // Get all room IDs that have accessible boxes
-        $accessibleRoomIds = Box::forUser($user)
-            ->with('shelf.row.room')
-            ->get()
-            ->pluck('shelf.row.room.id')
-            ->unique()
-            ->filter();
-        
-        if ($accessibleRoomIds->isEmpty()) {
-            return collect();
-        }
-        
-        return Room::whereIn('id', $accessibleRoomIds)
-            ->orderBy('name')
-            ->get();
+        // Find rooms that have at least one accessible box
+        return Room::whereHas('rows.shelves.boxes', function ($query) use ($user) {
+            $accessibleServiceIds = Box::getAccessibleServiceIds($user);
+            
+            if ($accessibleServiceIds === 'all') {
+                // Admin/SuperAdmin - no filtering needed
+                return;
+            }
+            
+            if ($accessibleServiceIds->isEmpty()) {
+                // No accessible services - no rooms should be shown
+                $query->whereRaw('1 = 0');
+                return;
+            }
+            
+            // Filter boxes by accessible service IDs
+            $query->whereIn('service_id', $accessibleServiceIds);
+        })
+        ->orderBy('name')
+        ->get();
     }
 
     public function getRowsProperty()
@@ -182,23 +187,22 @@ class MultipleDocumentsCreateForm extends Component
         
         $user = auth()->user();
         
-        // Get row IDs that have accessible boxes in the selected room
-        $accessibleRowIds = Box::forUser($user)
-            ->whereHas('shelf.row.room', function ($q) {
-                $q->where('id', $this->selectedRoomId);
-            })
-            ->with('shelf.row')
-            ->get()
-            ->pluck('shelf.row.id')
-            ->unique()
-            ->filter();
-        
-        if ($accessibleRowIds->isEmpty()) {
-            return collect();
-        }
-        
+        // Find rows (in selected room) that have at least one accessible box
         return Row::where('room_id', $this->selectedRoomId)
-            ->whereIn('id', $accessibleRowIds)
+            ->whereHas('shelves.boxes', function ($query) use ($user) {
+                $accessibleServiceIds = Box::getAccessibleServiceIds($user);
+                
+                if ($accessibleServiceIds === 'all') {
+                    return;
+                }
+                
+                if ($accessibleServiceIds->isEmpty()) {
+                    $query->whereRaw('1 = 0');
+                    return;
+                }
+                
+                $query->whereIn('service_id', $accessibleServiceIds);
+            })
             ->orderBy('name')
             ->get();
     }
@@ -211,21 +215,22 @@ class MultipleDocumentsCreateForm extends Component
         
         $user = auth()->user();
         
-        // Get shelf IDs that have accessible boxes in the selected row
-        $accessibleShelfIds = Box::forUser($user)
-            ->whereHas('shelf', function ($q) {
-                $q->where('row_id', $this->selectedRowId);
-            })
-            ->pluck('shelf_id')
-            ->unique()
-            ->filter();
-        
-        if ($accessibleShelfIds->isEmpty()) {
-            return collect();
-        }
-        
+        // Find shelves (in selected row) that have at least one accessible box
         return Shelf::where('row_id', $this->selectedRowId)
-            ->whereIn('id', $accessibleShelfIds)
+            ->whereHas('boxes', function ($query) use ($user) {
+                $accessibleServiceIds = Box::getAccessibleServiceIds($user);
+                
+                if ($accessibleServiceIds === 'all') {
+                    return;
+                }
+                
+                if ($accessibleServiceIds->isEmpty()) {
+                    $query->whereRaw('1 = 0');
+                    return;
+                }
+                
+                $query->whereIn('service_id', $accessibleServiceIds);
+            })
             ->orderBy('name')
             ->get();
     }
