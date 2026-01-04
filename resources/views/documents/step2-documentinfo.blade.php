@@ -325,8 +325,13 @@
                                 <button type="button" 
                                         class="btn btn-danger" 
                                         wire:click="submit"
-                                        @if(!$canProceed) disabled title="{{ ui_t('pages.upload.must_assigned_to_submit') }}" @endif>
-                                    {{ ui_t('pages.upload.submit') }}
+                                        wire:loading.attr="disabled"
+                                        wire:loading.class="opacity-75"
+                                        @if(!$canProceed || $isSubmitting) disabled title="{{ ui_t('pages.upload.must_assigned_to_submit') }}" @endif>
+                                    <span wire:loading.remove wire:target="submit">{{ ui_t('pages.upload.submit') }}</span>
+                                    <span wire:loading wire:target="submit">
+                                        <i class="fas fa-spinner fa-spin"></i> {{ ui_t('pages.upload.submitting') }}
+                                    </span>
                                 </button>
                             @else
                                 {{-- Per-file metadata (single file or multi with separate metadata) --}}
@@ -347,8 +352,13 @@
                                     <button type="button" 
                                             class="btn btn-danger" 
                                             wire:click="submit"
-                                            @if(!$canProceed) disabled title="{{ ui_t('pages.upload.must_assigned_to_submit') }}" @endif>
-                                        {{ ui_t('pages.upload.submit') }}
+                                            wire:loading.attr="disabled"
+                                            wire:loading.class="opacity-75"
+                                            @if(!$canProceed || $isSubmitting) disabled title="{{ ui_t('pages.upload.must_assigned_to_submit') }}" @endif>
+                                        <span wire:loading.remove wire:target="submit">{{ ui_t('pages.upload.submit') }}</span>
+                                        <span wire:loading wire:target="submit">
+                                            <i class="fas fa-spinner fa-spin"></i> {{ ui_t('pages.upload.submitting') }}
+                                        </span>
                                     </button>
                                 @endif
                             @endif

@@ -76,6 +76,9 @@ class MultipleDocumentsCreateForm extends Component
     public $previewMime;
     public $previewName;
 
+    // Prevent duplicate submissions
+    public $isSubmitting = false;
+
     // Duplicate detection state
     public $showDuplicateModal = false;
     public $currentDuplicates = [];
@@ -808,6 +811,11 @@ class MultipleDocumentsCreateForm extends Component
 
     public function submit()
     {
+        // Prevent duplicate submissions
+        if ($this->isSubmitting) {
+            return;
+        }
+
         // Guard: user must be assigned to at least one department (via pivot).
         if (! $this->userHasAnyDepartment()) {
             $this->addError('department', 'You must be assigned to at least one department to upload documents. Please contact your administrator.');
@@ -831,6 +839,9 @@ class MultipleDocumentsCreateForm extends Component
 
     private function performSubmit()
     {
+        // Set submitting flag at the start
+        $this->isSubmitting = true;
+
         $successCount = 0;
         $skippedCount = 0;
         $hadError = false;
