@@ -275,11 +275,25 @@ class Document extends Model
             // Service-level visibility (Service Manager / Service User)
             if ($user->can('view service document')) {
                 if ($visibleServiceIds->isNotEmpty()) {
-                    // Simple filter by service_id; avoids heavy joins on categories for every query.
-                    $query->whereIn('service_id', $visibleServiceIds->all());
+                    // Show documents from assigned services
+                    // If user can also view own documents, include those too
+                    if ($user->can('view own document')) {
+                        $query->where(function($q) use ($visibleServiceIds, $user) {
+                            $q->whereIn('service_id', $visibleServiceIds->all())
+                              ->orWhere('created_by', $user->id);
+                        });
+                    } else {
+                        // Simple filter by service_id only
+                        $query->whereIn('service_id', $visibleServiceIds->all());
+                    }
                 } else {
-                    // No visible services assigned => no documents
-                    $query->whereRaw('1 = 0');
+                    // No services assigned, but if they can view own documents, show those
+                    if ($user->can('view own document')) {
+                        $query->where('created_by', $user->id);
+                    } else {
+                        // No visible services assigned and can't view own => no documents
+                        $query->whereRaw('1 = 0');
+                    }
                 }
                 return;
             }
