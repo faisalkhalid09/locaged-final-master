@@ -26,12 +26,11 @@ class TagPolicy
     /**
      * Determine whether the user can create models.
      *
-     * Only service-level users (role "user" / service user) may create tags,
-     * regardless of granular permission flags.
+     * Allowed roles: service users, Department Administrators, and Service Managers
      */
     public function create(User $user): bool
     {
-        return $user->hasAnyRole(['user', 'service user']);
+        return $user->hasAnyRole(['user', 'service user', 'Department Administrator', 'Admin de pole', 'Admin de cellule', 'Service Manager']);
     }
 
     /**
