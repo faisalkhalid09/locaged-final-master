@@ -248,7 +248,7 @@
                                     <label class="form-label small">1. {{ ui_t('pages.upload.room') }}</label>
                                     <select class="form-select form-select-sm" wire:model.live="selectedRoomId">
                                         <option value="">{{ ui_t('pages.upload.select_room') }}</option>
-                                        @foreach($rooms as $room)
+                                        @foreach($this->rooms as $room)
                                             <option value="{{ $room->id }}">{{ $room->name }}</option>
                                         @endforeach
                                     </select>
