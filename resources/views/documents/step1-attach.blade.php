@@ -37,6 +37,48 @@
                 return { valid: true };
             },
             
+            validateAndUpload(files, isFolder = false) {
+                // Use validateFiles function from same scope
+                const validation = this.validateFiles(files);
+                
+                if (!validation.valid) {
+                    this.errorMessage = validation.message;
+                    this.showError = true;
+                    return false;
+                }
+
+                // If folder upload, preserve relative paths
+                if (isFolder) {
+                    const filesArray = Array.from(files || []);
+                    const paths = filesArray.map(f => f.webkitRelativePath || f.name);
+                    $wire.set('relativePaths', paths);
+                }
+
+                // Manually trigger Livewire upload after validation passes
+                $wire.uploadMultiple('newDocuments', files);
+                return true;
+            },
+            
+            handleFolderChange(event) {
+                const files = event.target.files;
+                if (files && files.length > 0) {
+                    if (!this.validateAndUpload(files, true)) {
+                        // Clear the input on validation failure
+                        event.target.value = '';
+                    }
+                }
+            },
+            
+            handleFileChange(event) {
+                const files = event.target.files;
+                if (files && files.length > 0) {
+                    if (!this.validateAndUpload(files, false)) {
+                        // Clear the input on validation failure
+                        event.target.value = '';
+                    }
+                }
+            },
+
             handleDrop(event) {
                 event.preventDefault();
                 const files = event.dataTransfer?.files;
@@ -48,7 +90,8 @@
                     return false;
                 }
                 
-                // Let Livewire handle the validated files
+                // Manually trigger upload for drop files too
+                this.validateAndUpload(files, false);
                 return true;
             }
          }"
@@ -101,52 +144,8 @@
              class="upload-box border border-dashed rounded-3 text-center p-5" 
              style="cursor: pointer;"
              x-on:drop.prevent="if (!handleDrop($event)) { $event.stopPropagation(); }"
-             x-on:dragover.prevent
-             x-data="{
-                validateAndUpload(files, isFolder = false) {
-                    // Use parent scope's validateFiles function
-                    const validation = validateFiles(files);
-                    
-                    if (!validation.valid) {
-                        // Set error message and show modal directly
-                        errorMessage = validation.message;
-                        showError = true;
-                        return false;
-                    }
-
-                    // If folder upload, preserve relative paths
-                    if (isFolder) {
-                        const filesArray = Array.from(files || []);
-                        const paths = filesArray.map(f => f.webkitRelativePath || f.name);
-                        $wire.set('relativePaths', paths);
-                    }
-
-                    // Manually trigger Livewire upload after validation passes
-                    $wire.uploadMultiple('newDocuments', files);
-                    return true;
-                },
-                
-                handleFolderChange(event) {
-                    const files = event.target.files;
-                    if (files && files.length > 0) {
-                        if (!this.validateAndUpload(files, true)) {
-                            // Clear the input on validation failure
-                            event.target.value = '';
-                        }
-                    }
-                },
-                
-                handleFileChange(event) {
-                    const files = event.target.files;
-                    if (files && files.length > 0) {
-                        if (!this.validateAndUpload(files, false)) {
-                            // Clear the input on validation failure
-                            event.target.value = '';
-                        }
-                    }
-                }
-             }">
-
+             x-on:dragover.prevent>
+            
             <div class="mb-3">
                 <img src="{{ asset('assets/Vector (24).svg') }}" alt="upload">
             </div>
