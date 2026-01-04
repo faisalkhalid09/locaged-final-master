@@ -19,8 +19,6 @@ class DocumentDestructionRequestController extends Controller
     // List all expired documents (ready for destruction or postponement)
     public function index()
     {
-        Gate::authorize('viewAny', DocumentDestructionRequest::class);
-
         $user = auth()->user();
         if (! $user || ! $user->hasAnyRole(['master', 'Super Administrator', 'super administrator', 'Admin de pole', 'admin de pôle', 'Admin de departments', 'Admin de cellule', 'Service Manager'])) {
             abort(403);
@@ -78,7 +76,6 @@ class DocumentDestructionRequestController extends Controller
         // but typically 'viewAny' might be open or we fix the policy separately. 
         // For now, assuming the controller gate was the main blocker or policy allows it if we fix permissions.
         // If 403 persists, we check Policy.
-        Gate::authorize('viewAny', DocumentDestructionRequest::class);
 
         $user = auth()->user();
         if (! $user || ! $user->hasAnyRole(['master', 'Super Administrator', 'super administrator', 'Admin de pole', 'admin de pôle', 'Admin de departments', 'Admin de cellule', 'Service Manager'])) {
@@ -129,8 +126,6 @@ class DocumentDestructionRequestController extends Controller
      */
     public function exportDeletionLogs()
     {
-        Gate::authorize('viewAny', DocumentDestructionRequest::class);
-
         $user = auth()->user();
         if (! $user || ! $user->hasAnyRole(['master', 'Super Administrator', 'super administrator', 'Admin de pole', 'admin de pôle', 'Admin de departments', 'Admin de cellule', 'Service Manager'])) {
             abort(403);
