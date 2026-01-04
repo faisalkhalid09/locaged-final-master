@@ -153,9 +153,15 @@ class ActivityLogsTable extends Component
                 $current->hasRole('user')
             ), function($q) use ($current) {
                 $deptIds = $current->departments?->pluck('id') ?? collect();
+                $allowedRoleNames = \App\Support\RoleHierarchy::allowedRoleNamesFor($current);
+                
                 if ($deptIds->isNotEmpty()) {
                     $q->whereHas('document', function($q2) use ($deptIds) {
                         $q2->whereIn('department_id', $deptIds);
+                    })
+                    // CRITICAL: Also filter by user role - only show logs from subordinate users
+                    ->whereHas('user.roles', function($q2) use ($allowedRoleNames) {
+                        $q2->whereIn('name', $allowedRoleNames);
                     });
                 } else {
                     // If they have no departments assigned, they should see nothing
