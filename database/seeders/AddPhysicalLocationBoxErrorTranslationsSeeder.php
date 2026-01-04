@@ -4,11 +4,15 @@ namespace Database\Seeders;
 
 use App\Models\UiTranslation;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class AddPhysicalLocationBoxErrorTranslationsSeeder extends Seeder
 {
     public function run(): void
     {
+        // Ensure UTF-8 encoding
+        DB::statement('SET NAMES utf8mb4');
+        
         $translations = [
             [
                 'key' => 'errors.physical_location.box_name_duplicate',
@@ -25,16 +29,21 @@ class AddPhysicalLocationBoxErrorTranslationsSeeder extends Seeder
         ];
 
         foreach ($translations as $translation) {
-            UiTranslation::updateOrCreate(
-                ['key' => $translation['key']],
-                [
-                    'fr' => $translation['fr'],
-                    'en' => $translation['en'],
-                    'ar' => $translation['ar'],
-                ]
-            );
+            try {
+                UiTranslation::updateOrCreate(
+                    ['key' => $translation['key']],
+                    [
+                        'fr' => $translation['fr'],
+                        'en' => $translation['en'],
+                        'ar' => $translation['ar'],
+                    ]
+                );
+                $this->command->info("✓ Added: {$translation['key']}");
+            } catch (\Exception $e) {
+                $this->command->error("✗ Failed to add: {$translation['key']} - " . $e->getMessage());
+            }
         }
 
-        $this->command->info('✓ Physical location box error translations added successfully');
+        $this->command->info('Physical location box error translations seeding completed');
     }
 }
