@@ -336,29 +336,6 @@
                                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                         </div>
                                         <div class="modal-body">
-                                            {{-- Service Selection --}}
-                                            <div class="mb-3">
-                                                <label for="edit_service_id_{{ $box->id }}" class="form-label">{{ __('Service') }} <span class="text-danger">*</span></label>
-                                                <select class="form-select" id="edit_service_id_{{ $box->id }}" name="service_id" required>
-                                                    @php
-                                                        $user = auth()->user();
-                                                        $accessibleServiceIds = \App\Models\Box::getAccessibleServiceIds($user);
-                                                        
-                                                        // Get accessible services
-                                                        if ($accessibleServiceIds === 'all') {
-                                                            $editServices = \App\Models\Service::orderBy('name')->get();
-                                                        } else {
-                                                            $editServices = \App\Models\Service::whereIn('id', $accessibleServiceIds)->orderBy('name')->get();
-                                                        }
-                                                    @endphp
-                                                    @foreach($editServices as $service)
-                                                        <option value="{{ $service->id }}" {{ $box->service_id == $service->id ? 'selected' : '' }}>
-                                                            {{ $service->name }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                            </div>
-
                                             <div class="mb-3">
                                                 <label for="edit_room_name_{{ $box->id }}" class="form-label">{{ ui_t('pages.physical.fields.room') }}</label>
                                                 <input type="text" class="form-control edit-box-room-name"
@@ -388,6 +365,30 @@
                                                 <input type="text" class="form-control" id="box_name_edit{{ $box->id }}" 
                                                        name="name" value="{{ $box->name }}" required>
                                             </div>
+
+                                            {{-- Service Selection - After Box Name --}}
+                                            <div class="mb-3">
+                                                <label for="edit_service_id_{{ $box->id }}" class="form-label">{{ __('Service') }} <span class="text-danger">*</span></label>
+                                                <select class="form-select" id="edit_service_id_{{ $box->id }}" name="service_id" required>
+                                                    @php
+                                                        $user = auth()->user();
+                                                        $accessibleServiceIds = \App\Models\Box::getAccessibleServiceIds($user);
+                                                        
+                                                        // Get accessible services
+                                                        if ($accessibleServiceIds === 'all') {
+                                                            $editServices = \App\Models\Service::orderBy('name')->get();
+                                                        } else {
+                                                            $editServices = \App\Models\Service::whereIn('id', $accessibleServiceIds)->orderBy('name')->get();
+                                                        }
+                                                    @endphp
+                                                    @foreach($editServices as $service)
+                                                        <option value="{{ $service->id }}" {{ $box->service_id == $service->id ? 'selected' : '' }}>
+                                                            {{ $service->name }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+
                                             <div class="mb-3">
                                                 <label for="box_description_edit{{ $box->id }}" class="form-label">{{ ui_t('pages.physical.fields.description_optional') }}</label>
                                                 <textarea class="form-control" id="box_description_edit{{ $box->id }}" 
