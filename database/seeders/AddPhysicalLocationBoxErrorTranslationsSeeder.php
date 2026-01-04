@@ -33,9 +33,9 @@ class AddPhysicalLocationBoxErrorTranslationsSeeder extends Seeder
                 UiTranslation::updateOrCreate(
                     ['key' => $translation['key']],
                     [
-                        'fr' => $translation['fr'],
-                        'en' => $translation['en'],
-                        'ar' => $translation['ar'],
+                        'fr_text' => $translation['fr'],
+                        'en_text' => $translation['en'],
+                        'ar_text' => $translation['ar'],
                     ]
                 );
                 $this->command->info("✓ Added: {$translation['key']}");
