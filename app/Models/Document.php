@@ -234,6 +234,12 @@ class Document extends Model
             if (method_exists($user, 'subDepartments')) {
                 $subDeptIds = $subDeptIds->merge($user->subDepartments->pluck('id'));
             }
+            
+            // Also check for primary sub_department_id assignment
+            if ($user->sub_department_id) {
+                $subDeptIds->push($user->sub_department_id);
+            }
+            
             $subDeptIds = $subDeptIds->unique()->filter();
 
             if ($subDeptIds->isNotEmpty()) {
@@ -252,7 +258,13 @@ class Document extends Model
                 }
             }
 
-            // Services directly assigned via pivot (this is the PRIMARY source for Service Managers)
+            // Services directly assigned to the user
+            // 1. Check primary service_id column
+            if ($user->service_id) {
+                $visibleServiceIds->push($user->service_id);
+            }
+            
+            // 2. Check many-to-many pivot table (service_user)
             if (method_exists($user, 'services')) {
                 $visibleServiceIds = $visibleServiceIds->merge($user->services->pluck('id'));
             }
