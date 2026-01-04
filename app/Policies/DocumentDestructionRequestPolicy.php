@@ -12,7 +12,9 @@ class DocumentDestructionRequestPolicy
      */
     public function viewAny(User $user): bool
     {
-        if ($user->can('view any document destruction request') || $user->can('view department document destruction request')) {
+        if ($user->can('view any document destruction request') || 
+            $user->can('view department document destruction request') ||
+            $user->can('view service document')) {
             return true;
         }
 
