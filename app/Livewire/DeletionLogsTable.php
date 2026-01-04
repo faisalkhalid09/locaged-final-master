@@ -232,7 +232,12 @@ class DeletionLogsTable extends Component
         $current = auth()->user();
         $isDeptAdmin = $current && (
             $current->hasRole('Department Administrator') ||
-            $current->hasRole('Admin de pole')
+            $current->hasRole('Admin de pole') ||
+            $current->hasRole('Admin de departments')
+        );
+        $isServiceManager = $current && (
+            $current->hasRole('Admin de cellule') ||
+            $current->hasRole('Service Manager')
         );
         
         $statsBase = AuditLog::where('action', 'permanently_deleted');
@@ -252,7 +257,7 @@ class DeletionLogsTable extends Component
                     $q2->whereIn('name', $allowedRoleNames);
                 });
             });
-        } elseif ($isServiceManager ?? false) { // Use check from buildQuery logic or re-derive
+        } elseif ($isServiceManager) { 
              $serviceIds = collect();
             if ($current->service_id) {
                 $serviceIds->push($current->service_id);
