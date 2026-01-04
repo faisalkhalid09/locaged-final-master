@@ -1273,8 +1273,9 @@ class MultipleDocumentsCreateForm extends Component
             'service_ids'         => $userServices->pluck('id')->all(),
         ]);
         
-        // Load hierarchical structure for location selection
-        $rooms = Room::with(['rows.shelves.boxes'])->get();
+        // NOTE: Rooms, rows, shelves, and boxes are now loaded via computed properties
+        // (getRoomsProperty, getRowsProperty, etc.) which automatically filter by user's service access
+        // Do not load $rooms here as it will override the filtered computed property
         
         return view('livewire.multiple-documents-create-form', [
             'categories'        => $categories,
@@ -1282,7 +1283,6 @@ class MultipleDocumentsCreateForm extends Component
             'userDepartments'   => $userDepartments,
             'userSubDepartments'=> $userSubDepartments,
             'userServices'      => $userServices,
-            'rooms'             => $rooms,
             'tags'              => Tag::all(),
         ]);
     }
