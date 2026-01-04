@@ -269,9 +269,9 @@ class Document extends Model
             }
 
             // Department-level visibility (Department Admin etc.)
-            if ($user->can('view department document')) {
+            if ($user->can('view department document')) {                    // Scope to visible departments (only show documents from assigned departments)
                 if ($visibleDepartmentIds->isNotEmpty()) {
-                    $query->whereIn('department_id', $visibleDepartmentIds->all());
+                    $query->whereIn('documents.department_id', $visibleDepartmentIds->all());
                 } else {
                     $query->whereRaw('1 = 0');
                 }
