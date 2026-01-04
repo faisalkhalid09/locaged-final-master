@@ -136,8 +136,44 @@ class DocumentDestructionRequestController extends Controller
             abort(403);
         }
 
+        $query = AuditLog::with(['user', 'document' => function ($q) {
+                $q->withTrashed()->with(['department', 'service.subDepartment']);
+            }])
+            ->where('action', 'permanently_deleted');
+
+        $isDeptAdmin = $user->hasRole('Department Administrator') || $user->hasRole('Admin de pole') || $user->hasRole('Admin de departments');
+        $isServiceManager = $user->hasRole('Admin de cellule') || $user->hasRole('Service Manager');
+        $isAdmin = $user->hasRole(['master', 'Super Administrator', 'super administrator']);
+
+        if ($isDeptAdmin && !$isAdmin) {
+            $deptIds = $user->departments?->pluck('id') ?? collect();
+            $query->whereHas('document', function($q) use ($deptIds) {
+                $q->withTrashed()->whereIn('documents.department_id', $deptIds);
+            });
+        } elseif ($isServiceManager && !$isAdmin) {
+             // Service Manager: Strict service filtering
+            $serviceIds = collect();
+            if ($user->service_id) {
+                $serviceIds->push($user->service_id);
+            }
+            if ($user->relationLoaded('services') || method_exists($user, 'services')) {
+                $serviceIds = $serviceIds->merge($user->services->pluck('id'));
+            }
+            $serviceIds = $serviceIds->unique()->filter();
+
+            if ($serviceIds->isNotEmpty()) {
+                 $query->whereHas('document', function($q) use ($serviceIds) {
+                    $q->withTrashed()->whereIn('documents.service_id', $serviceIds);
+                });
+            } else {
+                $query->whereRaw('1 = 0');
+            }
+        }
+
+        $logs = $query->orderByDesc('occurred_at')->get();
+
         return \Maatwebsite\Excel\Facades\Excel::download(
-            new \App\Exports\DeletionLogsExport(),
+            new \App\Exports\DeletionLogsExport($logs),
             'deletion-logs-' . now()->format('Ymd_His') . '.xlsx'
         );
     }
