@@ -242,13 +242,17 @@ class Document extends Model
                     SubDepartment::whereIn('id', $subDeptIds)->pluck('department_id')
                 );
 
-                // Services under these sub-departments
-                $visibleServiceIds = $visibleServiceIds->merge(
-                    Service::whereIn('sub_department_id', $subDeptIds)->pluck('id')
-                );
+                // CRITICAL FIX: Only include sub-department services for department-level users, 
+                // NOT for service-level users (Service Manager should only see their directly assigned services)
+                if (! $user->can('view service document')) {
+                    // Services under these sub-departments
+                    $visibleServiceIds = $visibleServiceIds->merge(
+                        Service::whereIn('sub_department_id', $subDeptIds)->pluck('id')
+                    );
+                }
             }
 
-            // Services directly assigned via pivot
+            // Services directly assigned via pivot (this is the PRIMARY source for Service Managers)
             if (method_exists($user, 'services')) {
                 $visibleServiceIds = $visibleServiceIds->merge($user->services->pluck('id'));
             }
