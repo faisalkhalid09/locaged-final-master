@@ -22,6 +22,7 @@ if (chartEl) {
         return dayTranslations && dayTranslations[dayKey] ? dayTranslations[dayKey].toUpperCase() : item.day.substring(0, 3).toUpperCase();
     });
     const labelsMonthly = monthlyData.map(item => {
+        if (!item || !item.month) return '';
         const [year, month] = item.month.split('-');
         return new Date(year, month - 1).toLocaleString('default', { month: 'short' }).toUpperCase();
     });
