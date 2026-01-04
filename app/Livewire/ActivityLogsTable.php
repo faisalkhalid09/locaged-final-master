@@ -131,7 +131,7 @@ class ActivityLogsTable extends Component
                         $query->where(function($subQ) use ($serviceIds, $allowedRoleNames) {
                              $subQ->where(function($sQ) use ($serviceIds) {
                                      // Check Service Assignment (Direct or Pivot)
-                                     $sQ->whereIn('service_id', $serviceIds)
+                                     $sQ->whereIn('users.service_id', $serviceIds)
                                         ->orWhereHas('services', function($pivot) use ($serviceIds) {
                                             $pivot->whereIn('services.id', $serviceIds);
                                         });
@@ -142,7 +142,7 @@ class ActivityLogsTable extends Component
                              });
                         })
                         // Case B: The Service Manager Themselves
-                        ->orWhere('id', $current->id);
+                        ->orWhere('users.id', $current->id);
                      });
                 });
             })
@@ -227,7 +227,7 @@ class ActivityLogsTable extends Component
                 $q->where(function($q2) use ($deptIds) {
                     // Document belongs to one of the admin's departments
                     $q2->whereHas('document', function($q3) use ($deptIds) {
-                        $q3->withTrashed()->whereIn('department_id', $deptIds);
+                        $q3->withTrashed()->whereIn('documents.department_id', $deptIds);
                     });
                 })
                 // AND user must be subordinate
@@ -247,7 +247,7 @@ class ActivityLogsTable extends Component
             if ($serviceIds->isNotEmpty()) {
                 // Constraint 1: Document MUST be in one of the manager's services
                 $q->whereHas('document', function($d) use ($serviceIds) {
-                    $d->withTrashed()->whereIn('service_id', $serviceIds);
+                    $d->withTrashed()->whereIn('documents.service_id', $serviceIds);
                 })
                 // Constraint 2: Actor MUST be (Subordinate OR Myself)
                 ->where(function($u) use ($allowedRoleNames, $current) {
