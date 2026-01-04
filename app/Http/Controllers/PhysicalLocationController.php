@@ -237,6 +237,17 @@ class PhysicalLocationController extends Controller
                 'name' => $validated['shelf_name']
             ]);
 
+            // Check if a box with this name already exists in the target shelf (excluding current box)
+            $existingBox = Box::where('shelf_id', $shelf->id)
+                ->where('name', $validated['name'])
+                ->where('id', '!=', $box->id)
+                ->first();
+
+            if ($existingBox) {
+                DB::rollBack();
+                return back()->withErrors(['error' => ui_t('errors.physical_location.box_name_duplicate')]);
+            }
+
             // Move the box to the new shelf and update details
             $box->update([
                 'shelf_id' => $shelf->id,
@@ -248,7 +259,13 @@ class PhysicalLocationController extends Controller
             return back()->with('success', 'Box updated successfully.');
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->withErrors(['error' => 'Failed to update box: ' . $e->getMessage()]);
+            
+            // Check if it's a duplicate entry error (in case we missed something)
+            if (str_contains($e->getMessage(), '1062') || str_contains($e->getMessage(), 'Duplicate entry')) {
+                return back()->withErrors(['error' => ui_t('errors.physical_location.box_name_duplicate')]);
+            }
+            
+            return back()->withErrors(['error' => ui_t('errors.physical_location.box_update_failed')]);
         }
     }
 
