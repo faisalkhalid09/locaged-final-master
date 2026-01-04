@@ -3,6 +3,8 @@
          x-data="{ 
             isUploading: false, 
             progress: 0,
+            showError: false,
+            errorMessage: '',
             maxFileSizeMB: {{ floor(config('uploads.max_file_size_kb', 51200) / 1024) }},
             maxBatchFiles: {{ config('uploads.max_batch_files', 50) }},
             
@@ -41,9 +43,8 @@
                 const validation = this.validateFiles(files);
                 
                 if (!validation.valid) {
-                    window.dispatchEvent(new CustomEvent('show-validation-error', { 
-                        detail: validation.message 
-                    }));
+                    this.errorMessage = validation.message;
+                    this.showError = true;
                     return false;
                 }
                 
@@ -70,10 +71,11 @@
             @endif
         </div>
 
-        {{-- File Size Validation Error Modal --}}
-        <div class="modal fade" id="fileSizeErrorModal" tabindex="-1" aria-hidden="true"
-             x-data="{ errorMessage: '' }"
-             x-on:show-validation-error.window="errorMessage = $event.detail; new bootstrap.Modal(document.getElementById('fileSizeErrorModal')).show()">
+        {{-- Simple Custom Error Modal (No Bootstrap JS dependency) --}}
+        <div class="modal fade show" style="display: block; background-color: rgba(0,0,0,0.5); z-index: 9999;" 
+             x-show="showError" 
+             x-transition.opacity
+             x-cloak>
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
                     <div class="modal-header bg-danger text-white">
@@ -81,13 +83,13 @@
                             <i class="fa-solid fa-exclamation-triangle me-2"></i>
                             {{ ui_t('pages.upload.upload_blocked') }}
                         </h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <button type="button" class="btn-close btn-close-white" @click="showError = false" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <p class="mb-0" x-text="errorMessage"></p>
+                        <p class="mb-0" x-text="errorMessage" style="white-space: pre-wrap;"></p>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+                        <button type="button" class="btn btn-primary" @click="showError = false">
                             {{ ui_t('actions.ok') }}
                         </button>
                     </div>
@@ -106,9 +108,9 @@
                     const validation = validateFiles(files);
                     
                     if (!validation.valid) {
-                        window.dispatchEvent(new CustomEvent('show-validation-error', { 
-                            detail: validation.message 
-                        }));
+                        // Set error message and show modal directly
+                        errorMessage = validation.message;
+                        showError = true;
                         return false;
                     }
 
