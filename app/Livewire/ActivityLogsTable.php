@@ -91,14 +91,21 @@ class ActivityLogsTable extends Component
     private function buildAuthenticationQuery()
     {
         $current = auth()->user();
-        $isDeptAdmin = $current && (
+        
+        $isDeAdmin = $current && (
             $current->hasRole('Department Administrator') ||
-            $current->hasRole('Admin de pole')
+            $current->hasRole('Admin de pole') ||
+            $current->hasRole('Admin de departments')
+        );
+
+        $isServiceManager = $current && (
+            $current->hasRole('Admin de cellule') ||
+            $current->hasRole('Service Manager')
         );
         
         return \App\Models\AuthenticationLog::with('user')
             // Department Administrator: only see logs from their department and users below their rank
-            ->when($isDeptAdmin, function($q) use ($current) {
+            ->when($isDeAdmin && !$current->hasRole('master') && !$current->hasRole('super administrator'), function($q) use ($current) {
                 $deptIds = $current->departments?->pluck('id') ?? collect();
                 $allowedRoleNames = \App\Support\RoleHierarchy::allowedRoleNamesFor($current);
                 
@@ -111,6 +118,25 @@ class ActivityLogsTable extends Component
                     ->whereHas('roles', function($q3) use ($allowedRoleNames) {
                         $q3->whereIn('name', $allowedRoleNames);
                     });
+                });
+            })
+            // Service Manager: only see logs from their services and users below their rank
+            ->when($isServiceManager && !$isDeAdmin && !$current->hasRole('master') && !$current->hasRole('super administrator'), function($q) use ($current) {
+                $serviceIds = $this->getAccessibleServiceIds($current);
+                $allowedRoleNames = \App\Support\RoleHierarchy::allowedRoleNamesFor($current);
+
+                $q->whereHas('user', function($q2) use ($serviceIds, $allowedRoleNames) {
+                    // User must be in one of the manager's services (via direct ID or pivot)
+                    $q2->where(function($q3) use ($serviceIds) {
+                            $q3->whereIn('service_id', $serviceIds)
+                               ->orWhereHas('services', function($q4) use ($serviceIds) {
+                                   $q4->whereIn('services.id', $serviceIds);
+                               });
+                        })
+                        // AND user must have a role below the manager's rank
+                        ->whereHas('roles', function($q3) use ($allowedRoleNames) {
+                            $q3->whereIn('name', $allowedRoleNames);
+                        });
                 });
             })
             ->when($this->dateFrom, function($q) {
@@ -137,6 +163,27 @@ class ActivityLogsTable extends Component
             ->latest('occurred_at');
     }
 
+    private function getAccessibleServiceIds(User $user)
+    {
+        // Matches the fixed logic in HomeController and Document model
+        $serviceIds = collect();
+
+        // 1. Direct service assignment
+        if ($user->service_id) {
+            $serviceIds->push($user->service_id);
+        }
+
+        // 2. Many-to-many service assignments via pivot
+        if ($user->relationLoaded('services') || method_exists($user, 'services')) {
+            $serviceIds = $serviceIds->merge($user->services->pluck('id'));
+        }
+
+        // For non-service-level users (like Dept Admins), we would include sub-department services
+        // But here we are specifically targeting Service Managers who only see DIRECT services.
+        
+        return $serviceIds->unique()->filter();
+    }
+
     private function buildDocumentQuery()
     {
         $current = auth()->user();
@@ -151,32 +198,80 @@ class ActivityLogsTable extends Component
                 'documentVersion'
             ])
             // Exclude OCR view activity from logs
-            ->where('action', '!=', 'viewed_ocr')
-            // Scope to current user's departments for department-level roles only
-            ->when($current && (
-                $current->hasRole('Department Administrator') ||
-                $current->hasRole('Admin de pole') ||
-                $current->hasRole('Admin de departments') ||
-                $current->hasRole('Admin de cellule') ||
-                $current->hasRole('user')
-            ), function($q) use ($current) {
-                $deptIds = $current->departments?->pluck('id') ?? collect();
-                $allowedRoleNames = \App\Support\RoleHierarchy::allowedRoleNamesFor($current);
-                
-                if ($deptIds->isNotEmpty()) {
-                    $q->whereHas('document', function($q2) use ($deptIds) {
-                        $q2->withTrashed()->whereIn('department_id', $deptIds);
-                    })
-                    // CRITICAL: Also filter by user role - only show logs from subordinate users
-                    ->whereHas('user.roles', function($q2) use ($allowedRoleNames) {
-                        $q2->whereIn('name', $allowedRoleNames);
+            ->where('action', '!=', 'viewed_ocr');
+
+        $isDeptAdmin = $current && (
+            $current->hasRole('Department Administrator') ||
+            $current->hasRole('Admin de pole') ||
+            $current->hasRole('Admin de departments')
+        );
+
+        $isServiceManager = $current && (
+            $current->hasRole('Admin de cellule') ||
+            $current->hasRole('Service Manager')
+        );
+
+        // Department Admin Scope
+        $query->when($isDeptAdmin && !$current->hasRole('master') && !$current->hasRole('super administrator'), function($q) use ($current) {
+            $deptIds = $current->departments?->pluck('id') ?? collect();
+            $allowedRoleNames = \App\Support\RoleHierarchy::allowedRoleNamesFor($current);
+            
+            if ($deptIds->isNotEmpty()) {
+                $q->where(function($q2) use ($deptIds) {
+                    // Document belongs to one of the admin's departments
+                    $q2->whereHas('document', function($q3) use ($deptIds) {
+                        $q3->withTrashed()->whereIn('department_id', $deptIds);
                     });
-                } else {
-                    // If they have no departments assigned, they should see nothing
-                    $q->whereRaw('1 = 0');
-                }
-            })
-            ->when($this->dateFrom, function($q) {
+                })
+                // AND user must be subordinate
+                ->whereHas('user.roles', function($q2) use ($allowedRoleNames) {
+                    $q2->whereIn('name', $allowedRoleNames);
+                });
+            } else {
+                $q->whereRaw('1 = 0');
+            }
+        });
+
+        // Service Manager Scope
+        $query->when($isServiceManager && !$isDeptAdmin && !$current->hasRole('master') && !$current->hasRole('super administrator'), function($q) use ($current) {
+            $serviceIds = $this->getAccessibleServiceIds($current);
+            $allowedRoleNames = \App\Support\RoleHierarchy::allowedRoleNamesFor($current);
+
+            // Access rule: Matches logic for viewing documents + subordinate user check
+            if ($serviceIds->isNotEmpty()) {
+                $q->where(function($subQ) use ($serviceIds, $current) {
+                    // 1. Document is in one of the manager's services
+                    $subQ->whereHas('document', function($d) use ($serviceIds) {
+                        $d->withTrashed()->whereIn('service_id', $serviceIds);
+                    });
+                    
+                    // 2. OR Document was created by the manager themselves
+                    // (Activity logs usually show actions on documents. If I acted on a doc, I should see it)
+                    if ($current->can('view own document')) {
+                        $subQ->orWhere('user_id', $current->id);
+                    }
+                })
+                // AND user performing action must be subordinate OR the manager themselves
+                // If it's the manager themselves, they can see their own logs.
+                // If it's another user, they must be strictly lower rank.
+                ->where(function($u) use ($allowedRoleNames, $current) {
+                     $u->where('user_id', $current->id)
+                       ->orWhereHas('user.roles', function($r) use ($allowedRoleNames) {
+                           $r->whereIn('name', $allowedRoleNames);
+                       });
+                });
+
+            } else {
+                 // No services, but can see own activity
+                 if ($current->can('view own document')) {
+                     $q->where('user_id', $current->id);
+                 } else {
+                     $q->whereRaw('1 = 0');
+                 }
+            }
+        });
+
+        return $query->when($this->dateFrom, function($q) {
                 $q->whereDate('occurred_at', '>=', $this->dateFrom);
             })
             ->when($this->dateTo, function($q) {
@@ -206,8 +301,6 @@ class ActivityLogsTable extends Component
                 });
             })
             ->latest('occurred_at');
-
-        return $query;
     }
 
     private function getResult($log): string
