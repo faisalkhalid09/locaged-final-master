@@ -128,7 +128,7 @@
                     </li>
                 @endif
 
-                @if($u && !$u->hasRole('user'))
+                @if($u && !$u->hasRole('user') && !$u->hasAnyRole(['Admin de departments', 'Admin de cellule']))
                     <li class="mt-2">
                         <a href="{{ route('reports.index') }}" class="{{ request()->routeIs('reports.*') ? 'active' : '' }}">
                             <img src="{{ asset('assets/template/document-favorite.svg') }}" class="me-2" />
