@@ -37,9 +37,11 @@
 
                 <div class="d-flex gap-2">
                     @can('viewAny', \App\Models\User::class)
-                        <a href="{{ route('users.export') }}" class="btn btn-sm btn-outline-dark">
-                            <i class="fas fa-download me-1"></i>Export Users
-                        </a>
+                        @if(!auth()->user()->hasAnyRole(['Admin de cellule', 'Service Manager']))
+                            <a href="{{ route('users.export') }}" class="btn btn-sm btn-outline-dark">
+                                <i class="fas fa-download me-1"></i>Export Users
+                            </a>
+                        @endif
                     @endcan
 
                     @can('create',\App\Models\User::class)
