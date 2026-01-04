@@ -50,6 +50,21 @@ Schedule::call(function () {
         ->pluck('total', 'status');
     \Log::info("Document Status Distribution: " . json_encode($statusCounts));
 
+    // DEBUG: Analyze why we are finding 0 documents
+    $pendingDocs = \App\Models\Document::where(function($q) {
+             $q->where('status', 'pending')
+               ->orWhere('status', 'received');
+        })->get();
+    
+    $alreadyReminded = $pendingDocs->whereNotNull('first_reminder_sent_at')->count();
+    $tooNew = $pendingDocs->whereNull('first_reminder_sent_at')->where('created_at', '>', $oneWeekAgo)->count();
+    $candidates = $pendingDocs->whereNull('first_reminder_sent_at')->where('created_at', '<=', $oneWeekAgo)->count();
+    
+    \Log::info("DIAGNOSTICS: Total Pending/Received: " . $pendingDocs->count());
+    \Log::info(" - Skipped (Already Reminded): $alreadyReminded");
+    \Log::info(" - Skipped (Too New, created after {$oneWeekAgo->toDateTimeString()}): $tooNew");
+    \Log::info(" - Candidates (Should process): $candidates");
+
     // 1-week reminders
     $weekDocuments = \App\Models\Document::where(function($q) {
              $q->where('status', 'pending')
