@@ -16,7 +16,13 @@
     </div>
     </a>
 
-    <a href="{{ route('documents.status', ['show_expired' => 1]) }}" class="text-decoration-none text-reset">
+    @if(auth()->user() && auth()->user()->hasRole('user'))
+        {{-- Service Users: show pending documents on All Documents page --}}
+        <a href="{{ route('documents.all', ['status' => \App\Enums\DocumentStatus::Pending->value, 'page_title' => 'pending_documents', 'show_expired' => 1]) }}" class="text-decoration-none text-reset">
+    @else
+        {{-- Other roles: show pending approvals page --}}
+        <a href="{{ route('documents.status', ['show_expired' => 1]) }}" class="text-decoration-none text-reset">
+    @endif
     <div class="stat-card blue">
         <div class="stat-icon">
             <i class="fas fa-clock"></i>
