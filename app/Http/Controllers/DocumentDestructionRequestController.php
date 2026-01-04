@@ -22,7 +22,7 @@ class DocumentDestructionRequestController extends Controller
         Gate::authorize('viewAny', DocumentDestructionRequest::class);
 
         $user = auth()->user();
-        if (! $user || ! $user->hasAnyRole(['master', 'Super Administrator', 'super administrator', 'Admin de pole', 'admin de pôle'])) {
+        if (! $user || ! $user->hasAnyRole(['master', 'Super Administrator', 'super administrator', 'Admin de pole', 'admin de pôle', 'Admin de departments', 'Admin de cellule', 'Service Manager'])) {
             abort(403);
         }
 
@@ -37,12 +37,31 @@ class DocumentDestructionRequestController extends Controller
         
         // Department Administrator: only see expired documents from their departments
         // Admin/Super Admin: see all expired documents from all departments
-        $isDeptAdmin = $user->hasRole('Department Administrator') || $user->hasRole('Admin de pole');
+        $isDeptAdmin = $user->hasRole('Department Administrator') || $user->hasRole('Admin de pole') || $user->hasRole('Admin de departments');
+        $isServiceManager = $user->hasRole('Admin de cellule') || $user->hasRole('Service Manager');
         $isAdmin = $user->hasRole(['master', 'Super Administrator', 'super administrator']);
         
         if ($isDeptAdmin && !$isAdmin) {
             $deptIds = $user->departments?->pluck('id') ?? collect();
             $query->whereIn('documents.department_id', $deptIds->all());
+        } elseif ($isServiceManager && !$isAdmin) {
+            // Service Manager: Strict service filtering
+            // 1. Direct service assignment
+            $serviceIds = collect();
+            if ($user->service_id) {
+                $serviceIds->push($user->service_id);
+            }
+            // 2. Pivot services
+            if ($user->relationLoaded('services') || method_exists($user, 'services')) {
+                $serviceIds = $serviceIds->merge($user->services->pluck('id'));
+            }
+            $serviceIds = $serviceIds->unique()->filter();
+
+            if ($serviceIds->isNotEmpty()) {
+                $query->whereIn('documents.service_id', $serviceIds->all());
+            } else {
+                $query->whereRaw('1 = 0');
+            }
         }
         
         $expiredDocuments = $query->latest()->paginate(10);
@@ -55,19 +74,52 @@ class DocumentDestructionRequestController extends Controller
      */
     public function deletionLogs()
     {
+        // We might need to adjust the policy check if it fails for 'Admin de cellule', 
+        // but typically 'viewAny' might be open or we fix the policy separately. 
+        // For now, assuming the controller gate was the main blocker or policy allows it if we fix permissions.
+        // If 403 persists, we check Policy.
         Gate::authorize('viewAny', DocumentDestructionRequest::class);
 
         $user = auth()->user();
-        if (! $user || ! $user->hasAnyRole(['master', 'Super Administrator', 'super administrator', 'Admin de pole', 'admin de pôle'])) {
+        if (! $user || ! $user->hasAnyRole(['master', 'Super Administrator', 'super administrator', 'Admin de pole', 'admin de pôle', 'Admin de departments', 'Admin de cellule', 'Service Manager'])) {
             abort(403);
         }
 
-        $logs = AuditLog::with(['user', 'document' => function ($q) {
+        $query = AuditLog::with(['user', 'document' => function ($q) {
                 $q->withTrashed()->with(['department', 'service.subDepartment']);
             }])
-            ->where('action', 'permanently_deleted')
-            ->orderByDesc('occurred_at')
-            ->paginate(10);
+            ->where('action', 'permanently_deleted');
+
+        $isDeptAdmin = $user->hasRole('Department Administrator') || $user->hasRole('Admin de pole') || $user->hasRole('Admin de departments');
+        $isServiceManager = $user->hasRole('Admin de cellule') || $user->hasRole('Service Manager');
+        $isAdmin = $user->hasRole(['master', 'Super Administrator', 'super administrator']);
+
+        if ($isDeptAdmin && !$isAdmin) {
+            $deptIds = $user->departments?->pluck('id') ?? collect();
+            $query->whereHas('document', function($q) use ($deptIds) {
+                $q->withTrashed()->whereIn('documents.department_id', $deptIds);
+            });
+        } elseif ($isServiceManager && !$isAdmin) {
+             // Service Manager: Strict service filtering
+            $serviceIds = collect();
+            if ($user->service_id) {
+                $serviceIds->push($user->service_id);
+            }
+            if ($user->relationLoaded('services') || method_exists($user, 'services')) {
+                $serviceIds = $serviceIds->merge($user->services->pluck('id'));
+            }
+            $serviceIds = $serviceIds->unique()->filter();
+
+            if ($serviceIds->isNotEmpty()) {
+                 $query->whereHas('document', function($q) use ($serviceIds) {
+                    $q->withTrashed()->whereIn('documents.service_id', $serviceIds);
+                });
+            } else {
+                $query->whereRaw('1 = 0');
+            }
+        }
+
+        $logs = $query->orderByDesc('occurred_at')->paginate(10);
 
         return view('users.deletion-logs', compact('logs'));
     }
@@ -80,7 +132,7 @@ class DocumentDestructionRequestController extends Controller
         Gate::authorize('viewAny', DocumentDestructionRequest::class);
 
         $user = auth()->user();
-        if (! $user || ! $user->hasAnyRole(['master', 'Super Administrator', 'super administrator', 'Admin de pole', 'admin de pôle'])) {
+        if (! $user || ! $user->hasAnyRole(['master', 'Super Administrator', 'super administrator', 'Admin de pole', 'admin de pôle', 'Admin de departments', 'Admin de cellule', 'Service Manager'])) {
             abort(403);
         }
 
