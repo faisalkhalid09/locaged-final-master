@@ -20,26 +20,8 @@ class CategoryController extends Controller
         $query = Category::with(['department'])
             ->withCount(['documents', 'subcategories']);
 
-        if ($user) {
-            $isServiceManagerOrUser = $user->hasAnyRole([
-                'Admin de cellule',
-                'service manager',
-                'user',
-                'service user',
-            ]);
-
-            if ($isServiceManagerOrUser) {
-                $departmentIds = $user->departments->pluck('id')->filter();
-
-                if ($departmentIds->isNotEmpty()) {
-                    $query->whereIn('department_id', $departmentIds);
-                } else {
-                    // No assigned departments → no categories
-                    $query->whereRaw('1 = 0');
-                }
-            }
-        }
-
+        // Global scope in Category model now handles all role-based filtering logic
+        
         $categories = $query->get();
 
         return view('categories.index', compact('categories'));
