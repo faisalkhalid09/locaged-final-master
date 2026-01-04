@@ -43,9 +43,19 @@ Schedule::call(function () {
         'now' => $now->toDateTimeString(), 
         '1_week_threshold' => $oneWeekAgo->toDateTimeString()
     ]);
+    
+    // DEBUG: Log status distribution
+    $statusCounts = \App\Models\Document::groupBy('status')
+        ->select('status', \Illuminate\Support\Facades\DB::raw('count(*) as total'))
+        ->pluck('total', 'status');
+    \Log::info("Document Status Distribution: " . json_encode($statusCounts));
 
     // 1-week reminders
-    $weekDocuments = \App\Models\Document::where('status', 'pending')
+    $weekDocuments = \App\Models\Document::where(function($q) {
+             $q->where('status', 'pending')
+               ->orWhere('status', 'received'); // Handle legacy default
+        })
+        ->whereNull('first_reminder_sent_at')
         ->whereNull('first_reminder_sent_at')
         ->where('created_at', '<=', $oneWeekAgo)
         ->with(['latestVersion', 'createdBy'])
@@ -77,7 +87,10 @@ Schedule::call(function () {
     }
 
     // 1-month reminders
-    $monthDocuments = \App\Models\Document::where('status', 'pending')
+    $monthDocuments = \App\Models\Document::where(function($q) {
+             $q->where('status', 'pending')
+               ->orWhere('status', 'received');
+        })
         ->whereNull('second_reminder_sent_at')
         ->where('created_at', '<=', $oneMonthAgo)
         ->with(['latestVersion', 'createdBy'])
