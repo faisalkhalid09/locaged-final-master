@@ -26,7 +26,8 @@ Schedule::call(function () {
         $document->logAction('expired');
     }
 
-})->dailyAt('01:00');
+})->dailyAt('01:00')
+    ->description('Log expired documents');
 
 // Automatically create destruction requests for expired documents
 Schedule::command('documents:check-expired')->dailyAt('01:10');
@@ -90,7 +91,8 @@ Schedule::call(function () {
         ])->save();
     }
 
-})->dailyAt('02:00');
+})->dailyAt('02:00')
+->description('Send automated approval reminders');
 
 // -----------------------------------------------------------------------------
 // Utility command: force-expire a document for testing destruction/postpone
