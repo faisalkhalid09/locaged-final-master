@@ -44,7 +44,7 @@ class ReportsController extends Controller
         $users = $isSuperAdmin
             ? User::orderBy('full_name')->get()
             : User::whereHas('departments', function($query) use ($user) {
-                $query->whereIn('department_id', $user->departments->pluck('id'));
+                $query->whereIn('departments.id', $user->departments->pluck('id'));
             })->orderBy('full_name')->get();
             
         // Categories: super admin sees all, others see categories in their directions
