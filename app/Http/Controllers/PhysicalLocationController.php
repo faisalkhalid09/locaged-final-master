@@ -26,9 +26,17 @@ class PhysicalLocationController extends Controller
             abort(403);
         }
 
-        // Get all rooms with their hierarchy, selecting only necessary document fields
-        $rooms = Room::with(['rows.shelves.boxes.documents' => function ($query) {
-            $query->select('id', 'box_id', 'title');
+        $user = auth()->user();
+        
+        // Get all rooms with their hierarchy, filtering boxes by user's accessible services
+        $rooms = Room::with(['rows.shelves.boxes' => function ($query) use ($user) {
+            // Apply service-based filtering to boxes
+            $query->forUser($user);
+            
+            // Load documents for filtered boxes
+            $query->with(['documents' => function ($docQuery) {
+                $docQuery->select('id', 'box_id', 'title');
+            }]);
         }])->get();
         
         return view('physical_locations.index', compact('rooms'));
@@ -181,6 +189,7 @@ class PhysicalLocationController extends Controller
         Gate::authorize('create', PhysicalLocation::class);
 
         $validated = $request->validate([
+            'service_id' => 'required|exists:services,id',
             'shelf_id' => 'required|exists:shelves,id',
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -197,6 +206,7 @@ class PhysicalLocationController extends Controller
 
         $box = Box::create([
             'shelf_id' => $validated['shelf_id'],
+            'service_id' => $validated['service_id'],
             'name' => $validated['name'],
             'description' => $validated['description'] ?? null,
         ]);
@@ -214,6 +224,7 @@ class PhysicalLocationController extends Controller
         Gate::authorize('create', PhysicalLocation::class);
 
         $validated = $request->validate([
+            'service_id' => 'required|exists:services,id',
             'room_name' => 'required|string|max:255',
             'row_name' => 'required|string|max:255',
             'shelf_name' => 'required|string|max:255',
@@ -251,6 +262,7 @@ class PhysicalLocationController extends Controller
             // Move the box to the new shelf and update details
             $box->update([
                 'shelf_id' => $shelf->id,
+                'service_id' => $validated['service_id'],
                 'name' => $validated['name'],
                 'description' => $validated['description'] ?? null,
             ]);

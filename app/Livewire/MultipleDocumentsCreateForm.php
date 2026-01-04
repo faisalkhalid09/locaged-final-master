@@ -173,7 +173,10 @@ class MultipleDocumentsCreateForm extends Component
         if (!$this->selectedShelfId) {
             return collect();
         }
-        return Box::where('shelf_id', $this->selectedShelfId)->get();
+        
+        return Box::where('shelf_id', $this->selectedShelfId)
+            ->forUser(auth()->user())
+            ->get();
     }
 
     // Helper to load the current document's info into the form property

@@ -140,6 +140,30 @@
                         <div class="card-body">
                             <form method="post" action="{{ route('physical-locations.add-box') }}">
                                 @csrf
+                                
+                                {{-- Service Selection - Required First --}}
+                                <div class="mb-3">
+                                    <label for="add_box_service_id" class="form-label">{{ __('Service') }} <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="add_box_service_id" name="service_id" required>
+                                        <option value="">{{ __('Select Service') }}</option>
+                                        @php
+                                            $user = auth()->user();
+                                            $accessibleServiceIds = \App\Models\Box::getAccessibleServiceIds($user);
+                                            
+                                            // Get accessible services
+                                            if ($accessibleServiceIds === 'all') {
+                                                $services = \App\Models\Service::orderBy('name')->get();
+                                            } else {
+                                                $services = \App\Models\Service::whereIn('id', $accessibleServiceIds)->orderBy('name')->get();
+                                            }
+                                        @endphp
+                                        @foreach($services as $service)
+                                            <option value="{{ $service->id }}">{{ $service->name }}</option>
+                                        @endforeach
+                                    </select>
+                                    <small class="text-muted">{{ __('This box will be linked to the selected service') }}</small>
+                                </div>
+
                                 <div class="mb-3">
                                     <label for="add_box_room_id" class="form-label">{{ ui_t('pages.physical.actions.select_room') }}</label>
                                     <select class="form-select" id="add_box_room_id" name="room_id">
@@ -312,6 +336,29 @@
                                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                         </div>
                                         <div class="modal-body">
+                                            {{-- Service Selection --}}
+                                            <div class="mb-3">
+                                                <label for="edit_service_id_{{ $box->id }}" class="form-label">{{ __('Service') }} <span class="text-danger">*</span></label>
+                                                <select class="form-select" id="edit_service_id_{{ $box->id }}" name="service_id" required>
+                                                    @php
+                                                        $user = auth()->user();
+                                                        $accessibleServiceIds = \App\Models\Box::getAccessibleServiceIds($user);
+                                                        
+                                                        // Get accessible services
+                                                        if ($accessibleServiceIds === 'all') {
+                                                            $editServices = \App\Models\Service::orderBy('name')->get();
+                                                        } else {
+                                                            $editServices = \App\Models\Service::whereIn('id', $accessibleServiceIds)->orderBy('name')->get();
+                                                        }
+                                                    @endphp
+                                                    @foreach($editServices as $service)
+                                                        <option value="{{ $service->id }}" {{ $box->service_id == $service->id ? 'selected' : '' }}>
+                                                            {{ $service->name }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+
                                             <div class="mb-3">
                                                 <label for="edit_room_name_{{ $box->id }}" class="form-label">{{ ui_t('pages.physical.fields.room') }}</label>
                                                 <input type="text" class="form-control edit-box-room-name"

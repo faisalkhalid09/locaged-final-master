@@ -86,10 +86,15 @@ class HomeController extends Controller
         // Show all rooms on the dashboard (no longer limited to "Principale" only)
         $rooms = \App\Models\Room::orderBy('name')->get();
         $roomToCount = [];
+        $user = auth()->user();
+        
         foreach ($rooms as $room) {
-            $boxIds = \App\Models\Box::whereHas('shelf.row.room', function ($q) use ($room) {
-                $q->where('id', $room->id);
-            })->pluck('id');
+            // Get boxes in this room that the user has access to (filtered by service)
+            $boxIds = \App\Models\Box::forUser($user)
+                ->whereHas('shelf.row.room', function ($q) use ($room) {
+                    $q->where('id', $room->id);
+                })
+                ->pluck('id');
 
             $count = (clone $visibleDocumentsQuery)
                 ->whereIn('box_id', $boxIds)
