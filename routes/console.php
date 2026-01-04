@@ -58,7 +58,7 @@ Schedule::call(function () {
             optional($document->latestVersion)->id
         );
 
-        $notificationService->notifyBasedOnAction('pending_approval_1w');
+        $notificationService->notifyAdmins('pending_approval_1w');
 
         $document->forceFill([
             'first_reminder_sent_at' => $now,
@@ -84,7 +84,7 @@ Schedule::call(function () {
             optional($document->latestVersion)->id
         );
 
-        $notificationService->notifyBasedOnAction('pending_approval_1m');
+        $notificationService->notifyAdmins('pending_approval_1m');
 
         $document->forceFill([
             'second_reminder_sent_at' => $now,

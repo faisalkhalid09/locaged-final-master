@@ -73,7 +73,14 @@ class NotificationService
             return;
         }
 
-        $admins = User::role('admin')->get();
+        $admins = User::role([
+            'master',
+            'Super Administrator',
+            'admin',
+            'Admin de pole',
+            'Admin de departments',
+            'Admin de cellule'
+        ])->get();
 
         foreach ($admins as $admin) {
             // Broadcast once for admins or separately per admin as needed
