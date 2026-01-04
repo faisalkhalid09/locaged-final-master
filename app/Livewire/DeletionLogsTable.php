@@ -204,12 +204,37 @@ class DeletionLogsTable extends Component
     {
         $logs = $this->buildQuery()->paginate($this->perPage);
 
-        // Get statistics
-        $totalDeleted = AuditLog::where('action', 'permanently_deleted')->count();
-        $thisWeekDeleted = AuditLog::where('action', 'permanently_deleted')
+        // Get statistics (respect department scoping and role hierarchy)
+        $current = auth()->user();
+        $isDeptAdmin = $current && (
+            $current->hasRole('Department Administrator') ||
+            $current->hasRole('Admin de pole')
+        );
+        
+        $statsBase = AuditLog::where('action', 'permanently_deleted');
+        
+        // Apply same filtering as main query for Department Admins
+        if ($isDeptAdmin) {
+            $deptIds = $current->departments?->pluck('id') ?? collect();
+            $allowedRoleNames = \App\Support\RoleHierarchy::allowedRoleNamesFor($current);
+            
+            $statsBase->where(function($subQuery) use ($deptIds, $allowedRoleNames) {
+                // Filter by document department
+                $subQuery->whereHas('document', function($q2) use ($deptIds) {
+                    $q2->withTrashed()->whereIn('department_id', $deptIds);
+                })
+                // AND filter by user role (only users below admin's rank)
+                ->whereHas('user.roles', function($q2) use ($allowedRoleNames) {
+                    $q2->whereIn('name', $allowedRoleNames);
+                });
+            });
+        }
+        
+        $totalDeleted = (clone $statsBase)->count();
+        $thisWeekDeleted = (clone $statsBase)
             ->whereBetween('occurred_at', [now()->startOfWeek(), now()->endOfWeek()])
             ->count();
-        $todayDeleted = AuditLog::where('action', 'permanently_deleted')
+        $todayDeleted = (clone $statsBase)
             ->whereDate('occurred_at', today())
             ->count();
 
