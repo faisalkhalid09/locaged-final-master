@@ -260,6 +260,70 @@ class DocumentsByCategoryTable extends Component
             });
         }
 
+        // Keywords filter - searches in title and metadata->keywords JSON field
+        $documentsQuery->when($this->keywords, function ($q) {
+            $keywordsInput = trim($this->keywords);
+            if (empty($keywordsInput)) {
+                return;
+            }
+            
+            // Split by comma and clean up each keyword
+            $keywordsList = array_map('trim', explode(',', $keywordsInput));
+            $keywordsList = array_filter($keywordsList, fn($k) => !empty($k));
+            
+            if (empty($keywordsList)) {
+                return;
+            }
+            
+            $q->where(function ($sub) use ($keywordsList) {
+                foreach ($keywordsList as $keyword) {
+                    $pattern = '%' . strtolower($keyword) . '%';
+                    $sub->orWhereRaw('LOWER(title) LIKE ?', [$pattern])
+                        ->orWhereRaw('LOWER(JSON_UNQUOTE(JSON_EXTRACT(metadata, "$.keywords"))) LIKE ?', [$pattern]);
+                }
+            });
+        });
+
+        // Tags filter - filters documents that have ANY of the specified tags
+        $documentsQuery->when($this->tags, function ($q) {
+            $tagsInput = trim($this->tags);
+            if (empty($tagsInput)) {
+                return;
+            }
+            
+            // Split by comma and clean up each tag name
+            $tagsList = array_map('trim', explode(',', $tagsInput));
+            $tagsList = array_filter($tagsList, fn($t) => !empty($t));
+            
+            if (empty($tagsList)) {
+                return;
+            }
+            
+            $q->whereHas('tags', function ($tagQuery) use ($tagsList) {
+                $tagQuery->where(function ($sub) use ($tagsList) {
+                    foreach ($tagsList as $tagName) {
+                        $sub->orWhereRaw('LOWER(name) LIKE ?', ['%' . strtolower($tagName) . '%']);
+                    }
+                });
+            });
+        });
+
+        // Author filter - matches metadata->author, latest version uploader, or document owner
+        $documentsQuery->when($this->author, function ($q) {
+            $author = $this->author;
+            $q->where(function ($sub) use ($author) {
+                $sub->where('metadata->author', 'like', '%' . $author . '%')
+                    ->orWhereHas('latestVersion.uploadedBy', function ($q2) use ($author) {
+                        $q2->where('full_name', 'like', '%' . $author . '%')
+                           ->orWhere('email', 'like', '%' . $author . '%');
+                    })
+                    ->orWhereHas('createdBy', function ($q3) use ($author) {
+                        $q3->where('full_name', 'like', '%' . $author . '%')
+                           ->orWhere('email', 'like', '%' . $author . '%');
+                    });
+            });
+        });
+
         // Apply ordering - latest first (same order as displayed in the table)
         $documentsQuery->latest()->orderBy('id', 'desc');
         

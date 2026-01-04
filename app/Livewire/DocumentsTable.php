@@ -354,11 +354,56 @@ class DocumentsTable extends Component
             ->when($this->dateTo, fn($q) =>
                 $q->whereDate('created_at', '<=', $this->dateTo)
             )
+            // Keywords filter - searches in title and metadata->keywords JSON field
+            ->when($this->keywords, function ($q) {
+                $keywordsInput = trim($this->keywords);
+                if (empty($keywordsInput)) {
+                    return;
+                }
+                
+                // Split by comma and clean up each keyword
+                $keywordsList = array_map('trim', explode(',', $keywordsInput));
+                $keywordsList = array_filter($keywordsList, fn($k) => !empty($k));
+                
+                if (empty($keywordsList)) {
+                    return;
+                }
+                
+                $q->where(function ($sub) use ($keywordsList) {
+                    foreach ($keywordsList as $keyword) {
+                        $pattern = '%' . strtolower($keyword) . '%';
+                        $sub->orWhereRaw('LOWER(title) LIKE ?', [$pattern])
+                            ->orWhereRaw('LOWER(JSON_UNQUOTE(JSON_EXTRACT(metadata, "$.keywords"))) LIKE ?', [$pattern]);
+                    }
+                });
+            })
+            // Tags filter - filters documents that have ANY of the specified tags
+            ->when($this->tags, function ($q) {
+                $tagsInput = trim($this->tags);
+                if (empty($tagsInput)) {
+                    return;
+                }
+                
+                // Split by comma and clean up each tag name
+                $tagsList = array_map('trim', explode(',', $tagsInput));
+                $tagsList = array_filter($tagsList, fn($t) => !empty($t));
+                
+                if (empty($tagsList)) {
+                    return;
+                }
+                
+                $q->whereHas('tags', function ($tagQuery) use ($tagsList) {
+                    $tagQuery->where(function ($sub) use ($tagsList) {
+                        foreach ($tagsList as $tagName) {
+                            $sub->orWhereRaw('LOWER(name) LIKE ?', ['%' . strtolower($tagName) . '%']);
+                        }
+                    });
+                });
+            })
             ->orderBy('created_at', 'desc')
             ->orderBy('id', 'desc');
         
         // Get ALL filtered document IDs for navigation (before pagination)
-        // IMPORTANT: Clone the query AFTER ordering is applied so navigation matches table order
         $this->documentsIds = (clone $documents)->pluck('id')->toArray();
         
         // Now paginate for display
