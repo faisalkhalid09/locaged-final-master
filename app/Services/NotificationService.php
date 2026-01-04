@@ -40,14 +40,18 @@ class NotificationService
             return;
         }
 
+        $title = __($config['title']);
+        $body = __($config['body']);
+
         $notificationData = [
             'type' => $config['type'],
-            'title' => $config['title'],
-            'body' => str_replace(':title', $this->title, $config['body']),
-            'action' => $action,
-            'documentId' => $this->documentId,
-            'latestVersionId' => $this->latestVersionId,
+            'title' => $title,
+            'body' => str_replace(':title', $this->title, $body),
+            'action_text' => 'View Document',
+            'action_url' => route('documents.show', $this->documentId),
             'icon' => $config['icon'],
+            'document_id' => $this->documentId,
+            'document_latest_version_id' => $this->latestVersionId,
         ];
 
         $this->user->notify(new GeneralNotification(
@@ -81,8 +85,6 @@ class NotificationService
             'Admin de departments',
             'Admin de cellule'
         ])->get();
-        
-        \Log::info("NotificationService: Found " . $admins->count() . " admins for action '$action'. IDs: " . $admins->pluck('id')->implode(', '));
 
         foreach ($admins as $admin) {
             // Broadcast once for admins or separately per admin as needed

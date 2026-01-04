@@ -39,32 +39,6 @@ Schedule::call(function () {
     $oneWeekAgo = $now->clone()->subWeek();
     $oneMonthAgo = $now->clone()->subMonth();
     
-    \Log::info("Running Approval Reminders", [
-        'now' => $now->toDateTimeString(), 
-        '1_week_threshold' => $oneWeekAgo->toDateTimeString()
-    ]);
-    
-    // DEBUG: Log status distribution
-    $statusCounts = \App\Models\Document::groupBy('status')
-        ->select('status', \Illuminate\Support\Facades\DB::raw('count(*) as total'))
-        ->pluck('total', 'status');
-    \Log::info("Document Status Distribution: " . json_encode($statusCounts));
-
-    // DEBUG: Analyze why we are finding 0 documents
-    $pendingDocs = \App\Models\Document::where(function($q) {
-             $q->where('status', 'pending')
-               ->orWhere('status', 'received');
-        })->get();
-    
-    $alreadyReminded = $pendingDocs->whereNotNull('first_reminder_sent_at')->count();
-    $tooNew = $pendingDocs->whereNull('first_reminder_sent_at')->where('created_at', '>', $oneWeekAgo)->count();
-    $candidates = $pendingDocs->whereNull('first_reminder_sent_at')->where('created_at', '<=', $oneWeekAgo)->count();
-    
-    \Log::info("DIAGNOSTICS: Total Pending/Received: " . $pendingDocs->count());
-    \Log::info(" - Skipped (Already Reminded): $alreadyReminded");
-    \Log::info(" - Skipped (Too New, created after {$oneWeekAgo->toDateTimeString()}): $tooNew");
-    \Log::info(" - Candidates (Should process): $candidates");
-
     // 1-week reminders
     $weekDocuments = \App\Models\Document::where(function($q) {
              $q->where('status', 'pending')
@@ -76,13 +50,8 @@ Schedule::call(function () {
         ->with(['latestVersion', 'createdBy'])
         ->get();
         
-    \Log::info("Found " . $weekDocuments->count() . " documents for 1-week reminder.");
-
     foreach ($weekDocuments as $document) {
-        \Log::info("Processing document: {$document->id} - {$document->title}", ['created_at' => $document->created_at]);
-        
         if (! $document->createdBy) {
-            \Log::warning("Skipping document {$document->id}: No creator found.");
             continue;
         }
 
@@ -94,7 +63,6 @@ Schedule::call(function () {
         );
 
         $notificationService->notifyAdmins('pending_approval_1w');
-        \Log::info("Notification sent for document {$document->id}");
 
         $document->forceFill([
             'first_reminder_sent_at' => $now,

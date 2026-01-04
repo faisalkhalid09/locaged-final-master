@@ -15,16 +15,17 @@ return [
         'icon' => 'assets/created.png',
     ],
     'pending_approval_1w' => [
-        'type' => 'warning',
-        'title' => 'Approval reminder (1 week)',
-        'body' => 'The document ":title" has been waiting for approval for more than 1 week.',
-        'icon' => 'assets/created.png',
+        'type' => 'pending_approval_1w',
+        'title' => 'Approval Reminder', // Key: Approval Reminder
+        'body' => 'This document has been pending approval for a week.', // Key: This document...
+        'icon' => 'heroicon-o-clock',
     ],
+
     'pending_approval_1m' => [
-        'type' => 'warning',
-        'title' => 'Approval reminder (1 month)',
-        'body' => 'The document ":title" has been waiting for approval for more than 1 month.',
-        'icon' => 'assets/created.png',
+        'type' => 'pending_approval_1m',
+        'title' => 'Approval Reminder', // Key: Approval Reminder
+        'body' => 'This document has been pending approval for a month.', // Key: This document...
+        'icon' => 'heroicon-o-exclamation-triangle',
     ],
     'unlocked' => [
             'type' => 'success',
