@@ -3,6 +3,7 @@
          x-data="{ 
             isUploading: false, 
             progress: 0,
+            validationError: '',
             maxFileSizeMB: {{ floor(config('uploads.max_file_size_kb', 51200) / 1024) }},
             maxBatchFiles: {{ config('uploads.max_batch_files', 50) }},
             
@@ -17,9 +18,10 @@
                 if (oversizedFiles.length > 0) {
                     const fileNames = oversizedFiles.map(f => f.name).slice(0, 3).join(', ');
                     const sizeMB = (oversizedFiles[0].size / 1024 / 1024).toFixed(1);
+                    const moreCount = oversizedFiles.length > 3 ? ` (+${oversizedFiles.length - 3} more)` : '';
                     return {
                         valid: false,
-                        message: `File too large: ${fileNames}\nSize: ${sizeMB} MB (Max: ${this.maxFileSizeMB} MB)`
+                        message: `File(s) too large: ${fileNames}${moreCount}. Size: ${sizeMB} MB (Maximum allowed: ${this.maxFileSizeMB} MB per file)`
                     };
                 }
 
@@ -27,7 +29,7 @@
                 if (filesArray.length > this.maxBatchFiles) {
                     return {
                         valid: false,
-                        message: `Too many files: ${filesArray.length} selected\n(Maximum: ${this.maxBatchFiles} files per upload)`
+                        message: `Too many files selected. You selected ${filesArray.length} files. Maximum allowed: ${this.maxBatchFiles} files per upload.`
                     };
                 }
 
@@ -36,11 +38,12 @@
             
             handleDrop(event) {
                 event.preventDefault();
+                this.validationError = '';
                 const files = event.dataTransfer?.files;
                 const validation = this.validateFiles(files);
                 
                 if (!validation.valid) {
-                    alert('❌ Upload Blocked\n\n' + validation.message);
+                    this.validationError = validation.message;
                     return false;
                 }
                 
@@ -67,6 +70,23 @@
             @endif
         </div>
 
+        {{-- Validation Error Display --}}
+        <div x-show="validationError" 
+             x-transition
+             class="alert alert-danger mt-3 mb-3" 
+             role="alert"
+             style="display: none;">
+            <div class="d-flex align-items-start">
+                <i class="fa-solid fa-exclamation-triangle me-2 mt-1"></i>
+                <div>
+                    <strong>Upload Blocked!</strong>
+                    <p class="mb-0 mt-1" x-text="validationError"></p>
+                </div>
+            </div>
+            <button type="button" class="btn-close position-absolute top-0 end-0 m-2" 
+                    @click="validationError = ''" aria-label="Close"></button>
+        </div>
+
         <div id="upload-box" 
              class="upload-box border border-dashed rounded-3 text-center p-5" 
              style="cursor: pointer;"
@@ -74,11 +94,14 @@
              @dragover.prevent
              x-data="{
                 validateAndUpload(files, isFolder = false) {
+                    // Clear any previous errors
+                    validationError = '';
+                    
                     // Use parent scope's validateFiles function
                     const validation = validateFiles(files);
                     
                     if (!validation.valid) {
-                        alert('❌ Upload Blocked\n\n' + validation.message);
+                        validationError = validation.message;
                         return false;
                     }
 
