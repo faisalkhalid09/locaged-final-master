@@ -5,7 +5,7 @@
             progress: 0,
             showError: false,
             errorMessage: '',
-            maxFileSizeMB: {{ floor(config('uploads.max_file_size_kb', 51200) / 1024) }},
+            maxSizeBytes: {{ config('uploads.max_file_size_kb', 51200) * 1024 }},
             maxBatchFiles: {{ config('uploads.max_batch_files', 50) }},
             
             validateFiles(files) {
@@ -13,18 +13,22 @@
                 if (!filesArray.length) return { valid: true };
 
                 // Validate individual file sizes
-                // Ensure maxFileSizeMB is treated as a number
-                const maxMB = Number(this.maxFileSizeMB) || 50; 
-                const maxBytes = maxMB * 1024 * 1024;
-                const oversizedFiles = filesArray.filter(f => f.size > maxBytes);
+                const maxBytes = this.maxSizeBytes;
+                console.log('Validating files. Max bytes:', maxBytes);
+
+                const oversizedFiles = filesArray.filter(f => {
+                    console.log(`File: ${f.name}, Size: ${f.size}`);
+                    return f.size > maxBytes;
+                });
                 
                 if (oversizedFiles.length > 0) {
                     const fileNames = oversizedFiles.map(f => f.name).slice(0, 3).join(', ');
-                    const sizeMB = (oversizedFiles[0].size / 1024 / 1024).toFixed(1);
+                    const sizeMB = (oversizedFiles[0].size / 1024 / 1024).toFixed(2);
+                    const maxMB = (this.maxSizeBytes / 1024 / 1024).toFixed(2);
                     const moreCount = oversizedFiles.length > 3 ? ` (+${oversizedFiles.length - 3} more)` : '';
                     return {
                         valid: false,
-                        message: `File(s) too large: ${fileNames}${moreCount}. Size: ${sizeMB} MB (Maximum allowed: ${this.maxFileSizeMB} MB per file)`
+                        message: `File(s) too large: ${fileNames}${moreCount}. Size: ${sizeMB} MB (Maximum allowed: ${maxMB} MB per file)`
                     };
                 }
 
