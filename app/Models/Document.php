@@ -278,17 +278,17 @@ class Document extends Model
                     // If user can also view own documents, include those too
                     if ($user->can('view own document')) {
                         $query->where(function($q) use ($visibleServiceIds, $user) {
-                            $q->whereIn('service_id', $visibleServiceIds->all())
-                              ->orWhere('created_by', $user->id);
+                            $q->whereIn('documents.service_id', $visibleServiceIds->all())
+                              ->orWhere('documents.created_by', $user->id);
                         });
                     } else {
                         // Simple filter by service_id only
-                        $query->whereIn('service_id', $visibleServiceIds->all());
+                        $query->whereIn('documents.service_id', $visibleServiceIds->all());
                     }
                 } else {
                     // No services assigned, but if they can view own documents, show those
                     if ($user->can('view own document')) {
-                        $query->where('created_by', $user->id);
+                        $query->where('documents.created_by', $user->id);
                     } else {
                         // No visible services assigned and can't view own => no documents
                         $query->whereRaw('1 = 0');
