@@ -1,8 +1,8 @@
 {
     "(and :count more error)": "(et :count erreur en plus)",
     "Approval Reminder": "Rappel d'approbation",
-    "This document has been pending approval for a week.": "Ce document est en attente d'approbation depuis une semaine.",
-    "This document has been pending approval for a month.": "Ce document est en attente d'approbation depuis un mois.",
+    "This document has been pending approval for a week.": "Le document \":title\" est en attente d'approbation depuis une semaine.",
+    "This document has been pending approval for a month.": "Le document \":title\" est en attente d'approbation depuis un mois.",
     "(and :count more errors)": "(et :count erreur en plus)|(et :count erreurs en plus)|(et :count erreurs en plus)",
     "A decryption key is required.": "A decryption key is required.",
     "A fresh verification link has been sent to your email address.": "Un nouveau lien de vérification a été envoyé à votre adresse e-mail.",

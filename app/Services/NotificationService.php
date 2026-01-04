@@ -87,11 +87,15 @@ class NotificationService
         ])->get();
 
         foreach ($admins as $admin) {
+            // Translate title and body
+            $title = __($config['title']);
+            $body = __($config['body'], ['title' => $this->title]);
+            
             // Broadcast once for admins or separately per admin as needed
             $notificationData = [
                 'type' => $config['type'],
-                'title' => $config['title'],
-                'body' => str_replace(':title', $this->title, $config['body']),
+                'title' => $title,
+                'body' => $body,
                 'action' => $action,
                 'documentId' => $this->documentId,
                 'latestVersionId' => $this->latestVersionId,

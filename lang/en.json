@@ -1,8 +1,8 @@
 {
     "(and :count more error)": "(and :count more error)",
     "Approval Reminder": "Approval Reminder",
-    "This document has been pending approval for a week.": "This document has been pending approval for a week.",
-    "This document has been pending approval for a month.": "This document has been pending approval for a month.",
+    "This document has been pending approval for a week.": "The document \":title\" has been pending approval for a week.",
+    "This document has been pending approval for a month.": "The document \":title\" has been pending approval for a month.",
     "(and :count more errors)": "(and :count more error)|(and :count more errors)|(and :count more errors)",
     "A decryption key is required.": "A decryption key is required.",
     "A fresh verification link has been sent to your email address.": "A fresh verification link has been sent to your email address.",

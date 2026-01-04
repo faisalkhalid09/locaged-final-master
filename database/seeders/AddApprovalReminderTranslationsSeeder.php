@@ -21,15 +21,15 @@ class AddApprovalReminderTranslationsSeeder extends Seeder
             ],
             [
                 'key' => 'This document has been pending approval for a week.',
-                'en_text' => 'This document has been pending approval for a week.',
-                'fr_text' => "Ce document est en attente d'approbation depuis une semaine.",
-                'ar_text' => 'هذا المستند في انتظار العرض للموافقة منذ أسبوع.',
+                'en_text' => 'The document ":title" has been pending approval for a week.',
+                'fr_text' => 'Le document ":title" est en attente d\'approbation depuis une semaine.',
+                'ar_text' => 'المستند ":title" في انتظار الموافقة منذ أسبوع.',
             ],
             [
                 'key' => 'This document has been pending approval for a month.',
-                'en_text' => 'This document has been pending approval for a month.',
-                'fr_text' => "Ce document est en attente d'approbation depuis un mois.",
-                'ar_text' => 'هذا المستند في انتظار العرض للموافقة منذ شهر.',
+                'en_text' => 'The document ":title" has been pending approval for a month.',
+                'fr_text' => 'Le document ":title" est en attente d\'approbation depuis un mois.',
+                'ar_text' => 'المستند ":title" في انتظار الموافقة منذ شهر.',
             ],
         ];
 

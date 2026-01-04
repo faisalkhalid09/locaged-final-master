@@ -16,15 +16,15 @@ return [
     ],
     'pending_approval_1w' => [
         'type' => 'pending_approval_1w',
-        'title' => 'Approval Reminder', // Key: Approval Reminder
-        'body' => 'This document has been pending approval for a week.', // Key: This document...
+        'title' => 'Approval Reminder',
+        'body' => 'The document ":title" has been pending approval for a week.',
         'icon' => 'heroicon-o-clock',
     ],
 
     'pending_approval_1m' => [
         'type' => 'pending_approval_1m',
-        'title' => 'Approval Reminder', // Key: Approval Reminder
-        'body' => 'This document has been pending approval for a month.', // Key: This document...
+        'title' => 'Approval Reminder',
+        'body' => 'The document ":title" has been pending approval for a month.',
         'icon' => 'heroicon-o-exclamation-triangle',
     ],
     'unlocked' => [
