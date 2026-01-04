@@ -120,23 +120,30 @@ class ActivityLogsTable extends Component
                     });
                 });
             })
-            // Service Manager: only see logs from their services and users below their rank
+            // Service Manager: only see logs from their services and users below their rank OR their own logs
             ->when($isServiceManager && !$isDeAdmin && !$current->hasRole('master') && !$current->hasRole('super administrator'), function($q) use ($current) {
                 $serviceIds = $this->getAccessibleServiceIds($current);
                 $allowedRoleNames = \App\Support\RoleHierarchy::allowedRoleNamesFor($current);
 
-                $q->whereHas('user', function($q2) use ($serviceIds, $allowedRoleNames) {
-                    // User must be in one of the manager's services (via direct ID or pivot)
-                    $q2->where(function($q3) use ($serviceIds) {
-                            $q3->whereIn('service_id', $serviceIds)
-                               ->orWhereHas('services', function($q4) use ($serviceIds) {
-                                   $q4->whereIn('services.id', $serviceIds);
-                               });
+                $q->whereHas('user', function($q2) use ($serviceIds, $allowedRoleNames, $current) {
+                     $q2->where(function($query) use ($serviceIds, $allowedRoleNames, $current) {
+                        // Case A: Subordinate User in Manager's Service
+                        $query->where(function($subQ) use ($serviceIds, $allowedRoleNames) {
+                             $subQ->where(function($sQ) use ($serviceIds) {
+                                     // Check Service Assignment (Direct or Pivot)
+                                     $sQ->whereIn('service_id', $serviceIds)
+                                        ->orWhereHas('services', function($pivot) use ($serviceIds) {
+                                            $pivot->whereIn('services.id', $serviceIds);
+                                        });
+                             })
+                             // Check Rank (Strictly Lower)
+                             ->whereHas('roles', function($r) use ($allowedRoleNames) {
+                                 $r->whereIn('name', $allowedRoleNames);
+                             });
                         })
-                        // AND user must have a role below the manager's rank
-                        ->whereHas('roles', function($q3) use ($allowedRoleNames) {
-                            $q3->whereIn('name', $allowedRoleNames);
-                        });
+                        // Case B: The Service Manager Themselves
+                        ->orWhere('id', $current->id);
+                     });
                 });
             })
             ->when($this->dateFrom, function($q) {
@@ -237,37 +244,25 @@ class ActivityLogsTable extends Component
             $serviceIds = $this->getAccessibleServiceIds($current);
             $allowedRoleNames = \App\Support\RoleHierarchy::allowedRoleNamesFor($current);
 
-            // Access rule: Matches logic for viewing documents + subordinate user check
             if ($serviceIds->isNotEmpty()) {
-                $q->where(function($subQ) use ($serviceIds, $current) {
-                    // 1. Document is in one of the manager's services
-                    $subQ->whereHas('document', function($d) use ($serviceIds) {
-                        $d->withTrashed()->whereIn('service_id', $serviceIds);
-                    });
-                    
-                    // 2. OR Document was created by the manager themselves
-                    // (Activity logs usually show actions on documents. If I acted on a doc, I should see it)
-                    if ($current->can('view own document')) {
-                        $subQ->orWhere('user_id', $current->id);
-                    }
+                // Constraint 1: Document MUST be in one of the manager's services
+                $q->whereHas('document', function($d) use ($serviceIds) {
+                    $d->withTrashed()->whereIn('service_id', $serviceIds);
                 })
-                // AND user performing action must be subordinate OR the manager themselves
-                // If it's the manager themselves, they can see their own logs.
-                // If it's another user, they must be strictly lower rank.
+                // Constraint 2: Actor MUST be (Subordinate OR Myself)
                 ->where(function($u) use ($allowedRoleNames, $current) {
                      $u->where('user_id', $current->id)
                        ->orWhereHas('user.roles', function($r) use ($allowedRoleNames) {
                            $r->whereIn('name', $allowedRoleNames);
                        });
                 });
-
             } else {
-                 // No services, but can see own activity
-                 if ($current->can('view own document')) {
-                     $q->where('user_id', $current->id);
-                 } else {
-                     $q->whereRaw('1 = 0');
-                 }
+                 // No services assigned -> See specific 'own' actions? 
+                 // User said "also related to his service". If no service, then satisfy nothing usually.
+                 // But typically if I have NO service, strictly speaking "related to his service" is Empty Set.
+                 // However, for safety, if I am truly unassigned, I probably shouldn't see doc logs except maybe entirely private ones?
+                 // Given the instructions "No other case should be satisfied", 1=0 is safest if no service.
+                 $q->whereRaw('1 = 0');
             }
         });
 
