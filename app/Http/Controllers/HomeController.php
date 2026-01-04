@@ -83,12 +83,12 @@ class HomeController extends Controller
         $donutChartData = $this->getDonutChartData($userDepartments);
 
         // Rooms occupancy (by room) – count only documents the user can see
-        // Show all rooms on the dashboard (no longer limited to "Principale" only)
-        $rooms = \App\Models\Room::orderBy('name')->get();
-        $roomToCount = [];
+        // Filter rooms to only show those with boxes the user has access to
         $user = auth()->user();
+        $allRooms = \App\Models\Room::orderBy('name')->get();
+        $roomToCount = [];
         
-        foreach ($rooms as $room) {
+        foreach ($allRooms as $room) {
             // Get boxes in this room that the user has access to (filtered by service)
             $boxIds = \App\Models\Box::forUser($user)
                 ->whereHas('shelf.row.room', function ($q) use ($room) {
@@ -96,11 +96,15 @@ class HomeController extends Controller
                 })
                 ->pluck('id');
 
-            $count = (clone $visibleDocumentsQuery)
-                ->whereIn('box_id', $boxIds)
-                ->count();
+            // Only include this room if the user has access to at least one box in it
+            // (Admin/SuperAdmin will see all rooms because forUser returns all boxes for them)
+            if ($boxIds->isNotEmpty()) {
+                $count = (clone $visibleDocumentsQuery)
+                    ->whereIn('box_id', $boxIds)
+                    ->count();
 
-            $roomToCount[$room->name] = $count;
+                $roomToCount[$room->name] = $count;
+            }
         }
 
         $roomCards = collect($roomToCount)->map(function ($count, $room) {
