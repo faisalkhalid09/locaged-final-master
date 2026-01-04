@@ -14,7 +14,9 @@ class DocumentDestructionRequestPolicy
     {
         if ($user->can('view any document destruction request') || 
             $user->can('view department document destruction request') ||
-            $user->can('view service document')) {
+            $user->can('view service document') || 
+            $user->hasRole('Admin de cellule') || 
+            $user->hasRole('Service Manager')) {
             return true;
         }
 

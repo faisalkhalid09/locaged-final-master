@@ -20,31 +20,16 @@ if ($perm) {
     echo "Permission 'view service document' DOES NOT EXIST in DB.\n";
 }
 
-// 2. Check role
-$role = Role::where('name', 'Admin de cellule')->first();
-if ($role) {
-    echo "Role 'Admin de cellule' EXISTS (id: {$role->id})\n";
-    
-    // Check if role has permission
-    if ($role->hasPermissionTo('view service document')) {
-       echo "Role HAS 'view service document' permission.\n";
-    } else {
-       echo "Role DOES NOT HAVE 'view service document' permission.\n";
-       
-       // Try to fix it if permission exists
-       if ($perm) {
-           echo "Attempting to assign permission to role...\n";
-           try {
-               $role->givePermissionTo($perm);
-               echo "Permission assigned successfully.\n";
-           } catch (\Exception $e) {
-               echo "Failed to assign: " . $e->getMessage() . "\n";
-           }
-       }
+// 2. List all roles
+$roles = Role::all();
+echo "Roles found in DB:\n";
+foreach ($roles as $r) {
+    echo "- {$r->name} (id: {$r->id})\n";
+    if ($r->name === 'Admin de cellule' || $r->name === 'Service Manager') {
+        echo "  * Permissions: " . $r->permissions->pluck('name')->implode(', ') . "\n";
     }
-} else {
-    echo "Role 'Admin de cellule' DOES NOT EXIST.\n";
 }
+
 
 // 3. Check for specific user (if we knew one, but we'll list users with this role)
 $users = User::role('Admin de cellule')->get();

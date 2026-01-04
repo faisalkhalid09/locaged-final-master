@@ -42,6 +42,7 @@ class AppServiceProvider extends ServiceProvider
         }
 
         Gate::policy(Role::class, RolePolicy::class);
+        Gate::policy(\App\Models\DocumentDestructionRequest::class, \App\Policies\DocumentDestructionRequestPolicy::class);
 
         Gate::before(function (User $user, string $ability) {
             
