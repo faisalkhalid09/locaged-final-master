@@ -82,19 +82,14 @@ class DeletionLogsTable extends Component
                 $q->withTrashed()->with(['department', 'service.subDepartment']);
             }])
             ->where('action', 'permanently_deleted')
-            // Department Administrator: only see logs from their department and users below their rank
+            // Department Administrator: only see logs from their department
             ->when($isDeptAdmin, function($q) use ($current) {
                 $deptIds = $current->departments?->pluck('id') ?? collect();
-                $allowedRoleNames = \App\Support\RoleHierarchy::allowedRoleNamesFor($current);
                 
-                $q->where(function($subQuery) use ($deptIds, $allowedRoleNames) {
+                $q->where(function($subQuery) use ($deptIds) {
                     // Filter by document department
                     $subQuery->whereHas('document', function($q2) use ($deptIds) {
                         $q2->withTrashed()->whereIn('department_id', $deptIds);
-                    })
-                    // AND filter by user role (only users below admin's rank)
-                    ->whereHas('user.roles', function($q2) use ($allowedRoleNames) {
-                        $q2->whereIn('name', $allowedRoleNames);
                     });
                 });
             })
@@ -245,16 +240,11 @@ class DeletionLogsTable extends Component
         // Apply same filtering as main query for Department Admins
         if ($isDeptAdmin) {
             $deptIds = $current->departments?->pluck('id') ?? collect();
-            $allowedRoleNames = \App\Support\RoleHierarchy::allowedRoleNamesFor($current);
             
-            $statsBase->where(function($subQuery) use ($deptIds, $allowedRoleNames) {
+            $statsBase->where(function($subQuery) use ($deptIds) {
                 // Filter by document department
                 $subQuery->whereHas('document', function($q2) use ($deptIds) {
                     $q2->withTrashed()->whereIn('department_id', $deptIds);
-                })
-                // AND filter by user role (only users below admin's rank)
-                ->whereHas('user.roles', function($q2) use ($allowedRoleNames) {
-                    $q2->whereIn('name', $allowedRoleNames);
                 });
             });
         } elseif ($isServiceManager) { 
@@ -298,15 +288,11 @@ class DeletionLogsTable extends Component
         
         if ($isDeptAdmin) {
             $deptIds = $current->departments?->pluck('id') ?? collect();
-            $allowedRoleNames = \App\Support\RoleHierarchy::allowedRoleNamesFor($current);
             
             $users = User::whereHas('departments', function($q) use ($deptIds) {
                     $q->whereIn('departments.id', $deptIds);
                 })
-                // Only show users with roles below current user's rank
-                ->whereHas('roles', function($q) use ($allowedRoleNames) {
-                    $q->whereIn('name', $allowedRoleNames);
-                })
+                // Show all users in the department, regardless of rank
                 ->orderBy('full_name')
                 ->get();
             $departments = Department::whereIn('id', $deptIds)->orderBy('name')->get();
