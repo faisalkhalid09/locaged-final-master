@@ -51,8 +51,8 @@ if (chartEl) {
             maintainAspectRatio: false,
             layout: {
                 padding: {
-                    left: 40,
-                    right: 20,
+                    left: 15,
+                    right: 15,
                     top: 10,
                     bottom: 10
                 }
@@ -74,17 +74,18 @@ if (chartEl) {
             },
             scales: {
                 x: {
-                    offset: true,
                     grid: {
                         display: false,
-                        offset: true
+                        drawBorder: true
                     },
                     ticks: {
                         font: {
                             size: 12
                         },
                         color: '#6c757d',
-                        padding: 5
+                        autoSkip: false,
+                        maxRotation: 0,
+                        minRotation: 0
                     }
                 },
                 y: {
