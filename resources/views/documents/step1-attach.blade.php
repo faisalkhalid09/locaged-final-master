@@ -50,6 +50,9 @@
                 if (!validation.valid) {
                     this.errorMessage = validation.message;
                     this.showError = true;
+                    // Clear the file input to prevent further processing
+                    if (this.$refs.fileInput) this.$refs.fileInput.value = '';
+                    if (this.$refs.folderInput) this.$refs.folderInput.value = '';
                     return false;
                 }
 
@@ -62,20 +65,28 @@
 
                 // Manually trigger Livewire upload after validation passes
                 // We use explicit callbacks to ensure the progress bar updates correctly
+                const self = this;
                 $wire.uploadMultiple(
                     'newDocuments', 
                     files, 
                     () => { 
-                        this.isUploading = false; 
-                        this.progress = 0; 
+                        self.isUploading = false; 
+                        self.progress = 0; 
                     }, 
-                    () => { 
-                        this.isUploading = false; 
-                        this.progress = 0;
+                    (error) => { 
+                        self.isUploading = false; 
+                        self.progress = 0;
+                        // Show error modal with server-side validation error
+                        const maxMB = (self.maxSizeBytes / 1024 / 1024).toFixed(0);
+                        self.errorMessage = `{{ ui_t('pages.upload.upload_blocked') }}: {{ ui_t('pages.upload.max_file_size', ['size' => floor(config('uploads.max_file_size_kb', 51200) / 1024)]) }}`;
+                        self.showError = true;
+                        // Clear the file input
+                        if (self.$refs.fileInput) self.$refs.fileInput.value = '';
+                        if (self.$refs.folderInput) self.$refs.folderInput.value = '';
                     }, 
                     (event) => { 
-                        this.isUploading = true; 
-                        this.progress = event.detail.progress; 
+                        self.isUploading = true; 
+                        self.progress = event.detail.progress; 
                     }
                 );
                 return true;
