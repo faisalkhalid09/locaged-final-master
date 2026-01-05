@@ -5,20 +5,18 @@
         <h3>{{ ui_t('pages.tags_page.manage') }}</h3>
 
         @can('create',\App\Models\Tag::class)
-            @unless(auth()->user()->hasRole('user'))
-                <div class="mt-4">
-                    <form method="post" action="{{ route('tags.store') }}">
-                        @csrf
-                        <h6>{{ ui_t('pages.tags_page.create_new') }}</h6>
-                        <div class="d-flex justify-content-between">
-                            <input type="text" id="tagInput" name="name" class="form-control me-3 w-50 py-2"
-                                   placeholder="{{ ui_t('pages.tags_page.tag_name') }}" value="{{ old('name') }}">
-                            <button id="addTagBtn" type="submit" class="btn-add">{{ ui_t('pages.tags_page.add_tag') }}</button>
-                        </div>
-                    </form>
+            <div class="mt-4">
+                <form method="post" action="{{ route('tags.store') }}">
+                    @csrf
+                    <h6>{{ ui_t('pages.tags_page.create_new') }}</h6>
+                    <div class="d-flex justify-content-between">
+                        <input type="text" id="tagInput" name="name" class="form-control me-3 w-50 py-2"
+                               placeholder="{{ ui_t('pages.tags_page.tag_name') }}" value="{{ old('name') }}">
+                        <button id="addTagBtn" type="submit" class="btn-add">{{ ui_t('pages.tags_page.add_tag') }}</button>
+                    </div>
+                </form>
 
-                </div>
-            @endunless
+            </div>
         @endcan
         <div class="mt-5">
             <h6>{{ ui_t('pages.tags_page.existing') }}</h6>
