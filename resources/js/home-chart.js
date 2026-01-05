@@ -49,11 +49,12 @@ if (chartEl) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            clip: false,
             layout: {
                 padding: {
-                    left: 10,
-                    right: 50
+                    left: 20,
+                    right: 20,
+                    top: 10,
+                    bottom: 10
                 }
             },
             plugins: {
@@ -73,14 +74,17 @@ if (chartEl) {
             },
             scales: {
                 x: {
+                    offset: true,
                     grid: {
-                        display: false
+                        display: false,
+                        offset: true
                     },
                     ticks: {
                         font: {
                             size: 12
                         },
-                        color: '#6c757d'
+                        color: '#6c757d',
+                        padding: 5
                     }
                 },
                 y: {
