@@ -520,78 +520,86 @@ class DocumentVersionController extends Controller
             $nextDocTitle = null;
 
             // Check if navigation IDs were passed from the table
-            $navIdsParam = request()->get('nav_ids');
-            
-            if ($navIdsParam) {
-                // Use the filtered list from the table for navigation
-                $documentIds = collect(explode(',', $navIdsParam))
-                    ->map(fn($id) => (int)$id)
-                    ->filter()
-                    ->values();
-            } else {
-                // Fallback: get all non-expired documents visible to the user
-                $documentIds = Document::where(function($query) {
-                        $query->where('is_expired', false)
-                              ->orWhereNull('is_expired');
-                    })
-                    ->whereHas('latestVersion')
-                    ->orderBy('created_at', 'desc')
-                    ->orderBy('id', 'desc')
-                    ->pluck('id');
-            }
+        $navIdsParam = request()->get('nav_ids');
+        $returnUrl = request()->get('return_url'); // Get the return URL if provided
+        
+        if ($navIdsParam) {
+            // Use the filtered list from the table for navigation
+            $documentIds = collect(explode(',', $navIdsParam))
+                ->map(fn($id) => (int)$id)
+                ->filter()
+                ->values();
+        } else {
+            // Fallback: get all non-expired documents visible to the user
+            $documentIds = Document::where(function($query) {
+                    $query->where('is_expired', false)
+                          ->orWhereNull('is_expired');
+                })
+                ->whereHas('latestVersion')
+                ->orderBy('created_at', 'desc')
+                ->orderBy('id', 'desc')
+                ->pluck('id');
+        }
 
-            if ($documentIds->isNotEmpty()) {
-                $currentDocId = $document->id;
-                $currentIndex = $documentIds->search($currentDocId);
+        if ($documentIds->isNotEmpty()) {
+            $currentDocId = $document->id;
+            $currentIndex = $documentIds->search($currentDocId);
 
-                if ($currentIndex !== false) {
-                    $prevId = $documentIds[$currentIndex - 1] ?? null;
-                    $nextId = $documentIds[$currentIndex + 1] ?? null;
+            if ($currentIndex !== false) {
+                $prevId = $documentIds[$currentIndex - 1] ?? null;
+                $nextId = $documentIds[$currentIndex + 1] ?? null;
 
-                    if ($prevId) {
-                        $prevDoc = Document::with('latestVersion')->find($prevId);
-                        if ($prevDoc && $prevDoc->latestVersion) {
-                            $baseUrl = route('document-versions.fullscreen', ['id' => $prevDoc->latestVersion->id]);
-                            // Manually append nav_ids as query parameter
-                            if (request()->has('nav_ids')) {
-                                $prevDocUrl = $baseUrl . '?nav_ids=' . urlencode(request()->get('nav_ids'));
-                            } else {
-                                $prevDocUrl = $baseUrl;
-                            }
-                            $prevDocTitle = $prevDoc->title;
+                if ($prevId) {
+                    $prevDoc = Document::with('latestVersion')->find($prevId);
+                    if ($prevDoc && $prevDoc->latestVersion) {
+                        $baseUrl = route('document-versions.fullscreen', ['id' => $prevDoc->latestVersion->id]);
+                        // Preserve both nav_ids and return_url in navigation
+                        $queryParams = [];
+                        if (request()->has('nav_ids')) {
+                            $queryParams['nav_ids'] = request()->get('nav_ids');
                         }
+                        if ($returnUrl) {
+                            $queryParams['return_url'] = $returnUrl;
+                        }
+                        $prevDocUrl = $queryParams ? $baseUrl . '?' . http_build_query($queryParams) : $baseUrl;
+                        $prevDocTitle = $prevDoc->title;
                     }
+                }
 
-                    if ($nextId) {
-                        $nextDoc = Document::with('latestVersion')->find($nextId);
-                        if ($nextDoc && $nextDoc->latestVersion) {
-                            $baseUrl = route('document-versions.fullscreen', ['id' => $nextDoc->latestVersion->id]);
-                            // Manually append nav_ids as query parameter
-                            if (request()->has('nav_ids')) {
-                                $nextDocUrl = $baseUrl . '?nav_ids=' . urlencode(request()->get('nav_ids'));
-                            } else {
-                                $nextDocUrl = $baseUrl;
-                            }
-                            $nextDocTitle = $nextDoc->title;
+                if ($nextId) {
+                    $nextDoc = Document::with('latestVersion')->find($nextId);
+                    if ($nextDoc && $nextDoc->latestVersion) {
+                        $baseUrl = route('document-versions.fullscreen', ['id' => $nextDoc->latestVersion->id]);
+                        // Preserve both nav_ids and return_url in navigation
+                        $queryParams = [];
+                        if (request()->has('nav_ids')) {
+                            $queryParams['nav_ids'] = request()->get('nav_ids');
                         }
+                        if ($returnUrl) {
+                            $queryParams['return_url'] = $returnUrl;
+                        }
+                        $nextDocUrl = $queryParams ? $baseUrl . '?' . http_build_query($queryParams) : $baseUrl;
+                        $nextDocTitle = $nextDoc->title;
                     }
                 }
             }
-
-            return view('document-versions.fullscreen', [
-                'fileUrl'       => $fileUrl,
-                'pdfUrl'        => $pdfUrl,
-                'fileType'      => $fileType,
-                'doc'           => $doc,
-                'prevDocUrl'    => $prevDocUrl,
-                'nextDocUrl'    => $nextDocUrl,
-                'prevDocTitle'  => $prevDocTitle,
-                'nextDocTitle'  => $nextDocTitle,
-            ]);
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return redirect()->back()->with('error', 'This document has been deleted and is no longer available.');
         }
+
+        return view('document-versions.fullscreen', [
+            'fileUrl'       => $fileUrl,
+            'pdfUrl'        => $pdfUrl,
+            'fileType'      => $fileType,
+            'doc'           => $doc,
+            'prevDocUrl'    => $prevDocUrl,
+            'nextDocUrl'    => $nextDocUrl,
+            'prevDocTitle'  => $prevDocTitle,
+            'nextDocTitle'  => $nextDocTitle,
+            'returnUrl'     => $returnUrl, // Pass return URL to view
+        ]);
+    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        return redirect()->back()->with('error', 'This document has been deleted and is no longer available.');
     }
+}
 
     /**
      * Get the path where PDF conversion should be stored

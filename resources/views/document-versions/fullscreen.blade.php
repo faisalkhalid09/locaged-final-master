@@ -102,7 +102,7 @@
                        title="{{ ui_t('actions.download') ?? 'Download' }}">
                         <i class="fas fa-download"></i>
                     </a>
-                    <a href="{{ route('documents.all') }}" 
+                    <a href="{{ $returnUrl ?? route('documents.all') }}" 
                             class="btn-preview" 
                             title="{{ ui_t('actions.close') ?? 'Close' }}">
                         <i class="fas fa-times"></i> {{ ui_t('actions.close') ?? 'Close' }}
@@ -157,10 +157,10 @@
     </div>
 
     <script>
-        // Close on Escape key
+        // Close on Escape key - use smart return URL
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
-                window.location.href = '{{ route('documents.all') }}';
+                window.location.href = '{{ $returnUrl ?? route('documents.all') }}';
             }
         });
     </script>

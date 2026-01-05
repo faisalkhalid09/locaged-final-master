@@ -351,7 +351,9 @@
                                     @php
                                         $baseUrl = route('document-versions.fullscreen', ['id' => $doc->latestVersion->id]);
                                         $navIds = implode(',', $documentsIds ?? []);
-                                        $fullUrl = $baseUrl . '?nav_ids=' . urlencode($navIds);
+                                        // Include return URL to preserve current page state with filters
+                                        $returnUrl = request()->fullUrl();
+                                        $fullUrl = $baseUrl . '?nav_ids=' . urlencode($navIds) . '&return_url=' . urlencode($returnUrl);
                                     @endphp
                                     <a href="{{ $fullUrl }}"
                                        class="btn-table btn-table-preview" title="{{ ui_t('pages.documents.preview') }}" aria-label="{{ ui_t('pages.documents.preview') }}">
