@@ -1100,15 +1100,60 @@
                 @can('viewAny', \App\Models\User::class)
                 <tr class="log-row d-none" data-doc-id="{{ $doc->id }}">
                 <td colspan="8">
+                        @php
+                            $currentUser = auth()->user();
+                            $isAdminDePole = $currentUser->hasRole('Admin de pole') || $currentUser->hasRole('Department Administrator');
+                            $isAdminDeCellule = $currentUser->hasRole('Admin de cellule') || $currentUser->hasRole('Service Manager');
+                            
+                            // Define roles that should be hidden for each user type
+                            $hiddenRolesForAdminDePole = ['master', 'super administrator', 'admin'];
+                            $hiddenRolesForAdminDeCellule = ['master', 'super administrator', 'admin', 'admin de pole', 'department administrator'];
+                        @endphp
                         @foreach($doc->auditLogs as $log)
-                            @if($log->action !== 'viewed_ocr')
+                            @php
+                                $canViewLog = true;
+                                
+                                // Skip viewed_ocr logs
+                                if ($log->action === 'viewed_ocr') {
+                                    $canViewLog = false;
+                                }
+                                
+                                // Check if log should be hidden based on user role
+                                if ($log->user && $canViewLog) {
+                                    $log->user->load('roles');
+                                    $logUserRoles = $log->user->roles->pluck('name')->map(function($name) {
+                                        return strtolower($name);
+                                    })->toArray();
+                                    
+                                    // Admin de pole: hide logs from master, super admin, and admin
+                                    if ($isAdminDePole) {
+                                        foreach ($logUserRoles as $roleName) {
+                                            if (in_array($roleName, $hiddenRolesForAdminDePole)) {
+                                                $canViewLog = false;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    
+                                    // Admin de cellule: hide logs from master, super admin, admin, and admin de pole
+                                    if ($isAdminDeCellule) {
+                                        foreach ($logUserRoles as $roleName) {
+                                            if (in_array($roleName, $hiddenRolesForAdminDeCellule)) {
+                                                $canViewLog = false;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                            @endphp
+                            @if($canViewLog)
                             <div class="px-5 pt-2">
                                 <div class="activity-step">
                                     <div class="icon-box bord-color">
                                         <i class="fas fa-check fa-2xl"></i>
                                     </div>
                                     <div class="ms-4">
-                                        <strong>{{ $log->action }}</strong>
+                                        <strong>{{ ui_t('pages.activity.actions.' . $log->action) }}</strong>
                                         <div class="activity-meta">
                                             <i class="fa-solid fa-clock fa-sm me-2"></i>{{ optional($log->occurred_at)->format('Y-m-d H:i') }}
                                         </div>
