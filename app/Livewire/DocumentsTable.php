@@ -296,9 +296,6 @@ class DocumentsTable extends Component
             // Status filter (overrides defaults above when explicitly set)
             ->when($this->status && $this->status !== 'all', function($q) {
                 if ($this->status === 'expired') {
-                    // Debug: Log that we're applying expired filter
-                    \Log::info('Applying expired filter', ['status' => $this->status]);
-                    
                     // Show documents that are either:
                     // 1. Marked as expired (is_expired = true)
                     // 2. OR have expire_at date in the past (even if not marked yet)
@@ -309,16 +306,6 @@ class DocumentsTable extends Component
                                        ->whereDate('expire_at', '<=', now());
                              });
                     });
-                    
-                    // Debug: Check count before applying
-                    $expiredCount = \App\Models\Document::where(function($expQ) {
-                        $expQ->where('is_expired', true)
-                             ->orWhere(function($dateQ) {
-                                 $dateQ->whereNotNull('expire_at')
-                                       ->whereDate('expire_at', '<=', now());
-                             });
-                    })->count();
-                    \Log::info('Total expired documents in DB', ['count' => $expiredCount]);
                 } else {
                     $q->where('status', $this->status);
                 }
