@@ -329,17 +329,20 @@
                                                         <p class="text-muted small ms-3"><em>{{ ui_t('pages.physical.actions.no_boxes') }}</em></p>
                                                     @endif
                                                 </div>
+                                                @endif
                                             @endforeach
                                         @else
                                             <p class="text-muted small ms-3"><em>{{ ui_t('pages.physical.actions.no_shelves') }}</em></p>
                                         @endif
                                     </div>
+                                    @endif
                                 @endforeach
                             @else
                                 <p class="text-muted ms-3"><em>{{ ui_t('pages.physical.actions.no_rows') }}</em></p>
                             @endif
                         </div>
                     </div>
+                    @endif
                 @endforeach
             @else
                 <div class="alert alert-info">
