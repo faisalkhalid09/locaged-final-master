@@ -67,9 +67,9 @@
                         />
                     </div>
 
-                    <div class="d-flex justify-content-end mb-3">
+                    {{-- <div class="d-flex justify-content-end mb-3">
                         <a href="{{ route('password.request') }}" class="small text-decoration-none">{{ ui_t('auth.ui.forgot_password') }}</a>
-                    </div>
+                    </div> --}}
 
                     <button class="btn btn-primary w-100" type="submit">{{ ui_t('auth.ui.sign_in') }}</button>
                 </form>
