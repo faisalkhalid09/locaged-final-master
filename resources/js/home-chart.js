@@ -51,7 +51,7 @@ if (chartEl) {
             maintainAspectRatio: false,
             layout: {
                 padding: {
-                    left: 40,
+                    left: 15,
                     right: 15,
                     top: 10,
                     bottom: 10
@@ -74,6 +74,7 @@ if (chartEl) {
             },
             scales: {
                 x: {
+                    offset: true,
                     grid: {
                         display: false,
                         drawBorder: true
