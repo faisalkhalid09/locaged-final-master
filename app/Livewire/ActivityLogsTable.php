@@ -359,8 +359,12 @@ class ActivityLogsTable extends Component
                     $q->whereHas('document', function($q2) use ($serviceIds) {
                         $q2->withTrashed()->whereIn('service_id', $serviceIds);
                     })
-                    ->whereHas('user.roles', function($q2) use ($allowedRoleNames) {
-                        $q2->whereIn('name', $allowedRoleNames);
+                    ->where(function($userQ) use ($allowedRoleNames, $current) {
+                        // Include subordinates OR myself
+                        $userQ->where('user_id', $current->id)
+                              ->orWhereHas('user.roles', function($q2) use ($allowedRoleNames) {
+                                  $q2->whereIn('name', $allowedRoleNames);
+                              });
                     });
                 } else {
                     $q->whereRaw('1 = 0');
