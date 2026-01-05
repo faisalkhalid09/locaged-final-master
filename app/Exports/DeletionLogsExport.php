@@ -31,7 +31,7 @@ class DeletionLogsExport implements FromCollection, WithHeadings, WithMapping, S
         }
 
         return AuditLog::with(['user', 'document' => function ($q) {
-                $q->withTrashed()->with(['department', 'service.subDepartment']);
+                $q->withTrashed()->with(['department', 'service.subDepartment', 'category', 'subcategory']);
             }])
             ->where('action', 'permanently_deleted')
             ->orderByDesc('occurred_at')
@@ -51,6 +51,7 @@ class DeletionLogsExport implements FromCollection, WithHeadings, WithMapping, S
             ui_t('pages.deletion_log.export.pole'),
             ui_t('pages.deletion_log.export.department'),
             ui_t('pages.deletion_log.export.service'),
+            ui_t('pages.deletion_log.export.category') ?? __('Category'),
         ];
     }
 
@@ -63,6 +64,12 @@ class DeletionLogsExport implements FromCollection, WithHeadings, WithMapping, S
         $service = $doc?->service;
         $subDept = $service?->subDepartment;
 
+        // Resolve Category
+        $categoryName = $doc?->category?->name
+            ?? $doc?->subcategory?->category?->name
+            ?? optional($doc?->subcategory)->name
+            ?? __('N/A');
+
         return [
             $doc?->title ?? __('(Deleted document)'),
             $log->document_id,
@@ -73,6 +80,7 @@ class DeletionLogsExport implements FromCollection, WithHeadings, WithMapping, S
             $dept?->name ?? '—',
             $subDept?->name ?? '—',
             $service?->name ?? '—',
+            $categoryName,
         ];
     }
 
@@ -81,7 +89,8 @@ class DeletionLogsExport implements FromCollection, WithHeadings, WithMapping, S
         return [
             AfterSheet::class => function (AfterSheet $event) {
                 $lastRow = $this->rowCount;
-                $lastCol = 'I';
+                // Extended to J (10 columns)
+                $lastCol = 'J';
                 $this->applyDefaultSheetStyles($event, $lastRow, $lastCol);
 
                 $sheet = $event->sheet->getDelegate();
@@ -91,7 +100,7 @@ class DeletionLogsExport implements FromCollection, WithHeadings, WithMapping, S
 
                 // Header section
                 $sheet->setCellValue('A1', ui_t('pages.deletion_log.export.title'));
-                $sheet->mergeCells('A1:I1');
+                $sheet->mergeCells("A1:{$lastCol}1");
                 $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(16);
 
                 $sheet->setCellValue('A2', ui_t('pages.deletion_log.export.generated_on') . ' ' . now()->format('d/m/Y H:i'));
