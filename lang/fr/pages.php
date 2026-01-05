@@ -638,6 +638,8 @@ return [
         'no_preview' => 'Aucun aperçu disponible.',
         'image_preview' => 'Aperçu de l\'image',
         'pdf_preview' => 'Aperçu PDF',
+        'file_preview_fallback' => 'Si l\'aperçu ne se charge pas',
+        'open_in_new_tab' => 'ouvrir dans un nouvel onglet',
         'file_name' => 'Nom du fichier',
         'category' => 'Catégorie',
         'select_category' => '-- Sélectionner une catégorie --',

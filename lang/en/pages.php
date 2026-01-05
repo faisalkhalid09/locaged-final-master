@@ -640,6 +640,8 @@ return [
         'no_preview' => 'No preview available.',
         'image_preview' => 'Image Preview',
         'pdf_preview' => 'PDF Preview',
+        'file_preview_fallback' => 'If the preview doesn\'t load',
+        'open_in_new_tab' => 'open in a new tab',
         'file_name' => 'File Name',
         'category' => 'Category',
         'select_category' => '-- Select Category --',
