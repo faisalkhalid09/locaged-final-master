@@ -135,7 +135,7 @@ if (chartEl) {
                 dataSource = weeklyData;
             } else if (period === 'monthly') {
                 labels = labelsMonthly;
-                dataLength = 20;
+                dataLength = 10;
                 dataSource = monthlyData;
             } else if (period === 'yearly') {
                 labels = labelsYearly;
