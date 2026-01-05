@@ -454,7 +454,15 @@
                         @foreach($doc->auditLogs as $log)
                             @php
                                 // Filter logs based on role hierarchy - only show logs from users at or below current user's rank
-                                $logUserRank = $log->user ? \App\Support\RoleHierarchy::getUserMaxRank($log->user) : 0;
+                                if ($log->user) {
+                                    // Ensure roles are loaded
+                                    $log->user->load('roles');
+                                    $logUserRank = \App\Support\RoleHierarchy::getUserMaxRank($log->user);
+                                } else {
+                                    $logUserRank = 0; // No user = lowest rank (always visible)
+                                }
+                                // Only show if log user's rank is LESS THAN OR EQUAL to current user's rank
+                                // (since higher number = higher privilege, this hides logs from higher-privileged users)
                                 $canViewLog = $logUserRank <= $currentUserRank;
                             @endphp
                             @if($log->action !== 'viewed_ocr' && $canViewLog)
