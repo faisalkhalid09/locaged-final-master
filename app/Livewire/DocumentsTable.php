@@ -296,7 +296,16 @@ class DocumentsTable extends Component
             // Status filter (overrides defaults above when explicitly set)
             ->when($this->status && $this->status !== 'all', function($q) {
                 if ($this->status === 'expired') {
-                    $q->where('is_expired', true);
+                    // Show documents that are either:
+                    // 1. Marked as expired (is_expired = true)
+                    // 2. OR have expire_at date in the past (even if not marked yet)
+                    $q->where(function($expQ) {
+                        $expQ->where('is_expired', true)
+                             ->orWhere(function($dateQ) {
+                                 $dateQ->whereNotNull('expire_at')
+                                       ->whereDate('expire_at', '<=', now());
+                             });
+                    });
                 } else {
                     $q->where('status', $this->status);
                 }
