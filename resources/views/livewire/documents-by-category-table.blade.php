@@ -167,6 +167,39 @@
                     .fav-toggle:hover { box-shadow: 0 2px 8px rgba(245, 158, 11, 0.25); transform: translateY(-1px); }
                     .fav-toggle.is-active { background: #f59e0b; color: #1f2937; border-color: #f59e0b; }
                     .fav-toggle .fa-star { color: currentColor; }
+
+                    /* Toast Notification Styles */
+                    .custom-toast-notification {
+                        position: fixed;
+                        top: 20px;
+                        left: 50%;
+                        transform: translateX(-50%) translateY(-100px);
+                        background: #10b981;
+                        color: white;
+                        padding: 16px 24px;
+                        border-radius: 8px;
+                        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+                        z-index: 9999;
+                        display: flex;
+                        align-items: center;
+                        font-size: 15px;
+                        font-weight: 500;
+                        opacity: 0;
+                        transition: all 0.3s ease;
+                    }
+                    .custom-toast-notification.show {
+                        opacity: 1;
+                        transform: translateX(-50%) translateY(0);
+                    }
+                    .custom-toast-notification.custom-toast-success {
+                        background: #10b981;
+                    }
+                    .custom-toast-notification.custom-toast-error {
+                        background: #ef4444;
+                    }
+                    .custom-toast-notification i {
+                        font-size: 18px;
+                    }
                 </style>
                 <div class="fav-toggle-wrap ms-2 d-flex align-items-center">
                     <input type="checkbox" id="favoritesOnlyCat" class="fav-toggle-input" wire:model.change="favoritesOnly">
@@ -835,6 +868,33 @@
         filterRows();
     }
 
+    // ==================== Toast Notification System ====================
+    function showToastNotification(message, type = 'success') {
+        // Remove any existing toasts
+        const existingToasts = document.querySelectorAll('.custom-toast-notification');
+        existingToasts.forEach(toast => toast.remove());
+
+        // Create toast element
+        const toast = document.createElement('div');
+        toast.className = `custom-toast-notification custom-toast-${type}`;
+        toast.innerHTML = `
+            <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'} me-2"></i>
+            <span>${message}</span>
+        `;
+
+        // Add to body
+        document.body.appendChild(toast);
+
+        // Trigger animation
+        setTimeout(() => toast.classList.add('show'), 10);
+
+        // Auto-hide after 3 seconds
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
     function submitCategoryMetadataChanges(documentId) {
         const form = document.getElementById('metadataForm');
         const saveBtn = document.getElementById('metadataSaveBtn');
@@ -883,6 +943,9 @@
                 categoryCurrentMetadata = data.metadata;
                 document.getElementById('metadataContent').innerHTML = formatMetadataEditableCategory(categoryCurrentMetadata);
                 attachCategoryMetadataListeners();
+                
+                // Show success toast notification
+                showToastNotification('{{ ui_t("pages.upload.metadata_updated") }}', 'success');
             } else {
                 alert(data.message || 'Failed to save metadata');
             }

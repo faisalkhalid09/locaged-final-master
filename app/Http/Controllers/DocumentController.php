@@ -738,6 +738,9 @@ class DocumentController extends Controller
         if (!empty($changed)) {
             $document->save();
             $document->logAction('metadata_updated');
+            
+            // Flash success message for toast notification
+            session()->flash('toast_success', __('pages.upload.metadata_updated'));
         }
 
         // Return refreshed metadata payload
