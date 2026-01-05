@@ -449,23 +449,52 @@
                 <tr class="log-row d-none" data-doc-id="{{ $doc->id }}">
                     <td colspan="10">
                         @php
-                            $currentUserRank = \App\Support\RoleHierarchy::getUserMaxRank(auth()->user());
+                            $currentUser = auth()->user();
+                            $isAdminDePole = $currentUser->hasRole('Admin de pole') || $currentUser->hasRole('Department Administrator');
+                            $isAdminDeCellule = $currentUser->hasRole('Admin de cellule') || $currentUser->hasRole('Service Manager');
+                            
+                            // Define roles that should be hidden for each user type
+                            $hiddenRolesForAdminDePole = ['master', 'super administrator', 'admin'];
+                            $hiddenRolesForAdminDeCellule = ['master', 'super administrator', 'admin', 'admin de pole', 'department administrator'];
                         @endphp
                         @foreach($doc->auditLogs as $log)
                             @php
-                                // Filter logs based on role hierarchy - only show logs from users at or below current user's rank
-                                if ($log->user) {
-                                    // Ensure roles are loaded
-                                    $log->user->load('roles');
-                                    $logUserRank = \App\Support\RoleHierarchy::getUserMaxRank($log->user);
-                                } else {
-                                    $logUserRank = 0; // No user = lowest rank (always visible)
+                                $canViewLog = true;
+                                
+                                // Skip viewed_ocr logs
+                                if ($log->action === 'viewed_ocr') {
+                                    $canViewLog = false;
                                 }
-                                // Only show if log user's rank is LESS THAN OR EQUAL to current user's rank
-                                // (since higher number = higher privilege, this hides logs from higher-privileged users)
-                                $canViewLog = $logUserRank <= $currentUserRank;
+                                
+                                // Check if log should be hidden based on user role
+                                if ($log->user && $canViewLog) {
+                                    $log->user->load('roles');
+                                    $logUserRoles = $log->user->roles->pluck('name')->map(function($name) {
+                                        return strtolower($name);
+                                    })->toArray();
+                                    
+                                    // Admin de pole: hide logs from master, super admin, and admin
+                                    if ($isAdminDePole) {
+                                        foreach ($logUserRoles as $roleName) {
+                                            if (in_array($roleName, $hiddenRolesForAdminDePole)) {
+                                                $canViewLog = false;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    
+                                    // Admin de cellule: hide logs from master, super admin, admin, and admin de pole
+                                    if ($isAdminDeCellule) {
+                                        foreach ($logUserRoles as $roleName) {
+                                            if (in_array($roleName, $hiddenRolesForAdminDeCellule)) {
+                                                $canViewLog = false;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
                             @endphp
-                            @if($log->action !== 'viewed_ocr' && $canViewLog)
+                            @if($canViewLog)
                             <div class="px-5 pt-2">
                                 <div class="activity-step">
                                     <div class="icon-box bord-color">
