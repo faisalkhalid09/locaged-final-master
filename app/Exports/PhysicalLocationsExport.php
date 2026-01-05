@@ -32,7 +32,11 @@ class PhysicalLocationsExport implements FromQuery, WithHeadings, WithMapping, W
         // scopes on the Document model still enforce org visibility
         // when counting documents.
         return Box::query()
-            ->with(['shelf.row.room'])
+            ->with([
+                'shelf.row.room',
+                'service.subDepartment.department',
+                'documents.category'
+            ])
             ->withCount('documents');
     }
 
@@ -51,6 +55,10 @@ class PhysicalLocationsExport implements FromQuery, WithHeadings, WithMapping, W
             __('Description'),
             __('Number of documents'),
             __('Box creation date'),
+            __('Pôle'),
+            __('Département'),
+            __('Service'),
+            __('Catégorie'),
         ];
     }
 
@@ -58,12 +66,27 @@ class PhysicalLocationsExport implements FromQuery, WithHeadings, WithMapping, W
     {
         $this->rowCount++;
 
-        // Ensure relationships are loaded
-        $box->loadMissing('shelf.row.room');
+        // Ensure relationships are loaded (though baseQuery should handle it)
+        $box->loadMissing([
+            'shelf.row.room',
+            'service.subDepartment.department',
+            'documents.category'
+        ]);
 
         $roomName  = optional(optional(optional($box->shelf)->row)->room)->name ?? '';
         $rowName   = optional(optional($box->shelf)->row)->name ?? '';
         $shelfName = optional($box->shelf)->name ?? '';
+
+        $poleName = optional(optional(optional($box->service)->subDepartment)->department)->name ?? '';
+        $deptName = optional(optional($box->service)->subDepartment)->name ?? '';
+        $serviceName = optional($box->service)->name ?? '';
+
+        // Get unique categories from documents in this box
+        $categories = $box->documents
+            ->pluck('category.name')
+            ->filter()
+            ->unique()
+            ->implode(', ');
 
         return [
             $box->name,
@@ -73,6 +96,10 @@ class PhysicalLocationsExport implements FromQuery, WithHeadings, WithMapping, W
             $box->description,
             $box->documents_count,
             optional($box->created_at)?->format('d/m/Y H:i'),
+            $poleName,
+            $deptName,
+            $serviceName,
+            $categories,
         ];
     }
 
@@ -104,7 +131,8 @@ class PhysicalLocationsExport implements FromQuery, WithHeadings, WithMapping, W
                 $this->ensureStatsLoaded();
 
                 $lastRow = $this->rowCount;
-                $lastCol = 'G';
+                // Extended to K since we added 4 columns
+                $lastCol = 'K'; 
                 $this->applyDefaultSheetStyles($event, $lastRow, $lastCol);
                 $sheet = $event->sheet->getDelegate();
                 $sheetTitle = $sheet->getTitle();
@@ -113,7 +141,8 @@ class PhysicalLocationsExport implements FromQuery, WithHeadings, WithMapping, W
                 $sheet->insertNewRowBefore(1, 5);
 
                 $sheet->setCellValue('A1', __('Physical Locations Report'));
-                $sheet->mergeCells('A1:G1');
+                // Merge across all columns
+                $sheet->mergeCells("A1:{$lastCol}1");
                 $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(16);
 
                 $sheet->setCellValue('A2', __('Generated on:') . ' ' . now()->format('d/m/Y H:i'));
@@ -121,24 +150,25 @@ class PhysicalLocationsExport implements FromQuery, WithHeadings, WithMapping, W
                 $total = $this->totalBoxes ?? ($this->rowCount - 1);
                 $sheet->setCellValue('A4', __('Total boxes:') . ' ' . $total);
 
-                // Stats tables
-                $sheet->setCellValue('I1', __('Boxes by room'));
-                $sheet->setCellValue('I2', __('Room'));
-                $sheet->setCellValue('J2', __('Total'));
+                // Stats tables - Shifted to right significantly, maybe M and P
+                // Old was I and L. We added 4 columns. So I+4=M, L+4=P
+                $sheet->setCellValue('M1', __('Boxes by room'));
+                $sheet->setCellValue('M2', __('Room'));
+                $sheet->setCellValue('N2', __('Total'));
                 $rowRoom = 3;
                 foreach ($this->boxesByRoom as $room => $count) {
-                    $sheet->setCellValue("I{$rowRoom}", $room ?: 'N/A');
-                    $sheet->setCellValue("J{$rowRoom}", $count);
+                    $sheet->setCellValue("M{$rowRoom}", $room ?: 'N/A');
+                    $sheet->setCellValue("N{$rowRoom}", $count);
                     $rowRoom++;
                 }
 
-                $sheet->setCellValue('L1', __('Documents by location'));
-                $sheet->setCellValue('L2', __('Location'));
-                $sheet->setCellValue('M2', __('Total'));
+                $sheet->setCellValue('P1', __('Documents by location'));
+                $sheet->setCellValue('P2', __('Location'));
+                $sheet->setCellValue('Q2', __('Total'));
                 $rowBox = 3;
                 foreach ($this->documentsByBox as $location => $count) {
-                    $sheet->setCellValue("L{$rowBox}", $location ?: 'N/A');
-                    $sheet->setCellValue("M{$rowBox}", $count);
+                    $sheet->setCellValue("P{$rowBox}", $location ?: 'N/A');
+                    $sheet->setCellValue("Q{$rowBox}", $count);
                     $rowBox++;
                 }
 
