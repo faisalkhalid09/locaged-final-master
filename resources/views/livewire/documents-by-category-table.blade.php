@@ -448,15 +448,23 @@
                 @can('viewAny', \App\Models\User::class)
                 <tr class="log-row d-none" data-doc-id="{{ $doc->id }}">
                     <td colspan="10">
+                        @php
+                            $currentUserRank = \App\Support\RoleHierarchy::getUserMaxRank(auth()->user());
+                        @endphp
                         @foreach($doc->auditLogs as $log)
-                            @if($log->action !== 'viewed_ocr')
+                            @php
+                                // Filter logs based on role hierarchy - only show logs from users at or below current user's rank
+                                $logUserRank = $log->user ? \App\Support\RoleHierarchy::getUserMaxRank($log->user) : 0;
+                                $canViewLog = $logUserRank <= $currentUserRank;
+                            @endphp
+                            @if($log->action !== 'viewed_ocr' && $canViewLog)
                             <div class="px-5 pt-2">
                                 <div class="activity-step">
                                     <div class="icon-box bord-color">
                                         <i class="fas fa-check fa-2xl"></i>
                                     </div>
                                     <div class="ms-4">
-                                        <strong>{{ $log->action }}</strong>
+                                        <strong>{{ ui_t('pages.activity.actions.' . $log->action) }}</strong>
                                         <div class="activity-meta">
                                             <i class="fa-solid fa-clock fa-sm me-2"></i>{{ optional($log->occurred_at)->format('Y-m-d H:i') }}
                                         </div>
