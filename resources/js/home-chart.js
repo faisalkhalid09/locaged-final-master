@@ -51,7 +51,7 @@ if (chartEl) {
             maintainAspectRatio: false,
             layout: {
                 padding: {
-                    left: 15,
+                    left: 40,
                     right: 15,
                     top: 10,
                     bottom: 10
