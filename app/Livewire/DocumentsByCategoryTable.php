@@ -34,6 +34,8 @@ class DocumentsByCategoryTable extends Component
     public $boxId = ''; // Filter by box ID (physical location)
     public $showExpired = false; // Show expired documents (from dashboard All Documents card)
     public $pageTitle = null; // Heading to display (from dashboard cards)
+    public $hideStatusFilter = false; // Hide status filter dropdown (from dashboard cards)
+
 
     public $documentsIds = [];
     public $checkedDocuments = []; // IDs of selected documents
