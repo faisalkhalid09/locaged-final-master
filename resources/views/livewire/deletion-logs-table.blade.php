@@ -1,7 +1,7 @@
 <div>
     <!-- Statistics Cards -->
     <div class="row g-3 mb-4">
-        <div class="col-md-3 col-sm-6">
+        <div class="col-md-4 col-sm-6">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
@@ -16,7 +16,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3 col-sm-6">
+        <div class="col-md-4 col-sm-6">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
@@ -31,7 +31,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3 col-sm-6">
+        <div class="col-md-4 col-sm-6">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
@@ -41,21 +41,6 @@
                         </div>
                         <div class="bg-info bg-opacity-10 rounded-circle p-3">
                             <i class="fas fa-calendar-day text-info fa-lg"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 col-sm-6">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-muted mb-2 small">{{ ui_t('pages.deletion_log.stats.current_page') }}</h6>
-                            <h3 class="mb-0">{{ $logs->count() }}</h3>
-                        </div>
-                        <div class="bg-primary bg-opacity-10 rounded-circle p-3">
-                            <i class="fas fa-file-alt text-primary fa-lg"></i>
                         </div>
                     </div>
                 </div>
