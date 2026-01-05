@@ -527,15 +527,45 @@ class DocumentController extends Controller
 
         $categories = Category::orderBy('name')->get();
 
-        // Get hierarchical location data for cascading dropdowns
-        $allRooms = \App\Models\Room::orderBy('name')->get()->map(function($room) {
+        // Filter physical location options by document's service
+        // Only show boxes that belong to the document's service, and their parent locations
+        $serviceId = $document->service_id;
+        
+        // Get all boxes for this service
+        $serviceBoxes = $serviceId 
+            ? \App\Models\Box::with('shelf.row.room')
+                ->where('service_id', $serviceId)
+                ->orderBy('name')
+                ->get()
+            : \App\Models\Box::with('shelf.row.room')->orderBy('name')->get();
+        
+        // Extract unique room, row, shelf IDs from these boxes
+        $validShelfIds = $serviceBoxes->pluck('shelf_id')->unique()->filter();
+        $validShelves = \App\Models\Shelf::with('row')
+            ->whereIn('id', $validShelfIds)
+            ->orderBy('name')
+            ->get();
+        
+        $validRowIds = $validShelves->pluck('row_id')->unique()->filter();
+        $validRows = \App\Models\Row::with('room')
+            ->whereIn('id', $validRowIds)
+            ->orderBy('name')
+            ->get();
+        
+        $validRoomIds = $validRows->pluck('room_id')->unique()->filter();
+        $validRooms = \App\Models\Room::whereIn('id', $validRoomIds)
+            ->orderBy('name')
+            ->get();
+
+        // Map to arrays for JSON response
+        $allRooms = $validRooms->map(function($room) {
             return [
                 'id' => $room->id,
                 'name' => $room->name,
             ];
         })->values();
 
-        $allRows = \App\Models\Row::with('room')->orderBy('name')->get()->map(function($row) {
+        $allRows = $validRows->map(function($row) {
             return [
                 'id' => $row->id,
                 'name' => $row->name,
@@ -543,7 +573,7 @@ class DocumentController extends Controller
             ];
         })->values();
 
-        $allShelves = \App\Models\Shelf::with('row')->orderBy('name')->get()->map(function($shelf) {
+        $allShelves = $validShelves->map(function($shelf) {
             return [
                 'id' => $shelf->id,
                 'name' => $shelf->name,
@@ -551,7 +581,7 @@ class DocumentController extends Controller
             ];
         })->values();
 
-        $allBoxes = \App\Models\Box::with('shelf')->orderBy('name')->get()->map(function($box) {
+        $allBoxes = $serviceBoxes->map(function($box) {
             return [
                 'id' => $box->id,
                 'name' => $box->name,
