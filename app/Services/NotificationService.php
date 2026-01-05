@@ -16,13 +16,14 @@ class NotificationService
     private $documentId;
     private $latestVersionId;
 
-    public function __construct(string $title, User $user, $document)
+    public function __construct(string $title, User $user, $document, $latestVersionId = null)
     {
         $this->title = $title;
         $this->user = $user;
         $this->document = $document;
         $this->documentId = is_object($document) ? $document->id : $document;
-        $this->latestVersionId = is_object($document) && $document->latestVersion ? $document->latestVersion->id : null;
+        // Use provided latestVersionId or try to get from document object
+        $this->latestVersionId = $latestVersionId ?? (is_object($document) && $document->latestVersion ? $document->latestVersion->id : null);
     }
 
     protected function getNotificationConfig(string $action): ?array
