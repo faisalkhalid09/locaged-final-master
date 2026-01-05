@@ -24,5 +24,24 @@ class DatabaseSeeder extends Seeder
                 'email' => $testUserEmail,
             ]);
         }
+
+        $this->call([
+            \Database\Seeders\AddActivityTabsTranslationsSeeder::class,
+            \Database\Seeders\AddApprovalReminderTranslationsSeeder::class,
+            \Database\Seeders\AddDayNamesTranslationsSeeder::class,
+            \Database\Seeders\AddDeletedChartTranslationSeeder::class,
+            \Database\Seeders\AddDeletionLogPageTranslationsSeeder::class,
+            \Database\Seeders\AddDeletionLogPdfTranslationsSeeder::class,
+            \Database\Seeders\AddDonutChartTranslationsSeeder::class,
+            \Database\Seeders\AddExpiredChartLabelTranslationSeeder::class,
+            \Database\Seeders\AddExpiredStatusTranslationSeeder::class,
+            \Database\Seeders\AddPendingDocumentsHeadingTranslationSeeder::class,
+            \Database\Seeders\AddPendingDocumentsPageHeadingSeeder::class,
+            \Database\Seeders\AddPhysicalLocationBoxErrorTranslationsSeeder::class,
+            \Database\Seeders\AddPostponeFeatureTranslationsSeeder::class,
+            \Database\Seeders\AddUploadLimitTranslationsSeeder::class,
+            \Database\Seeders\AddUploadSubmittingTranslationSeeder::class,
+            \Database\Seeders\AddUserPasswordCheckboxTranslationsSeeder::class,
+        ]);
     }
 }
