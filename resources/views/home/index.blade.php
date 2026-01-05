@@ -37,7 +37,7 @@
         <!-- Pending approvals Section -->
         @can('viewAny', \App\Models\Document::class)
             <div class="mt-5">
-                <h3 class="mb-3">{{ ui_t('pages.dashboard.approvals') }}</h3>
+                <h2 class="fw-bold mb-3">{{ ui_t('pages.dashboard.approvals') }}</h2>
                 <livewire:documents-table :showOnlyPendingApprovals="true" />
             </div>
         @endcan

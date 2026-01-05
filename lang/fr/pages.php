@@ -519,6 +519,7 @@ return [
     ],
 'dashboard' => [
         'overview' => 'Vue d’ensemble',
+        'approvals' => 'Documents en Attente',
         'donut' => [
             'departments_title' => 'Documents par structure',
             'departments_empty' => 'Aucun document trouvé dans les structures',
