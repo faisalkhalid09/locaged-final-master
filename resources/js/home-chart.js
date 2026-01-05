@@ -52,6 +52,7 @@ if (chartEl) {
             clip: false,
             layout: {
                 padding: {
+                    left: 10,
                     right: 50
                 }
             },
