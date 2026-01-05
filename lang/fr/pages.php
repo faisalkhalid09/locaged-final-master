@@ -22,22 +22,7 @@ return [
     'view_all' => 'Tout voir',
     'no_categories' => 'Aucune catégorie trouvée',
     'loading' => 'Chargement...',
-    'dashboard' => [
-        'donut' => [
-            'departments_title' => 'Documents par structure',
-            'no_documents' => 'Aucun document trouvé',
-            'no_data' => 'Aucune donnée disponible',
-            'departments_click' => 'Cliquez sur une structure pour afficher les détails',
-            'sub_departments_title' => 'Documents par département',
-            'sub_departments_click' => 'Cliquez sur un département pour afficher les détails',
-            'services_title' => 'Documents par service',
-            'services_click' => 'Cliquez sur un service pour afficher les détails',
-            'services_empty' => 'Aucun service trouvé',
-            'categories_title' => 'Documents par catégorie',
-            'categories_in' => 'Catégories dans :name',
-       ],
-        'pending_documents' => 'Documents en attente',
-    ],
+
     'categories_in' => 'Catégories dans',
     'error_loading_categories' => 'Erreur lors du chargement des catégories',
     'no_categories_in_dept' => 'Aucune catégorie trouvée dans cette structure',
@@ -519,6 +504,7 @@ return [
     ],
 'dashboard' => [
         'overview' => 'Vue d’ensemble',
+        'pending_documents' => 'Documents en attente',
         'approvals' => 'Documents en Attente',
         'donut' => [
             'departments_title' => 'Documents par structure',
