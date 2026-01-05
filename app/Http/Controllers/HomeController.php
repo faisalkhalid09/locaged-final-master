@@ -93,37 +93,75 @@ class HomeController extends Controller
         
         $donutChartData = $this->getDonutChartData($userDepartments);
 
-        // Rooms occupancy (by room) – count only documents the user can see
-        // Filter rooms to only show those with boxes the user has access to
+        // Location cards (Rooms or Boxes) based on user role
         $user = auth()->user();
-        $allRooms = \App\Models\Room::orderBy('name')->get();
-        $roomToCount = [];
+        $isMaster = $user && $user->hasRole('master');
+        $isSuperAdmin = $user && ($user->hasRole('Super Administrator') || $user->hasRole('super_admin'));
         
-        foreach ($allRooms as $room) {
-            // Get boxes in this room that the user has access to (filtered by service)
-            $boxIds = \App\Models\Box::forUser($user)
-                ->whereHas('shelf.row.room', function ($q) use ($room) {
-                    $q->where('id', $room->id);
-                })
-                ->pluck('id');
+        if ($isMaster) {
+            // MASTER: Show rooms with document counts
+            $allRooms = \App\Models\Room::orderBy('name')->get();
+            $roomToCount = [];
+            
+            foreach ($allRooms as $room) {
+                // Get boxes in this room that the user has access to
+                $boxIds = \App\Models\Box::forUser($user)
+                    ->whereHas('shelf.row.room', function ($q) use ($room) {
+                        $q->where('id', $room->id);
+                    })
+                    ->pluck('id');
 
-            // Only include this room if the user has access to at least one box in it
-            // (Admin/SuperAdmin will see all rooms because forUser returns all boxes for them)
-            if ($boxIds->isNotEmpty()) {
-                $count = (clone $visibleDocumentsQuery)
-                    ->whereIn('box_id', $boxIds)
-                    ->count();
+                // Only include this room if it has boxes
+                if ($boxIds->isNotEmpty()) {
+                    $count = (clone $visibleDocumentsQuery)
+                        ->whereIn('box_id', $boxIds)
+                        ->count();
 
-                $roomToCount[$room->name] = $count;
+                    $roomToCount[$room->name] = $count;
+                }
             }
-        }
 
-        $roomCards = collect($roomToCount)->map(function ($count, $room) {
-            return [
-                'room' => $room,
-                'count' => $count,
-            ];
-        })->values();
+            $roomCards = collect($roomToCount)->map(function ($count, $room) {
+                return [
+                    'type' => 'room',
+                    'room' => $room,
+                    'count' => $count,
+                ];
+            })->values();
+        } elseif ($isSuperAdmin) {
+            // SUPER ADMIN: Show all boxes with document counts
+            $boxes = \App\Models\Box::with(['shelf.row.room'])
+                ->orderBy('name')
+                ->get();
+            
+            $roomCards = $boxes->map(function($box) use ($visibleDocumentsQuery) {
+                $count = (clone $visibleDocumentsQuery)->where('box_id', $box->id)->count();
+                return [
+                    'type' => 'box',
+                    'id' => $box->id,
+                    'name' => $box->name,
+                    'full_path' => $box->__toString(),
+                    'count' => $count,
+                ];
+            })->filter(fn($b) => $b['count'] > 0)->values();
+        } else {
+            // OTHER USERS: Show service-filtered boxes
+            $boxes = \App\Models\Box::forUser($user)
+                ->with(['shelf.row.room'])
+                ->orderBy('name')
+                ->get();
+            
+            $roomCards = $boxes->map(function($box) use ($visibleDocumentsQuery) {
+                $count = (clone $visibleDocumentsQuery)->where('box_id', $box->id)->count();
+                return [
+                    'type' => 'box',
+                    'id' => $box->id,
+                    'name' => $box->name,
+                    'full_path' => $box->__toString(),
+                    'count' => $count,
+                ];
+            })->filter(fn($b) => $b['count'] > 0)->values();
+        }
 
         return view('home.index', compact(
             'totalDocuments', 'documents', 'categories',
