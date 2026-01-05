@@ -268,7 +268,6 @@
                                         
                                         @if($row->shelves->count() > 0)
                                             @foreach($row->shelves as $shelf)
-                                                @if($shelf->boxes->count() > 0)
                                                 <div class="ms-3 mt-2 mb-2 border-start border-2 border-info ps-3">
                                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                                         <div>
