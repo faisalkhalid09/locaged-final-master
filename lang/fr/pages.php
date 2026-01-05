@@ -834,7 +834,7 @@ return [
     ],
     
     'status' => [
-        'title' => 'Approbations',
+        'title' => 'Documents en Attente',
         'file_name' => 'Nom du document',
         'author' => 'Auteur',
         'creation_date' => 'Date de création',

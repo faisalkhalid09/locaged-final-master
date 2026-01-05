@@ -3,7 +3,7 @@
 @section('content')
     <div class="mt-5">
         <div class="d-md-flex mb-4">
-            <h4 class="mb-4">{{ ui_t('pages.status.title') }}</h4>
+            <h2 class="fw-bold">{{ ui_t('pages.status.title') }}</h2>
         </div>
 
         {{-- Use the unified documents table in approval mode with filters, selection,
