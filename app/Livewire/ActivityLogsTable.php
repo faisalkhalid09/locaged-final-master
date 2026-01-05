@@ -321,30 +321,50 @@ class ActivityLogsTable extends Component
         $query = $this->buildQuery();
         $logs = $query->paginate($this->perPage);
 
-        // Get statistics for cards (respect same department scoping and role filtering)
+        // Get statistics for cards (respect same department/service scoping and role filtering)
         $current = auth()->user();
         $deptIds = $current && $current->departments ? $current->departments->pluck('id') : collect();
         $isSuper = $current && $current->hasRole(['master','super administrator','super_admin']);
-        $isDeptScopedRole = $current && (
+        
+        $isDeptAdmin = $current && (
             $current->hasRole('Department Administrator') ||
             $current->hasRole('Admin de pole') ||
-            $current->hasRole('Admin de departments') ||
+            $current->hasRole('Admin de departments')
+        );
+
+        $isServiceManager = $current && (
             $current->hasRole('Admin de cellule') ||
-            $current->hasRole('user')
+            $current->hasRole('Service Manager')
         );
 
         $statsBase = AuditLog::query()
             ->where('action', '!=', 'viewed_ocr')
-            ->when($current && $isDeptScopedRole && $deptIds->isNotEmpty() && ! $isSuper, function($q) use ($deptIds, $current) {
+            // Department Admin: filter by department
+            ->when($isDeptAdmin && $deptIds->isNotEmpty() && ! $isSuper, function($q) use ($deptIds, $current) {
                 $allowedRoleNames = \App\Support\RoleHierarchy::allowedRoleNamesFor($current);
                 
                 $q->whereHas('document', function($q2) use ($deptIds) {
                     $q2->withTrashed()->whereIn('department_id', $deptIds);
                 })
-                // CRITICAL: Also filter stats by user role
                 ->whereHas('user.roles', function($q2) use ($allowedRoleNames) {
                     $q2->whereIn('name', $allowedRoleNames);
                 });
+            })
+            // Service Manager: filter by service
+            ->when($isServiceManager && !$isDeptAdmin && ! $isSuper, function($q) use ($current) {
+                $serviceIds = $this->getAccessibleServiceIds($current);
+                $allowedRoleNames = \App\Support\RoleHierarchy::allowedRoleNamesFor($current);
+                
+                if ($serviceIds->isNotEmpty()) {
+                    $q->whereHas('document', function($q2) use ($serviceIds) {
+                        $q2->withTrashed()->whereIn('service_id', $serviceIds);
+                    })
+                    ->whereHas('user.roles', function($q2) use ($allowedRoleNames) {
+                        $q2->whereIn('name', $allowedRoleNames);
+                    });
+                } else {
+                    $q->whereRaw('1 = 0');
+                }
             });
 
         $totalLogs = (clone $statsBase)->count();
@@ -352,20 +372,39 @@ class ActivityLogsTable extends Component
         $thisWeekLogs = (clone $statsBase)->whereBetween('occurred_at', [now()->startOfWeek(), now()->endOfWeek()])->count();
         $uniqueUsers = (clone $statsBase)->distinct('user_id')->count('user_id');
 
-        // Get filter options (respect department scoping and role hierarchy)
-        if ($current && $isDeptScopedRole && $deptIds->isNotEmpty() && ! $isSuper) {
+        // Get filter options (respect department/service scoping and role hierarchy)
+        if ($isDeptAdmin && $deptIds->isNotEmpty() && ! $isSuper) {
             $allowedRoleNames = \App\Support\RoleHierarchy::allowedRoleNamesFor($current);
             
             $users = User::whereHas('departments', function($q) use ($deptIds) {
                     $q->whereIn('departments.id', $deptIds);
                 })
-                // Only show users with roles below current user's rank
                 ->whereHas('roles', function($q) use ($allowedRoleNames) {
                     $q->whereIn('name', $allowedRoleNames);
                 })
                 ->orderBy('full_name')
                 ->get();
             $departments = Department::whereIn('id', $deptIds)->orderBy('name')->get();
+        } elseif ($isServiceManager && !$isDeptAdmin && ! $isSuper) {
+            $serviceIds = $this->getAccessibleServiceIds($current);
+            $allowedRoleNames = \App\Support\RoleHierarchy::allowedRoleNamesFor($current);
+            
+            if ($serviceIds->isNotEmpty()) {
+                $users = User::where(function($q) use ($serviceIds) {
+                        $q->whereIn('service_id', $serviceIds)
+                          ->orWhereHas('services', function($sq) use ($serviceIds) {
+                              $sq->whereIn('services.id', $serviceIds);
+                          });
+                    })
+                    ->whereHas('roles', function($q) use ($allowedRoleNames) {
+                        $q->whereIn('name', $allowedRoleNames);
+                    })
+                    ->orderBy('full_name')
+                    ->get();
+            } else {
+                $users = collect();
+            }
+            $departments = collect();
         } else {
             $users = User::orderBy('full_name')->get();
             $departments = Department::orderBy('name')->get();
