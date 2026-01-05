@@ -40,7 +40,7 @@ class DocumentsReportExport implements FromQuery, WithHeadings, WithMapping, Sho
                 'subcategory',
                 'category',
                 'department',
-                'service',
+                'service.subDepartment.department',
                 'box.shelf.row.room',
                 'createdBy',
                 'latestVersion',
@@ -119,14 +119,15 @@ class DocumentsReportExport implements FromQuery, WithHeadings, WithMapping, Sho
         return [
             __('Title'),
             __('Category'),
-            __('Structure'),
-            __('Service'),
             __('Status'),
             __('Creation date'),
             __('Expiration date'),
             __('Created by'),
             __('Last approver'),
             __('File size'),
+            __('Pôle'),
+            __('Département'),
+            __('Service'),
         ];
     }
 
@@ -176,17 +177,26 @@ class DocumentsReportExport implements FromQuery, WithHeadings, WithMapping, Sho
             }
         }
 
+        // Organizational Structure
+        $poleName = optional(optional(optional($doc->service)->subDepartment)->department)->name 
+            ?? optional($doc->department)->name 
+            ?? __('N/A');
+            
+        $deptName = optional(optional($doc->service)->subDepartment)->name ?? __('N/A');
+        $serviceName = optional($doc->service)->name ?? __('N/A');
+
         return [
             $doc->title,
             $categoryName,
-            optional($doc->department)->name ?? __('N/A'),
-            optional($doc->service)->name ?? __('N/A'),
             $statusLabel,
             optional($doc->created_at)?->format('d/m/Y H:i'),
             optional($doc->expire_at)?->format('d/m/Y'),
             optional($doc->createdBy)->full_name ?? __('N/A'),
             $lastApproverName,
             $fileSizeDisplay,
+            $poleName,
+            $deptName,
+            $serviceName,
         ];
     }
 
@@ -245,7 +255,8 @@ class DocumentsReportExport implements FromQuery, WithHeadings, WithMapping, Sho
                 $this->ensureStatisticsLoaded();
 
                 $lastRow = $this->rowCount;
-                $lastCol = 'J';
+                // Extended to K due to additional columns
+                $lastCol = 'K';
                 $this->applyDefaultSheetStyles($event, $lastRow, $lastCol);
 
                 $sheet = $event->sheet->getDelegate();
@@ -255,7 +266,7 @@ class DocumentsReportExport implements FromQuery, WithHeadings, WithMapping, Sho
 
                 // Header section
                 $sheet->setCellValue('A1', __('Documents Report'));
-                $sheet->mergeCells('A1:J1');
+                $sheet->mergeCells("A1:{$lastCol}1");
                 $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(16);
 
                 $sheet->setCellValue('A2', __('Generated on:') . ' ' . now()->format('d/m/Y H:i'));
