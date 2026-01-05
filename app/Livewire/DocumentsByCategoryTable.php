@@ -59,6 +59,7 @@ class DocumentsByCategoryTable extends Component
         'documentId' => ['except' => null, 'as' => 'document_id'],
         'showExpired' => ['except' => false, 'as' => 'show_expired'],
         'pageTitle' => ['except' => null, 'as' => 'page_title'],
+        'hideStatusFilter' => ['except' => false, 'as' => 'hide_status_filter'],
     ];
 
     public function mount($filterId = null, $isCategory = false, $contextLabel = null): void
