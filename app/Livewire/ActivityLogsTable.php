@@ -390,19 +390,28 @@ class ActivityLogsTable extends Component
             $allowedRoleNames = \App\Support\RoleHierarchy::allowedRoleNamesFor($current);
             
             if ($serviceIds->isNotEmpty()) {
-                $users = User::where(function($q) use ($serviceIds) {
-                        $q->whereIn('service_id', $serviceIds)
-                          ->orWhereHas('services', function($sq) use ($serviceIds) {
-                              $sq->whereIn('services.id', $serviceIds);
-                          });
+                $users = User::where(function($q) use ($serviceIds, $current) {
+                        // Include subordinate users in the service
+                        $q->where(function($subQ) use ($serviceIds) {
+                            $subQ->whereIn('service_id', $serviceIds)
+                                 ->orWhereHas('services', function($sq) use ($serviceIds) {
+                                     $sq->whereIn('services.id', $serviceIds);
+                                 });
+                        })
+                        // OR the manager themselves
+                        ->orWhere('id', $current->id);
+                     })
+                    ->where(function($q2) use ($allowedRoleNames, $current) {
+                        // Subordinate roles OR the current user
+                        $q2->whereHas('roles', function($q) use ($allowedRoleNames) {
+                            $q->whereIn('name', $allowedRoleNames);
+                        })
+                        ->orWhere('id', $current->id);
                     })
-                    ->whereHas('roles', function($q) use ($allowedRoleNames) {
-                        $q->whereIn('name', $allowedRoleNames);
-                    })
-                    ->orderBy('full_name')
+                    ->orderByRaw('CASE WHEN id = ? THEN 0 ELSE 1 END, full_name', [$current->id])
                     ->get();
             } else {
-                $users = collect();
+                $users = collect([$current]);
             }
             $departments = collect();
         } else {
