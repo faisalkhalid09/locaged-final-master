@@ -118,7 +118,6 @@ class DocumentsReportExport implements FromQuery, WithHeadings, WithMapping, Sho
     {
         return [
             __('Title'),
-            __('Category'),
             __('Status'),
             __('Creation date'),
             __('Expiration date'),
@@ -128,6 +127,7 @@ class DocumentsReportExport implements FromQuery, WithHeadings, WithMapping, Sho
             __('Pôle'),
             __('Département'),
             __('Service'),
+            __('Category'),
         ];
     }
 
@@ -187,7 +187,6 @@ class DocumentsReportExport implements FromQuery, WithHeadings, WithMapping, Sho
 
         return [
             $doc->title,
-            $categoryName,
             $statusLabel,
             optional($doc->created_at)?->format('d/m/Y H:i'),
             optional($doc->expire_at)?->format('d/m/Y'),
@@ -197,6 +196,7 @@ class DocumentsReportExport implements FromQuery, WithHeadings, WithMapping, Sho
             $poleName,
             $deptName,
             $serviceName,
+            $categoryName,
         ];
     }
 

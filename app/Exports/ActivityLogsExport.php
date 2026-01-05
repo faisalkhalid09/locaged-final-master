@@ -47,10 +47,13 @@ class ActivityLogsExport implements FromCollection, WithHeadings, WithMapping, S
         return [
             __('Date/Time'),
             __('User'),
-            __('Department'),
             __('Action'),
             __('Document'),
             __('IP Address'),
+            __('Pôle'),
+            __('Département'),
+            __('Service'),
+            __('Category'),
         ];
     }
 
@@ -69,13 +72,32 @@ class ActivityLogsExport implements FromCollection, WithHeadings, WithMapping, S
             ];
         }
 
+        $doc = $log->document;
+
+        // Resolve Org details
+        $poleName = optional(optional(optional($doc?->service)->subDepartment)->department)->name 
+            ?? optional($doc?->department)->name 
+            ?? __('N/A');
+            
+        $deptName = optional(optional($doc?->service)->subDepartment)->name ?? __('N/A');
+        $serviceName = optional($doc?->service)->name ?? __('N/A');
+
+        // Resolve Category
+        $categoryName = $doc?->category?->name
+            ?? $doc?->subcategory?->category?->name
+            ?? optional($doc?->subcategory)->name
+            ?? __('N/A');
+
         return [
             $log->occurred_at?->format('d/m/Y H:i:s') ?? '—',
             $log->user?->full_name ?? __('N/A'),
-            $log->document?->department?->name ?? __('N/A'),
             $this->translateAction($log->action ?? ''),
-            $log->document?->title ?? __('(Deleted document)'),
+            $doc?->title ?? __('(Deleted document)'),
             $log->ip_address ?? __('N/A'),
+            $poleName,
+            $deptName,
+            $serviceName,
+            $categoryName,
         ];
     }
 
@@ -121,7 +143,8 @@ class ActivityLogsExport implements FromCollection, WithHeadings, WithMapping, S
         return [
             AfterSheet::class => function (AfterSheet $event) {
                 $lastRow = $this->rowCount;
-                $lastCol = 'F';
+                // Extended to I (9 columns)
+                $lastCol = 'I';
                 $this->applyDefaultSheetStyles($event, $lastRow, $lastCol);
 
                 $sheet = $event->sheet->getDelegate();
@@ -134,7 +157,7 @@ class ActivityLogsExport implements FromCollection, WithHeadings, WithMapping, S
                     ? __('Authentication Activity Log') 
                     : __('Document Activity Log');
                 $sheet->setCellValue('A1', $title);
-                $sheet->mergeCells('A1:F1');
+                $sheet->mergeCells("A1:{$lastCol}1");
                 $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(16);
 
                 $sheet->setCellValue('A2', __('Generated on:') . ' ' . now()->format('d/m/Y H:i'));
