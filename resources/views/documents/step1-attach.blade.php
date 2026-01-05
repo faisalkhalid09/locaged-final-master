@@ -268,10 +268,19 @@
                             </div>
                         </div>
                         <div class="d-flex gap-2 mt-3">
-                            <button class="border-0 bg-transparent me-3" title="{{ ui_t('pages.upload.preview') }}" type="button"
-                                    wire:click="previewFile({{ $index }})">
-                                <i class="fa-solid fa-eye"></i>
-                            </button>
+                            @php
+                                // File extensions that cannot be previewed
+                                $nonPreviewableExtensions = ['xlsx', 'xls', 'xlsm', 'xlsb', 'doc', 'docx', 'docm', 'ppt', 'pptx', 'pptm'];
+                                $canPreview = !in_array($extension, $nonPreviewableExtensions);
+                            @endphp
+                            
+                            @if($canPreview)
+                                <button class="border-0 bg-transparent me-3" title="{{ ui_t('pages.upload.preview') }}" type="button"
+                                        wire:click="previewFile({{ $index }})">
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
+                            @endif
+                            
                             <button class="border-0 bg-transparent btn-delete" title="{{ ui_t('pages.upload.delete') }}" type="button"
                                     wire:click="removeDocument({{ $index }})">
                                 <i class="fa-solid fa-trash text-danger"></i>
