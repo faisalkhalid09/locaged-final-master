@@ -120,15 +120,14 @@
                 <input type="text" placeholder="{{ ui_t('tables.file_name') }}" wire:model.live="search" />
             </div>
             <div class="table-filters">
-                @unless($hideStatusFilter)
-                <select class="form-select" wire:model.change="status">
+                <select class="form-select" wire:model.change="status" {{ $hideStatusFilter ? 'disabled' : '' }}>
                     <option value="all">{{ ui_t('filters.all') }}</option>
                     @foreach(\App\Enums\DocumentStatus::activeCases() as $status)
                         <option value="{{ $status->value }}">{{ ui_t('pages.documents.status.' . $status->value) }}</option>
                     @endforeach
                     <option value="expired">{{ ui_t('pages.documents.status.expired') }}</option>
                 </select>
-                @endunless
+
 
                 <select class="form-select" wire:model.change="fileType">
                     <option value="">{{ ui_t('filters.file_type') }}</option>
