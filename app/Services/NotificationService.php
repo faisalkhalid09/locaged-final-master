@@ -47,6 +47,7 @@ class NotificationService
             'type' => $config['type'],
             'title' => $title,
             'body' => str_replace(':title', $this->title, $body),
+            'action' => $action,
             'action_text' => 'View Document',
             'action_url' => route('documents.show', $this->documentId),
             'icon' => $config['icon'],
@@ -59,7 +60,7 @@ class NotificationService
             $notificationData['title'],
             $notificationData['body'],
             $notificationData['action'],
-            $notificationData['documentId'],
+            $notificationData['document_id'],
             $this->latestVersionId,
             $notificationData['icon']
         ));
