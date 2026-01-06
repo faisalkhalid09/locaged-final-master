@@ -18,7 +18,7 @@
                             @method('PUT')
 
                             @php
-                                $departments = \App\Models\Department::with('subDepartments.services')->get();
+                                // $departments is passed from the controller
                                 $oldDept = old('department_id', $category->department_id);
                                 $oldSubDept = old('sub_department_id', $category->sub_department_id);
                                 $oldService = old('service_id', $category->service_id);

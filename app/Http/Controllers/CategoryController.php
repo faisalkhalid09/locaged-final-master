@@ -32,7 +32,21 @@ class CategoryController extends Controller
     {
         Gate::authorize('create', Category::class);
 
-        return view('categories.create');
+        $user = auth()->user();
+        
+        // Filter departments based on user role
+        // Admin de pole should only see their assigned departments
+        $isSuperAdmin = $user->hasRole(['master', 'Super Administrator', 'super_admin']);
+        
+        if ($isSuperAdmin) {
+            // Super admins see all departments
+            $departments = \App\Models\Department::with('subDepartments.services')->get();
+        } else {
+            // Admin de pole and other roles see only their assigned departments
+            $departments = $user->departments()->with('subDepartments.services')->get();
+        }
+
+        return view('categories.create', compact('departments'));
     }
 
     // Store a new category
@@ -92,7 +106,18 @@ class CategoryController extends Controller
     {
         Gate::authorize('update', $category);
 
-        return view('categories.edit', compact('category'));
+        $user = auth()->user();
+        
+        // Filter departments based on user role
+        $isSuperAdmin = $user->hasRole(['master', 'Super Administrator', 'super_admin']);
+        
+        if ($isSuperAdmin) {
+            $departments = \App\Models\Department::with('subDepartments.services')->get();
+        } else {
+            $departments = $user->departments()->with('subDepartments.services')->get();
+        }
+
+        return view('categories.edit', compact('category', 'departments'));
     }
 
 

@@ -22,7 +22,7 @@
                                 <label class="form-label fw-medium">{{ ui_t('pages.categories_form.structure') }} <span class="text-danger">*</span></label>
 
                                 @php
-                                    $departments = \App\Models\Department::with('subDepartments.services')->get();
+                                    // $departments is now passed from the controller (filtered by user role)
                                     $oldDept = old('department_id');
                                     $oldSubDept = old('sub_department_id');
                                     $oldService = old('service_id');
