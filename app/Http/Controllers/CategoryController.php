@@ -34,16 +34,23 @@ class CategoryController extends Controller
 
         $user = auth()->user();
         
-        // Filter departments based on user role
-        // Admin de pole should only see their assigned departments
-        $isSuperAdmin = $user->hasRole(['master', 'Super Administrator', 'super_admin']);
+        // Get accessible service IDs using the same logic as physical locations
+        $accessibleServiceIds = \App\Models\Box::getAccessibleServiceIds($user);
         
-        if ($isSuperAdmin) {
+        if ($accessibleServiceIds === 'all') {
             // Super admins see all departments
             $departments = \App\Models\Department::with('subDepartments.services')->get();
         } else {
-            // Admin de pole and other roles see only their assigned departments
-            $departments = $user->departments()->with('subDepartments.services')->get();
+            // Filter to only show departments/sub-departments/services the user has access to
+            $departments = \App\Models\Department::with(['subDepartments' => function($subQuery) use ($accessibleServiceIds) {
+                $subQuery->whereHas('services', function($serviceQuery) use ($accessibleServiceIds) {
+                    $serviceQuery->whereIn('id', $accessibleServiceIds);
+                })->with(['services' => function($serviceQuery) use ($accessibleServiceIds) {
+                    $serviceQuery->whereIn('id', $accessibleServiceIds);
+                }]);
+            }])->whereHas('subDepartments.services', function($serviceQuery) use ($accessibleServiceIds) {
+                $serviceQuery->whereIn('id', $accessibleServiceIds);
+            })->get();
         }
 
         return view('categories.create', compact('departments'));
@@ -108,13 +115,22 @@ class CategoryController extends Controller
 
         $user = auth()->user();
         
-        // Filter departments based on user role
-        $isSuperAdmin = $user->hasRole(['master', 'Super Administrator', 'super_admin']);
+        // Get accessible service IDs using the same logic as physical locations
+        $accessibleServiceIds = \App\Models\Box::getAccessibleServiceIds($user);
         
-        if ($isSuperAdmin) {
+        if ($accessibleServiceIds === 'all') {
             $departments = \App\Models\Department::with('subDepartments.services')->get();
         } else {
-            $departments = $user->departments()->with('subDepartments.services')->get();
+            // Filter to only show departments/sub-departments/services the user has access to
+            $departments = \App\Models\Department::with(['subDepartments' => function($subQuery) use ($accessibleServiceIds) {
+                $subQuery->whereHas('services', function($serviceQuery) use ($accessibleServiceIds) {
+                    $serviceQuery->whereIn('id', $accessibleServiceIds);
+                })->with(['services' => function($serviceQuery) use ($accessibleServiceIds) {
+                    $serviceQuery->whereIn('id', $accessibleServiceIds);
+                }]);
+            }])->whereHas('subDepartments.services', function($serviceQuery) use ($accessibleServiceIds) {
+                $serviceQuery->whereIn('id', $accessibleServiceIds);
+            })->get();
         }
 
         return view('categories.edit', compact('category', 'departments'));
