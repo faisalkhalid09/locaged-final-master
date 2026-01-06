@@ -308,8 +308,15 @@ class PhysicalLocationController extends Controller
         try {
             DB::beginTransaction();
 
+            // Store old location before moving
+            $oldShelf = $box->shelf;
+            $oldRow = $oldShelf->row;
+            $oldRoom = $oldRow->room;
+
             // Find or create the new path structure
-            $room = Room::firstOrCreate(['name' => $validated['room_name']]);
+            $room = Room::firstOrCreate(['name' => $validated['room_name']], [
+                'department_id' => $this->getUserDepartmentId(auth()->user())
+            ]);
             
             $row = Row::firstOrCreate([
                 'room_id' => $room->id,
@@ -339,6 +346,31 @@ class PhysicalLocationController extends Controller
                 'name' => $validated['name'],
                 'description' => $validated['description'] ?? null,
             ]);
+
+            // Clean up old empty structures (only if box was moved to different shelf)
+            if ($oldShelf->id !== $shelf->id) {
+                // Refresh to get current state
+                $oldShelf->refresh();
+                
+                // If old shelf is now empty, delete it
+                if ($oldShelf->boxes()->count() === 0) {
+                    $shelfId = $oldShelf->id;
+                    $oldShelf->delete();
+                    
+                    // Check if old row is now empty
+                    $oldRow->refresh();
+                    if ($oldRow->shelves()->count() === 0) {
+                        $rowId = $oldRow->id;
+                        $oldRow->delete();
+                        
+                        // Check if old room is now empty
+                        $oldRoom->refresh();
+                        if ($oldRoom->rows()->count() === 0) {
+                            $oldRoom->delete();
+                        }
+                    }
+                }
+            }
 
             DB::commit();
             return back()->with('success', 'Box updated successfully.');
