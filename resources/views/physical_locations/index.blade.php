@@ -210,16 +210,6 @@
             
             @if(isset($rooms) && $rooms->count() > 0)
                 @foreach($rooms as $room)
-                    @php
-                        // Check if room has any visible boxes (after service filtering)
-                        $hasVisibleBoxes = $room->rows->some(function($row) {
-                            return $row->shelves->some(function($shelf) {
-                                return $shelf->boxes->isNotEmpty();
-                            });
-                        });
-                    @endphp
-                    
-                    @if($hasVisibleBoxes)
                     <div class="card mb-3">
                         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                             <div>
@@ -228,27 +218,11 @@
                                     <small class="d-block">{{ $room->description }}</small>
                                 @endif
                             </div>
-                            @php
-                                // Count only rows that have shelves with boxes
-                                $visibleRowsCount = $room->rows->filter(function($row) {
-                                    return $row->shelves->some(function($shelf) {
-                                        return $shelf->boxes->isNotEmpty();
-                                    });
-                                })->count();
-                            @endphp
-                            <span class="badge bg-light text-dark">{{ $visibleRowsCount }} {{ ui_t('pages.physical.fields.row') }}(s)</span>
+                            <span class="badge bg-light text-dark">{{ $room->rows->count() }} {{ ui_t('pages.physical.fields.row') }}(s)</span>
                         </div>
                         <div class="card-body">
                             @if($room->rows->count() > 0)
                                 @foreach($room->rows as $row)
-                                    @php
-                                        // Check if row has any shelves with boxes
-                                        $hasVisibleShelves = $row->shelves->some(function($shelf) {
-                                            return $shelf->boxes->isNotEmpty();
-                                        });
-                                    @endphp
-                                    
-                                    @if($hasVisibleShelves)
                                     <div class="ms-3 mb-3 border-start border-3 border-secondary ps-3">
                                         <div class="d-flex justify-content-between align-items-center mb-2">
                                             <div>
@@ -257,13 +231,7 @@
                                                     <small class="text-muted d-block">{{ $row->description }}</small>
                                                 @endif
                                             </div>
-                                            @php
-                                                // Count only shelves that have boxes
-                                                $visibleShelvesCount = $row->shelves->filter(function($shelf) {
-                                                    return $shelf->boxes->isNotEmpty();
-                                                })->count();
-                                            @endphp
-                                            <span class="badge bg-secondary">{{ $visibleShelvesCount }} {{ ui_t('pages.physical.fields.shelf') }}(s)</span>
+                                            <span class="badge bg-secondary">{{ $row->shelves->count() }} {{ ui_t('pages.physical.fields.shelf') }}(s)</span>
                                         </div>
                                         
                                         @if($row->shelves->count() > 0)
@@ -330,14 +298,12 @@
                                             <p class="text-muted small ms-3"><em>{{ ui_t('pages.physical.actions.no_shelves') }}</em></p>
                                         @endif
                                     </div>
-                                    @endif
                                 @endforeach
                             @else
                                 <p class="text-muted ms-3"><em>{{ ui_t('pages.physical.actions.no_rows') }}</em></p>
                             @endif
                         </div>
                     </div>
-                    @endif
                 @endforeach
             @else
                 <div class="alert alert-info">
