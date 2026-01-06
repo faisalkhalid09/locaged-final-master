@@ -32,6 +32,11 @@
         .custom-toast-notification i {
             font-size: 18px;
         }
+        
+        /* Force backdrop to be lower than the modal (z-index 10) */
+        .modal-backdrop {
+            z-index: 1 !important;
+        }
     </style>
     @if($boxId)
         @php
