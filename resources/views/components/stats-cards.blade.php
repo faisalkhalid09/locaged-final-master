@@ -1,5 +1,5 @@
 <div class="stats-grid">
-    <a href="{{ route('documents.all', ['show_expired' => 1, 'page_title' => 'all_documents', 'hide_status_filter' => 1]) }}" class="text-decoration-none text-reset">
+    <a href="{{ route('documents.all', ['show_expired' => 1, 'page_title' => 'all_documents']) }}" class="text-decoration-none text-reset">
     <div class="stat-card red">
         <div class="stat-icon">
             <i class="fa-solid fa-file"></i>
