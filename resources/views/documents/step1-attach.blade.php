@@ -38,7 +38,7 @@
                         console.error('[File Validation] Upload blocked due to oversized files');
                         return {
                             valid: false,
-                            message: '{{ ui_t("pages.upload.upload_blocked") }}: ' + fileNames + moreCount + ' | {{ __("File size") }}: ' + sizeMB + ' MB | {{ __("Maximum allowed") }}: ' + maxMB + ' MB'
+                            message: '{{ ui_t('pages.upload.upload_blocked') }}: ' + fileNames + moreCount + ' | {{ __('File size') }}: ' + sizeMB + ' MB | {{ __('Maximum allowed') }}: ' + maxMB + ' MB'
                         };
                     }
 
@@ -47,7 +47,7 @@
                         console.error('[File Validation] Upload blocked: too many files selected');
                         return {
                             valid: false,
-                            message: '{{ ui_t("pages.upload.upload_blocked") }}: {{ __("Too many files selected") }}. {{ __("Files selected") }}: ' + filesArray.length + ' | {{ __("Maximum allowed") }}: ' + this.maxBatchFiles
+                            message: '{{ ui_t('pages.upload.upload_blocked') }}: {{ __('Too many files selected') }}. {{ __('Files selected') }}: ' + filesArray.length + ' | {{ __('Maximum allowed') }}: ' + this.maxBatchFiles
                         };
                     }
 
