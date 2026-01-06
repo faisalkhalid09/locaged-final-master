@@ -11,7 +11,7 @@
             padding: 16px 24px;
             border-radius: 8px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-            z-index: 10100; /* Ensured high z-index to stay above modal */
+            z-index: 50; /* Ensured high z-index to stay above modal */
             display: flex;
             align-items: center;
             font-size: 15px;
