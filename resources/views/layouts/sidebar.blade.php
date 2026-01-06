@@ -102,7 +102,7 @@
                 <span class="sidebar-text">{{ ui_t('nav.settings') }}</span>
             </a>
             <ul class="submenu list-unstyled ms-4">
-                @if($u && ($u->hasRole('master') || $u->hasRole('Super Administrator') || $u->hasRole('admin')))
+                @if($u && ($u->hasRole('master') || $u->hasRole('Super Administrator') || $u->hasRole('admin') || $u->hasRole('Admin de pole')))
                     <li class="mt-2">
                         <a href="{{ route('departments.index') }}" class="{{ request()->routeIs('departments.index') ? 'active' : '' }}">
                             <img src="{{ asset('assets/template/brifecase-tick.svg') }}" class="me-2" />

@@ -13,12 +13,31 @@ class ServiceController extends Controller
      */
     public function store(Request $request)
     {
-        Gate::authorize('create', Service::class);
+        $user = auth()->user();
+        $isAdminDePole = $user?->hasRole('Admin de pole');
 
-        $data = $request->validate([
-            'name' => 'required|string|max:255',
-            'sub_department_id' => 'required|exists:sub_departments,id',
-        ]);
+        // Admin de pole can create services in sub-departments within their assigned pole
+        if ($isAdminDePole) {
+            $data = $request->validate([
+                'name' => 'required|string|max:255',
+                'sub_department_id' => 'required|exists:sub_departments,id',
+            ]);
+
+            // Verify the sub-department belongs to a department assigned to this Admin de pole
+            $assignedDeptIds = $user->departments->pluck('id')->toArray();
+            $subDept = \App\Models\SubDepartment::find($data['sub_department_id']);
+            
+            if (!$subDept || !in_array($subDept->department_id, $assignedDeptIds)) {
+                abort(403, 'You can only create services in your assigned pole.');
+            }
+        } else {
+            Gate::authorize('create', Service::class);
+            
+            $data = $request->validate([
+                'name' => 'required|string|max:255',
+                'sub_department_id' => 'required|exists:sub_departments,id',
+            ]);
+        }
 
         Service::create($data);
 
