@@ -425,7 +425,7 @@ class DocumentController extends Controller
         // Delete the document itself
         $document->delete();
         
-        return redirect()->back()->with('success', 'Document permanently deleted from the system.');
+        return redirect()->back()->with('success', ui_t('pages.documents.delete_success'));
     }
 
     public function rename($id,Request $request)

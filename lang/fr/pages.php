@@ -788,6 +788,7 @@ return [
         'permanent_delete_title' => 'Voulez-vous vraiment supprimer définitivement ce document ?',
         'permanent_delete_body' => 'Le document et tous ses fichiers seront complètement supprimés du système. Cette action est irréversible.',
         'bulk_permanent_delete_confirm' => 'Voulez-vous vraiment supprimer définitivement :count document(s) sélectionné(s) ? Leurs fichiers seront complètement supprimés du système. Cette action est irréversible.',
+        'delete_success' => 'Document supprimé définitivement du système.',
         'request_destruction_title' => 'Demander la destruction du document',
         'request_destruction_confirm' => 'Voulez-vous vraiment demander la destruction de ce document ?',
         'request_destruction_button' => 'Demander la destruction',

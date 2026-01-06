@@ -806,6 +806,7 @@ return [
         'permanent_delete_title' => 'Are you sure you want to permanently delete this document?',
         'permanent_delete_body' => 'This will completely remove the document and all its files from the system. This action cannot be undone.',
         'bulk_permanent_delete_confirm' => 'Are you sure you want to permanently delete :count selected document(s)? This will completely remove the documents and all their files from the system. This action cannot be undone.',
+        'delete_success' => 'Document permanently deleted from the system.',
         'request_destruction_title' => 'Request Document Destruction',
         'request_destruction_confirm' => 'Are you sure you want to request the destruction of this document?',
         'request_destruction_button' => 'Request Destruction',
