@@ -68,6 +68,12 @@ class DeletionLogsTable extends Component
     private function buildQuery()
     {
         $current = auth()->user();
+        
+        // Check if current user is Super Admin (not master)
+        $isSuperAdmin = $current && 
+            $current->hasRole(['Super Administrator', 'super_admin']) && 
+            !$current->hasRole('master');
+        
         $isDeptAdmin = $current && (
             $current->hasRole('Department Administrator') ||
             $current->hasRole('Admin de pole') ||
@@ -78,23 +84,33 @@ class DeletionLogsTable extends Component
             $current->hasRole('Service Manager')
         );
         
-        return AuditLog::with(['user', 'document' => function ($q) {
-                $q->withTrashed()->with(['department', 'service.subDepartment']);
+        return AuditLog::with(['user.roles', 'document' => function ($q) {
+                $q->withoutGlobalScopes()->withTrashed()->with(['department', 'service.subDepartment']);
             }])
             ->where('action', 'permanently_deleted')
-            // Department Administrator: only see logs from their department
-            ->when($isDeptAdmin, function($q) use ($current) {
+            // Super Admin: hide logs from master users
+            ->when($isSuperAdmin, function($q) {
+                $q->whereDoesntHave('user.roles', function($r) {
+                    $r->whereRaw('LOWER(name) = ?', ['master']);
+                });
+            })
+            // Department Administrator: only see logs from their department AND filter out higher roles
+            ->when($isDeptAdmin && !$isSuperAdmin, function($q) use ($current) {
                 $deptIds = $current->departments?->pluck('id') ?? collect();
                 
                 $q->where(function($subQuery) use ($deptIds) {
                     // Filter by document department
                     $subQuery->whereHas('document', function($q2) use ($deptIds) {
-                        $q2->withTrashed()->whereIn('department_id', $deptIds);
+                        $q2->withoutGlobalScopes()->withTrashed()->whereIn('department_id', $deptIds);
                     });
+                })
+                // Hide logs from Master, Super Admin, and Admin users
+                ->whereDoesntHave('user.roles', function($r) {
+                    $r->whereIn(\DB::raw('LOWER(name)'), ['master', 'super administrator', 'super_admin', 'admin']);
                 });
             })
-            // Service Manager: only see logs from their service
-            ->when($isServiceManager, function($q) use ($current) {
+            // Service Manager: only see logs from their service AND filter out higher roles
+            ->when($isServiceManager && !$isDeptAdmin && !$isSuperAdmin, function($q) use ($current) {
                 $serviceIds = collect();
                 if ($current->service_id) {
                     $serviceIds->push($current->service_id);
@@ -106,7 +122,11 @@ class DeletionLogsTable extends Component
 
                 if ($serviceIds->isNotEmpty()) {
                     $q->whereHas('document', function($q2) use ($serviceIds) {
-                        $q2->withTrashed()->whereIn('service_id', $serviceIds);
+                        $q2->withoutGlobalScopes()->withTrashed()->whereIn('service_id', $serviceIds);
+                    })
+                    // Hide logs from Master, Super Admin, Admin, and Dept Admin users
+                    ->whereDoesntHave('user.roles', function($r) {
+                        $r->whereIn(\DB::raw('LOWER(name)'), ['master', 'super administrator', 'super_admin', 'admin', 'admin de pole', 'department administrator']);
                     });
                 } else {
                     $q->whereRaw('1 = 0');
