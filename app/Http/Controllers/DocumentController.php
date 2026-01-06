@@ -211,7 +211,7 @@ class DocumentController extends Controller
     public function update(Request $request, Document $document)
     {
 
-        Gate::authorize('update', Document::class);
+        Gate::authorize('update', $document);
 
         $isExpired = $document->expire_at && $document->expire_at->isPast();
         $user = auth()->user();
