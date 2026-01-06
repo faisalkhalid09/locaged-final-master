@@ -159,6 +159,14 @@ class MultipleDocumentsCreateForm extends Component
         
         // Find rooms that have at least one accessible box
         return Room::whereHas('rows.shelves.boxes', function ($query) use ($user) {
+            $selectedServiceId = $this->currentInfo['service_id'] ?? null;
+            
+            // If specific service is selected, filter boxes by that service
+            if ($selectedServiceId) {
+                $query->where('service_id', $selectedServiceId);
+                return;
+            }
+
             $accessibleServiceIds = Box::getAccessibleServiceIds($user);
             
             if ($accessibleServiceIds === 'all') {
@@ -190,6 +198,14 @@ class MultipleDocumentsCreateForm extends Component
         // Find rows (in selected room) that have at least one accessible box
         return Row::where('room_id', $this->selectedRoomId)
             ->whereHas('shelves.boxes', function ($query) use ($user) {
+                $selectedServiceId = $this->currentInfo['service_id'] ?? null;
+                
+                // If specific service is selected, filter boxes by that service
+                if ($selectedServiceId) {
+                    $query->where('service_id', $selectedServiceId);
+                    return;
+                }
+
                 $accessibleServiceIds = Box::getAccessibleServiceIds($user);
                 
                 if ($accessibleServiceIds === 'all') {
@@ -218,6 +234,14 @@ class MultipleDocumentsCreateForm extends Component
         // Find shelves (in selected row) that have at least one accessible box
         return Shelf::where('row_id', $this->selectedRowId)
             ->whereHas('boxes', function ($query) use ($user) {
+                $selectedServiceId = $this->currentInfo['service_id'] ?? null;
+                
+                // If specific service is selected, filter boxes by that service
+                if ($selectedServiceId) {
+                    $query->where('service_id', $selectedServiceId);
+                    return;
+                }
+
                 $accessibleServiceIds = Box::getAccessibleServiceIds($user);
                 
                 if ($accessibleServiceIds === 'all') {
@@ -241,9 +265,14 @@ class MultipleDocumentsCreateForm extends Component
             return collect();
         }
         
-        return Box::where('shelf_id', $this->selectedShelfId)
-            ->forUser(auth()->user())
-            ->get();
+        $query = Box::where('shelf_id', $this->selectedShelfId)
+            ->forUser(auth()->user());
+
+        if (!empty($this->currentInfo['service_id'])) {
+            $query->where('service_id', $this->currentInfo['service_id']);
+        }
+
+        return $query->get();
     }
 
     // Helper to load the current document's info into the form property
@@ -650,6 +679,13 @@ class MultipleDocumentsCreateForm extends Component
         $this->currentInfo['category_id'] = null;
         $this->currentInfo['subcategory_id'] = null;
         $this->currentInfo['expire_at'] = null;
+
+        // Reset location selection
+        $this->selectedRoomId = null;
+        $this->selectedRowId = null;
+        $this->selectedShelfId = null;
+        $this->selectedBoxId = null;
+        $this->currentInfo['box_id'] = null;
 
         $this->dispatch('categories-reset');
     }
