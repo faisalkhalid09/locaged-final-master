@@ -215,8 +215,9 @@ class ActivityLogsTable extends Component
                 'user.departments', 
                 'user.roles',
                 'document' => function($q) {
-                    // Include soft-deleted documents so audit logs show the document name
-                    $q->withTrashed();
+                    // Include soft-deleted documents and bypass global scopes
+                    // so audit logs show document names for all users
+                    $q->withoutGlobalScopes()->withTrashed();
                 },
                 'document.department', 
                 'documentVersion'
