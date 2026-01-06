@@ -28,8 +28,7 @@ class PhysicalLocationController extends Controller
 
         $user = auth()->user();
         
-        // Get all rooms with their hierarchy, filtering boxes by user's accessible services
-        $rooms = Room::with(['rows.shelves.boxes' => function ($query) use ($user) {
+        $roomsQuery = Room::with(['rows.shelves.boxes' => function ($query) use ($user) {
             // Apply service-based filtering to boxes
             $query->forUser($user);
             
@@ -37,7 +36,24 @@ class PhysicalLocationController extends Controller
             $query->with(['documents' => function ($docQuery) {
                 $docQuery->select('id', 'box_id', 'title');
             }]);
-        }])->get();
+        }]);
+
+        // Filter rooms selection based on user permissions
+        $accessibleServiceIds = Box::getAccessibleServiceIds($user);
+
+        if ($accessibleServiceIds !== 'all') {
+            $roomsQuery->where(function($q) use ($accessibleServiceIds) {
+                // Show rooms that have boxes belonging to user's services
+                $q->whereHas('rows.shelves.boxes', function($boxQ) use ($accessibleServiceIds) {
+                    $boxQ->whereIn('service_id', $accessibleServiceIds);
+                })
+                // OR show empty rooms (rooms with no boxes at all)
+                // Note: We check 'rows.shelves.boxes' to catch deep nesting
+                ->orWhereDoesntHave('rows.shelves.boxes');
+            });
+        }
+
+        $rooms = $roomsQuery->get();
         
         return view('physical_locations.index', compact('rooms'));
     }

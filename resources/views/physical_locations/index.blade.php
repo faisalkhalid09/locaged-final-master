@@ -68,7 +68,7 @@
                                     <label for="add_row_room_id" class="form-label">{{ ui_t('pages.physical.actions.select_room') }} <span class="text-danger">*</span></label>
                                     <select class="form-select" id="add_row_room_id" name="room_id" required>
                                         <option value="">{{ ui_t('pages.physical.selects.select_room') }}</option>
-                                        @foreach(\App\Models\Room::all() as $room)
+                                        @foreach($rooms as $room)
                                             <option value="{{ $room->id }}">{{ $room->name }}</option>
                                         @endforeach
                                     </select>
@@ -103,7 +103,7 @@
                                     <label for="add_shelf_room_id" class="form-label">{{ ui_t('pages.physical.actions.select_room') }}</label>
                                     <select class="form-select" id="add_shelf_room_id" name="room_id">
                                         <option value="">{{ ui_t('pages.physical.selects.select_room') }}</option>
-                                        @foreach(\App\Models\Room::all() as $room)
+                                        @foreach($rooms as $room)
                                             <option value="{{ $room->id }}">{{ $room->name }}</option>
                                         @endforeach
                                     </select>
@@ -168,7 +168,7 @@
                                     <label for="add_box_room_id" class="form-label">{{ ui_t('pages.physical.actions.select_room') }}</label>
                                     <select class="form-select" id="add_box_room_id" name="room_id">
                                         <option value="">{{ ui_t('pages.physical.selects.select_room') }}</option>
-                                        @foreach(\App\Models\Room::all() as $room)
+                                        @foreach($rooms as $room)
                                             <option value="{{ $room->id }}">{{ $room->name }}</option>
                                         @endforeach
                                     </select>
@@ -444,7 +444,7 @@
     @endif
 
     <script>
-        const rooms = @json(\App\Models\Room::with('rows.shelves')->get());
+        const rooms = @json($rooms);
         const translations = {
             selectRow: @json(ui_t('pages.physical.selects.select_row')),
             firstSelectRow: @json(ui_t('pages.physical.selects.first_select_row')),

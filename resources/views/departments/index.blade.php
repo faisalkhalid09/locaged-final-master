@@ -58,7 +58,7 @@
                         <select name="sub_department_id" class="form-control py-3 mt-1">
                             @foreach($allDepartments as $dept)
                                 @foreach($dept->subDepartments as $sub)
-                                    <option value="{{ $sub->id }}">{{ $dept->name }} - {{ $sub->name }}</option>
+                                    <option value="{{ $sub->id }}">{{ $sub->name }}</option>
                                 @endforeach
                             @endforeach
                         </select>
@@ -150,7 +150,7 @@
                                                         @foreach($sub->services as $service)
                                                             <div class="badge bg-white text-dark border d-flex align-items-center gap-2 py-2 px-3 shadow-sm rounded-pill">
                                                                 <i class="fas fa-circle text-success small"></i>
-                                                                <span class="small">{{ $service->name }}</span>
+                                                                <span class="small text-truncate" style="max-width: 200px;" title="{{ $service->name }}">{{ $service->name }}</span>
                                                                 <div class="d-flex gap-1 ms-1">
                                                                     @can('update', $department)
                                                                         <form method="post" action="{{ route('services.update', $service->id) }}" class="d-inline-flex align-items-center">
