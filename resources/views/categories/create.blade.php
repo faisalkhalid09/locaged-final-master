@@ -150,25 +150,51 @@
 
             function filterSubDepartments() {
                 const deptId = deptSelect.value;
+                
+                // Disable/Enable sub-department select based on department selection
+                if (!deptId) {
+                    subDeptSelect.disabled = true;
+                    subDeptSelect.value = ''; // Reset value
+                    filterServices(); // Chain to reset services
+                    return;
+                }
+                
+                subDeptSelect.disabled = false;
+                
+                // Show only relevant options
                 Array.from(subDeptSelect.options).forEach(opt => {
                     if (!opt.value) return; // keep placeholder
-                    const match = !deptId || opt.dataset.departmentId === deptId;
+                    const match = opt.dataset.departmentId === deptId;
                     opt.hidden = !match;
                     if (!match && opt.selected) {
                         opt.selected = false;
+                        subDeptSelect.value = ''; // Reset if selected option is hidden
                     }
                 });
+                
                 filterServices();
             }
 
             function filterServices() {
                 const subId = subDeptSelect.value;
+                
+                // Disable/Enable service select based on sub-department selection
+                if (!subId) {
+                    serviceSelect.disabled = true;
+                    serviceSelect.value = ''; // Reset value
+                    return;
+                }
+                
+                serviceSelect.disabled = false;
+                
+                // Show only relevant options
                 Array.from(serviceSelect.options).forEach(opt => {
                     if (!opt.value) return;
-                    const match = !subId || opt.dataset.subDepartmentId === subId;
+                    const match = opt.dataset.subDepartmentId === subId;
                     opt.hidden = !match;
                     if (!match && opt.selected) {
                         opt.selected = false;
+                        serviceSelect.value = ''; // Reset if selected option is hidden
                     }
                 });
             }
@@ -176,7 +202,7 @@
             if (deptSelect && subDeptSelect && serviceSelect) {
                 deptSelect.addEventListener('change', filterSubDepartments);
                 subDeptSelect.addEventListener('change', filterServices);
-                // initial filter based on old() values
+                // initial filter based on old() values or default state
                 filterSubDepartments();
             }
         })();
