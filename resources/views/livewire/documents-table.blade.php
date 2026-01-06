@@ -11,7 +11,7 @@
             padding: 16px 24px;
             border-radius: 8px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-            z-index: 50; /* Ensured high z-index to stay above modal */
+            z-index: 20; /* User requested z-index 20 */
             display: flex;
             align-items: center;
             font-size: 15px;
@@ -1234,7 +1234,7 @@
 
 
         <!-- Document Metadata Modal -->
-        <div class="modal fade" id="documentMetadataModal" tabindex="-1" aria-labelledby="documentMetadataLabel" aria-hidden="true" style="z-index: 10000;">
+        <div class="modal fade" id="documentMetadataModal" tabindex="-1" aria-labelledby="documentMetadataLabel" aria-hidden="true" style="z-index: 10;">
             <div class="modal-dialog modal-lg modal-dialog-scrollable">
                 <div class="modal-content">
                     <div class="modal-header">
