@@ -21,11 +21,11 @@
                     filesArray.forEach((f, index) => {
                         const fileSizeBytes = f.size || 0;
                         const fileSizeMB = (fileSizeBytes / 1024 / 1024).toFixed(2);
-                        console.log(`[File Validation] File ${index + 1}: "${f.name}", Size: ${fileSizeBytes} bytes (${fileSizeMB} MB)`);
+                        console.log('[File Validation] File ' + (index + 1) + ': "' + f.name + '", Size: ' + fileSizeBytes + ' bytes (' + fileSizeMB + ' MB)');
                         
                         // Explicit comparison - file size must be strictly greater than max
                         if (fileSizeBytes > maxBytes) {
-                            console.warn(`[File Validation] REJECTED: "${f.name}" exceeds limit! Size: ${fileSizeMB} MB > Max: ${(maxBytes / 1024 / 1024).toFixed(2)} MB`);
+                            console.warn('[File Validation] REJECTED: "' + f.name + '" exceeds limit! Size: ' + fileSizeMB + ' MB > Max: ' + (maxBytes / 1024 / 1024).toFixed(2) + ' MB');
                             oversizedFiles.push(f);
                         }
                     });
