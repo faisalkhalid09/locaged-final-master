@@ -27,21 +27,45 @@ class PhysicalLocationController extends Controller
         }
 
         $user = auth()->user();
-        
-        $roomsQuery = Room::with(['rows.shelves.boxes' => function ($query) use ($user) {
-            // Apply service-based filtering to boxes
-            $query->forUser($user);
-            
-            // Load documents for filtered boxes
-            $query->with(['documents' => function ($docQuery) {
-                $docQuery->select('id', 'box_id', 'title');
-            }]);
-        }]);
-
-        // Filter rooms selection based on user permissions
         $accessibleServiceIds = Box::getAccessibleServiceIds($user);
+        
+        // Build the hierarchical query with proper filtering at each level
+        if ($accessibleServiceIds === 'all') {
+            // Admin/Super Admin: Load everything
+            $roomsQuery = Room::with([
+                'rows.shelves.boxes' => function ($query) {
+                    $query->with(['documents' => function ($docQuery) {
+                        $docQuery->select('id', 'box_id', 'title');
+                    }]);
+                }
+            ]);
+        } else {
+            // Restricted users: Filter each level of the hierarchy
+            $roomsQuery = Room::with([
+                'rows' => function($rowQuery) use ($accessibleServiceIds) {
+                    // Only load rows that have shelves with visible boxes
+                    $rowQuery->whereHas('shelves.boxes', function($boxQuery) use ($accessibleServiceIds) {
+                        $boxQuery->whereIn('service_id', $accessibleServiceIds);
+                    })->with([
+                        'shelves' => function($shelfQuery) use ($accessibleServiceIds) {
+                            // Only load shelves that have visible boxes
+                            $shelfQuery->whereHas('boxes', function($boxQuery) use ($accessibleServiceIds) {
+                                $boxQuery->whereIn('service_id', $accessibleServiceIds);
+                            })->with([
+                                'boxes' => function($boxQuery) use ($accessibleServiceIds) {
+                                    // Only load boxes from accessible services
+                                    $boxQuery->whereIn('service_id', $accessibleServiceIds);
+                                    $boxQuery->with(['documents' => function ($docQuery) {
+                                        $docQuery->select('id', 'box_id', 'title');
+                                    }]);
+                                }
+                            ]);
+                        }
+                    ]);
+                }
+            ]);
 
-        if ($accessibleServiceIds !== 'all') {
+            // Filter rooms selection based on user permissions
             $userDepartmentId = $this->getUserDepartmentId($user);
 
             $roomsQuery->where(function($q) use ($accessibleServiceIds, $userDepartmentId) {
@@ -53,13 +77,6 @@ class PhysicalLocationController extends Controller
                 // OR show rooms reserved for the user's department (even if empty)
                 if ($userDepartmentId) {
                     $q->orWhere('department_id', $userDepartmentId);
-                } 
-                // OR show legacy public rooms (no dept assigned) that are empty
-                else {
-                     $q->orWhere(function($subQ) {
-                        $subQ->whereNull('department_id')
-                             ->whereDoesntHave('rows.shelves.boxes');
-                     });
                 }
             });
         }
