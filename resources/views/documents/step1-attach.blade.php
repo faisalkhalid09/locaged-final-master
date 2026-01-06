@@ -1,4 +1,157 @@
 @if($step === 1)
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('fileUpload', () => ({
+                isUploading: false,
+                progress: 0,
+                showError: false,
+                errorMessage: '',
+                maxSizeBytes: {{ config('uploads.max_file_size_kb', 51200) * 1024 }},
+                maxBatchFiles: {{ config('uploads.max_batch_files', 50) }},
+                translations: @js($translations),
+                
+                validateFiles(files) {
+                    try {
+                        const filesArray = Array.from(files || []);
+                        if (!filesArray.length) return { valid: true };
+
+                        // Validate individual file sizes
+                        const maxBytes = this.maxSizeBytes;
+                        console.log('[File Validation] Starting validation. Max bytes allowed:', maxBytes, '(', (maxBytes / 1024 / 1024).toFixed(2), 'MB)');
+
+                        const oversizedFiles = [];
+                        filesArray.forEach((f, index) => {
+                            const fileSizeBytes = f.size || 0;
+                            const fileSizeMB = (fileSizeBytes / 1024 / 1024).toFixed(2);
+                            console.log('[File Validation] File ' + (index + 1) + ': "' + f.name + '", Size: ' + fileSizeBytes + ' bytes (' + fileSizeMB + ' MB)');
+                            
+                            // Explicit comparison - file size must be strictly greater than max
+                            if (fileSizeBytes > maxBytes) {
+                                console.warn('[File Validation] REJECTED: "' + f.name + '" exceeds limit! Size: ' + fileSizeMB + ' MB > Max: ' + (maxBytes / 1024 / 1024).toFixed(2) + ' MB');
+                                oversizedFiles.push(f);
+                            }
+                        });
+                        
+                        if (oversizedFiles.length > 0) {
+                            const fileNames = oversizedFiles.map(f => f.name).slice(0, 3).join(', ');
+                            const sizeMB = (oversizedFiles[0].size / 1024 / 1024).toFixed(2);
+                            const maxMB = (this.maxSizeBytes / 1024 / 1024).toFixed(0);
+                            const moreCount = oversizedFiles.length > 3 ? ' (+' + (oversizedFiles.length - 3) + ' more)' : '';
+                            console.error('[File Validation] Upload blocked due to oversized files');
+                            return {
+                                valid: false,
+                                message: this.translations.uploadBlocked + ': ' + fileNames + moreCount + ' | ' + this.translations.fileSize + ': ' + sizeMB + ' MB | ' + this.translations.maxAllowed + ': ' + maxMB + ' MB'
+                            };
+                        }
+
+                        // Validate number of files
+                        if (filesArray.length > this.maxBatchFiles) {
+                            console.error('[File Validation] Upload blocked: too many files selected');
+                            return {
+                                valid: false,
+                                message: this.translations.uploadBlocked + ': ' + this.translations.tooManyFiles + '. ' + this.translations.filesSelected + ': ' + filesArray.length + ' | ' + this.translations.maxAllowed + ': ' + this.maxBatchFiles
+                            };
+                        }
+
+                        console.log('[File Validation] All files passed validation');
+                        return { valid: true };
+                    } catch (error) {
+                        console.error('[File Validation] Error during validation:', error);
+                        return {
+                            valid: false,
+                            message: 'An error occurred while validating files. Please try again.'
+                        };
+                    }
+                },
+                
+                validateAndUpload(files, isFolder = false) {
+                    // Use validateFiles function from same scope
+                    const validation = this.validateFiles(files);
+                    
+                    if (!validation.valid) {
+                        this.errorMessage = validation.message;
+                        this.showError = true;
+                        // Clear the file input to prevent further processing
+                        if (this.$refs.fileInput) this.$refs.fileInput.value = '';
+                        if (this.$refs.folderInput) this.$refs.folderInput.value = '';
+                        return false;
+                    }
+
+                    // If folder upload, preserve relative paths
+                    if (isFolder) {
+                        const filesArray = Array.from(files || []);
+                        const paths = filesArray.map(f => f.webkitRelativePath || f.name);
+                        $wire.set('relativePaths', paths);
+                    }
+
+                    // Manually trigger Livewire upload after validation passes
+                    // We use explicit callbacks to ensure the progress bar updates correctly
+                    const self = this;
+                    $wire.uploadMultiple(
+                        'newDocuments', 
+                        files, 
+                        () => { 
+                            self.isUploading = false; 
+                            self.progress = 0; 
+                        }, 
+                        (error) => { 
+                            self.isUploading = false; 
+                            self.progress = 0;
+                            // Show error modal with server-side validation error
+                            const maxMB = (self.maxSizeBytes / 1024 / 1024).toFixed(0);
+                            self.errorMessage = self.translations.uploadBlocked + ': ' + self.translations.fileSize + ' ' + maxMB + ' MB';
+                            self.showError = true;
+                            // Clear the file input
+                            if (self.$refs.fileInput) self.$refs.fileInput.value = '';
+                            if (self.$refs.folderInput) self.$refs.folderInput.value = '';
+                        }, 
+                        (event) => { 
+                            self.isUploading = true; 
+                            self.progress = event.detail.progress; 
+                        }
+                    );
+                    return true;
+                },
+                
+                handleFolderChange(event) {
+                    const files = event.target.files;
+                    if (files && files.length > 0) {
+                        if (!this.validateAndUpload(files, true)) {
+                            // Clear the input on validation failure
+                            event.target.value = '';
+                        }
+                    }
+                },
+                
+                handleFileChange(event) {
+                    const files = event.target.files;
+                    if (files && files.length > 0) {
+                        if (!this.validateAndUpload(files, false)) {
+                            // Clear the input on validation failure
+                            event.target.value = '';
+                        }
+                    }
+                },
+
+                handleDrop(event) {
+                    event.preventDefault();
+                    const files = event.dataTransfer?.files;
+                    const validation = this.validateFiles(files);
+                    
+                    if (!validation.valid) {
+                        this.errorMessage = validation.message;
+                        this.showError = true;
+                        return false;
+                    }
+                    
+                    // Manually trigger upload for drop files too
+                    this.validateAndUpload(files, false);
+                    return true;
+                }
+            }));
+        });
+    </script>
+    
     @php
         $translations = [
             'uploadBlocked' => ui_t('pages.upload.upload_blocked'),
@@ -9,154 +162,7 @@
         ];
     @endphp
     <div class="upload-section p-3 mt-2"
-         x-data="{ 
-            isUploading: false, 
-            progress: 0,
-            showError: false,
-            errorMessage: '',
-            maxSizeBytes: {{ config('uploads.max_file_size_kb', 51200) * 1024 }},
-            maxBatchFiles: {{ config('uploads.max_batch_files', 50) }},
-            translations: @js($translations),
-            
-            validateFiles(files) {
-                try {
-                    const filesArray = Array.from(files || []);
-                    if (!filesArray.length) return { valid: true };
-
-                    // Validate individual file sizes
-                    const maxBytes = this.maxSizeBytes;
-                    console.log('[File Validation] Starting validation. Max bytes allowed:', maxBytes, '(', (maxBytes / 1024 / 1024).toFixed(2), 'MB)');
-
-                    const oversizedFiles = [];
-                    filesArray.forEach((f, index) => {
-                        const fileSizeBytes = f.size || 0;
-                        const fileSizeMB = (fileSizeBytes / 1024 / 1024).toFixed(2);
-                        console.log('[File Validation] File ' + (index + 1) + ': "' + f.name + '", Size: ' + fileSizeBytes + ' bytes (' + fileSizeMB + ' MB)');
-                        
-                        // Explicit comparison - file size must be strictly greater than max
-                        if (fileSizeBytes > maxBytes) {
-                            console.warn('[File Validation] REJECTED: "' + f.name + '" exceeds limit! Size: ' + fileSizeMB + ' MB > Max: ' + (maxBytes / 1024 / 1024).toFixed(2) + ' MB');
-                            oversizedFiles.push(f);
-                        }
-                    });
-                    
-                    if (oversizedFiles.length > 0) {
-                        const fileNames = oversizedFiles.map(f => f.name).slice(0, 3).join(', ');
-                        const sizeMB = (oversizedFiles[0].size / 1024 / 1024).toFixed(2);
-                        const maxMB = (this.maxSizeBytes / 1024 / 1024).toFixed(0);
-                        const moreCount = oversizedFiles.length > 3 ? ' (+' + (oversizedFiles.length - 3) + ' more)' : '';
-                        console.error('[File Validation] Upload blocked due to oversized files');
-                        return {
-                            valid: false,
-                            message: this.translations.uploadBlocked + ': ' + fileNames + moreCount + ' | ' + this.translations.fileSize + ': ' + sizeMB + ' MB | ' + this.translations.maxAllowed + ': ' + maxMB + ' MB'
-                        };
-                    }
-
-                    // Validate number of files
-                    if (filesArray.length > this.maxBatchFiles) {
-                        console.error('[File Validation] Upload blocked: too many files selected');
-                        return {
-                            valid: false,
-                            message: this.translations.uploadBlocked + ': ' + this.translations.tooManyFiles + '. ' + this.translations.filesSelected + ': ' + filesArray.length + ' | ' + this.translations.maxAllowed + ': ' + this.maxBatchFiles
-                        };
-                    }
-
-                    console.log('[File Validation] All files passed validation');
-                    return { valid: true };
-                } catch (error) {
-                    console.error('[File Validation] Error during validation:', error);
-                    return {
-                        valid: false,
-                        message: 'An error occurred while validating files. Please try again.'
-                    };
-                }
-            },
-            
-            validateAndUpload(files, isFolder = false) {
-                // Use validateFiles function from same scope
-                const validation = this.validateFiles(files);
-                
-                if (!validation.valid) {
-                    this.errorMessage = validation.message;
-                    this.showError = true;
-                    // Clear the file input to prevent further processing
-                    if (this.$refs.fileInput) this.$refs.fileInput.value = '';
-                    if (this.$refs.folderInput) this.$refs.folderInput.value = '';
-                    return false;
-                }
-
-                // If folder upload, preserve relative paths
-                if (isFolder) {
-                    const filesArray = Array.from(files || []);
-                    const paths = filesArray.map(f => f.webkitRelativePath || f.name);
-                    $wire.set('relativePaths', paths);
-                }
-
-                // Manually trigger Livewire upload after validation passes
-                // We use explicit callbacks to ensure the progress bar updates correctly
-                const self = this;
-                $wire.uploadMultiple(
-                    'newDocuments', 
-                    files, 
-                    () => { 
-                        self.isUploading = false; 
-                        self.progress = 0; 
-                    }, 
-                    (error) => { 
-                        self.isUploading = false; 
-                        self.progress = 0;
-                        // Show error modal with server-side validation error
-                        const maxMB = (self.maxSizeBytes / 1024 / 1024).toFixed(0);
-                        self.errorMessage = self.translations.uploadBlocked + ': ' + self.translations.fileSize + ' ' + maxMB + ' MB';
-                        self.showError = true;
-                        // Clear the file input
-                        if (self.$refs.fileInput) self.$refs.fileInput.value = '';
-                        if (self.$refs.folderInput) self.$refs.folderInput.value = '';
-                    }, 
-                    (event) => { 
-                        self.isUploading = true; 
-                        self.progress = event.detail.progress; 
-                    }
-                );
-                return true;
-            },
-            
-            handleFolderChange(event) {
-                const files = event.target.files;
-                if (files && files.length > 0) {
-                    if (!this.validateAndUpload(files, true)) {
-                        // Clear the input on validation failure
-                        event.target.value = '';
-                    }
-                }
-            },
-            
-            handleFileChange(event) {
-                const files = event.target.files;
-                if (files && files.length > 0) {
-                    if (!this.validateAndUpload(files, false)) {
-                        // Clear the input on validation failure
-                        event.target.value = '';
-                    }
-                }
-            },
-
-            handleDrop(event) {
-                event.preventDefault();
-                const files = event.dataTransfer?.files;
-                const validation = this.validateFiles(files);
-                
-                if (!validation.valid) {
-                    this.errorMessage = validation.message;
-                    this.showError = true;
-                    return false;
-                }
-                
-                // Manually trigger upload for drop files too
-                this.validateAndUpload(files, false);
-                return true;
-            }
-         }"
+         x-data="fileUpload"
          x-on:livewire-upload-start.window="isUploading = true"
          x-on:livewire-upload-finish.window="isUploading = false; progress = 0"
          x-on:livewire-upload-error.window="isUploading = false"

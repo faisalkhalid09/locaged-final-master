@@ -12,11 +12,3 @@ window.axios = axios;
 window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 
 import './echo';
-
-/**
- * Import and initialize Alpine.js
- * Alpine is used for reactive components and client-side validation
- */
-import Alpine from 'alpinejs';
-window.Alpine = Alpine;
-Alpine.start();
