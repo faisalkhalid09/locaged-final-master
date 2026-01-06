@@ -157,6 +157,13 @@
                                 />
                             </div>
 
+                            {{-- Hidden inputs for required relationships --}}
+                            @if($document->service)
+                                <input type="hidden" name="department_id" value="{{ $document->service->subDepartment->department_id }}" />
+                                <input type="hidden" name="sub_department_id" value="{{ $document->service->sub_department_id }}" />
+                                <input type="hidden" name="service_id" value="{{ $document->service_id }}" />
+                            @endif
+
                             {{-- Category - editable, filtered by service --}}
                             <div class="col-md-6">
                                 <label for="category" class="form-label">{{ __('Category') }}</label>
