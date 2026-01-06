@@ -342,7 +342,20 @@ class DeletionLogsTable extends Component
              $departments = Department::whereIn('id', $deptIdsFromServices)->orderBy('name')->get();
 
         } else {
-            $users = User::orderBy('full_name')->get();
+            // Super Admin: exclude master users from filter dropdown
+            $isSuperAdminNotMaster = $current && 
+                $current->hasRole(['Super Administrator', 'super_admin']) && 
+                !$current->hasRole('master');
+            
+            if ($isSuperAdminNotMaster) {
+                $users = User::whereDoesntHave('roles', function($q) {
+                        $q->whereRaw('LOWER(name) = ?', ['master']);
+                    })
+                    ->orderBy('full_name')
+                    ->get();
+            } else {
+                $users = User::orderBy('full_name')->get();
+            }
             $departments = Department::orderBy('name')->get();
         }
 

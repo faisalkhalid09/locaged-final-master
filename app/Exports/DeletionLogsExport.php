@@ -51,7 +51,7 @@ class DeletionLogsExport implements FromCollection, WithHeadings, WithMapping, S
             ui_t('pages.deletion_log.export.pole'),
             ui_t('pages.deletion_log.export.department'),
             ui_t('pages.deletion_log.export.service'),
-            ui_t('pages.deletion_log.export.category') ?? __('Category'),
+            __('Category'),
         ];
     }
 
