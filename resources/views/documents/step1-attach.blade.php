@@ -1,4 +1,13 @@
 @if($step === 1)
+    @php
+        $translations = [
+            'uploadBlocked' => ui_t('pages.upload.upload_blocked'),
+            'fileSize' => __('File size'),
+            'maxAllowed' => __('Maximum allowed'),
+            'tooManyFiles' => __('Too many files selected'),
+            'filesSelected' => __('Files selected'),
+        ];
+    @endphp
     <div class="upload-section p-3 mt-2"
          x-data="{ 
             isUploading: false, 
@@ -7,6 +16,7 @@
             errorMessage: '',
             maxSizeBytes: {{ config('uploads.max_file_size_kb', 51200) * 1024 }},
             maxBatchFiles: {{ config('uploads.max_batch_files', 50) }},
+            translations: @js($translations),
             
             validateFiles(files) {
                 try {
@@ -38,7 +48,7 @@
                         console.error('[File Validation] Upload blocked due to oversized files');
                         return {
                             valid: false,
-                            message: '{{ ui_t('pages.upload.upload_blocked') }}: ' + fileNames + moreCount + ' | {{ __('File size') }}: ' + sizeMB + ' MB | {{ __('Maximum allowed') }}: ' + maxMB + ' MB'
+                            message: this.translations.uploadBlocked + ': ' + fileNames + moreCount + ' | ' + this.translations.fileSize + ': ' + sizeMB + ' MB | ' + this.translations.maxAllowed + ': ' + maxMB + ' MB'
                         };
                     }
 
@@ -47,7 +57,7 @@
                         console.error('[File Validation] Upload blocked: too many files selected');
                         return {
                             valid: false,
-                            message: '{{ ui_t('pages.upload.upload_blocked') }}: {{ __('Too many files selected') }}. {{ __('Files selected') }}: ' + filesArray.length + ' | {{ __('Maximum allowed') }}: ' + this.maxBatchFiles
+                            message: this.translations.uploadBlocked + ': ' + this.translations.tooManyFiles + '. ' + this.translations.filesSelected + ': ' + filesArray.length + ' | ' + this.translations.maxAllowed + ': ' + this.maxBatchFiles
                         };
                     }
 
