@@ -107,7 +107,7 @@
                         self.progress = 0;
                         // Show error modal with server-side validation error
                         const maxMB = (self.maxSizeBytes / 1024 / 1024).toFixed(0);
-                        self.errorMessage = `{{ ui_t('pages.upload.upload_blocked') }}: {{ ui_t('pages.upload.max_file_size', ['size' => floor(config('uploads.max_file_size_kb', 51200) / 1024)]) }}`;
+                        self.errorMessage = self.translations.uploadBlocked + ': ' + self.translations.fileSize + ' ' + maxMB + ' MB';
                         self.showError = true;
                         // Clear the file input
                         if (self.$refs.fileInput) self.$refs.fileInput.value = '';
