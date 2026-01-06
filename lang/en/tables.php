@@ -20,6 +20,8 @@ return [
         'previous' => 'Back',
         'next' => 'Next',
     ],
+    'name' => 'Name',
+    'description' => 'Description',
 ];
 
 
