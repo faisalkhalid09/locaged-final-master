@@ -5,72 +5,74 @@
         <h2 class="fw-bold">{{ ui_t('pages.structures_page.title') }}</h2>
         <p class="new-mange">{{ ui_t('pages.structures_page.manage') }}</p>
 
-        {{-- Departments management --}}
-        <h5 class="fw-bold my-4">{{ ui_t('pages.structures_page.add') }}</h5>
-        <form method="post" action="{{ route('departments.store') }}">
-            @csrf
-            <div class="row g-3 align-items-center add-role">
-                <div class="col-md-4">
-                    <label>{{ ui_t('pages.structures_page.name') }}</label>
-                    <input type="text" name="name" class="form-control py-3 mt-1" placeholder="{{ ui_t('pages.structures_page.placeholder_name') }}">
+        @if($canCreateStructures)
+            {{-- Departments management --}}
+            <h5 class="fw-bold my-4">{{ ui_t('pages.structures_page.add') }}</h5>
+            <form method="post" action="{{ route('departments.store') }}">
+                @csrf
+                <div class="row g-3 align-items-center add-role">
+                    <div class="col-md-4">
+                        <label>{{ ui_t('pages.structures_page.name') }}</label>
+                        <input type="text" name="name" class="form-control py-3 mt-1" placeholder="{{ ui_t('pages.structures_page.placeholder_name') }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label>{{ ui_t('pages.structures_page.description') }}</label>
+                        <textarea name="description" class="form-control py-3 mt-1" placeholder="{{ ui_t('pages.structures_page.placeholder_description') }}"></textarea>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-sm btn-upload mt-4" type="submit">{{ ui_t('pages.structures_page.add_button') }}</button>
+                    </div>
                 </div>
-                <div class="col-md-4">
-                    <label>{{ ui_t('pages.structures_page.description') }}</label>
-                    <textarea name="description" class="form-control py-3 mt-1" placeholder="{{ ui_t('pages.structures_page.placeholder_description') }}"></textarea>
-                </div>
-                <div class="col-md-2">
-                    <button class="btn btn-sm btn-upload mt-4" type="submit">{{ ui_t('pages.structures_page.add_button') }}</button>
-                </div>
-            </div>
-        </form>
+            </form>
 
-        {{-- Sub-Departments management --}}
-        <h5 class="fw-bold my-4">{{ ui_t('pages.structures_page.sub_departments_title') }}</h5>
-        <form method="post" action="{{ route('sub-departments.store') }}">
-            @csrf
-            <div class="row g-3 align-items-center add-role">
-                <div class="col-md-4">
-                    <label>{{ ui_t('pages.structures_page.sub_departments_department_label') }}</label>
-                    <select name="department_id" class="form-control py-3 mt-1">
-                        @foreach($allDepartments as $dept)
-                            <option value="{{ $dept->id }}">{{ $dept->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-4">
-                    <label>{{ ui_t('pages.structures_page.sub_departments_name_label') }}</label>
-                    <input type="text" name="name" class="form-control py-3 mt-1" placeholder="{{ ui_t('pages.structures_page.sub_departments_name_placeholder') }}">
-                </div>
-                <div class="col-md-2">
-                    <button class="btn btn-sm btn-upload mt-4" type="submit">{{ ui_t('pages.structures_page.sub_departments_add_button') }}</button>
-                </div>
-            </div>
-        </form>
-
-        {{-- Services management --}}
-        <h5 class="fw-bold my-4">{{ ui_t('pages.structures_page.services_title') }}</h5>
-        <form method="post" action="{{ route('services.store') }}">
-            @csrf
-            <div class="row g-3 align-items-center add-role">
-                <div class="col-md-4">
-                    <label>{{ ui_t('pages.structures_page.services_sub_department_label') }}</label>
-                    <select name="sub_department_id" class="form-control py-3 mt-1">
-                        @foreach($allDepartments as $dept)
-                            @foreach($dept->subDepartments as $sub)
-                                <option value="{{ $sub->id }}">{{ $dept->name }} - {{ $sub->name }}</option>
+            {{-- Sub-Departments management --}}
+            <h5 class="fw-bold my-4">{{ ui_t('pages.structures_page.sub_departments_title') }}</h5>
+            <form method="post" action="{{ route('sub-departments.store') }}">
+                @csrf
+                <div class="row g-3 align-items-center add-role">
+                    <div class="col-md-4">
+                        <label>{{ ui_t('pages.structures_page.sub_departments_department_label') }}</label>
+                        <select name="department_id" class="form-control py-3 mt-1">
+                            @foreach($allDepartments as $dept)
+                                <option value="{{ $dept->id }}">{{ $dept->name }}</option>
                             @endforeach
-                        @endforeach
-                    </select>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label>{{ ui_t('pages.structures_page.sub_departments_name_label') }}</label>
+                        <input type="text" name="name" class="form-control py-3 mt-1" placeholder="{{ ui_t('pages.structures_page.sub_departments_name_placeholder') }}">
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-sm btn-upload mt-4" type="submit">{{ ui_t('pages.structures_page.sub_departments_add_button') }}</button>
+                    </div>
                 </div>
-                <div class="col-md-4">
-                    <label>{{ ui_t('pages.structures_page.services_name_label') }}</label>
-                    <input type="text" name="name" class="form-control py-3 mt-1" placeholder="{{ ui_t('pages.structures_page.services_name_placeholder') }}">
+            </form>
+
+            {{-- Services management --}}
+            <h5 class="fw-bold my-4">{{ ui_t('pages.structures_page.services_title') }}</h5>
+            <form method="post" action="{{ route('services.store') }}">
+                @csrf
+                <div class="row g-3 align-items-center add-role">
+                    <div class="col-md-4">
+                        <label>{{ ui_t('pages.structures_page.services_sub_department_label') }}</label>
+                        <select name="sub_department_id" class="form-control py-3 mt-1">
+                            @foreach($allDepartments as $dept)
+                                @foreach($dept->subDepartments as $sub)
+                                    <option value="{{ $sub->id }}">{{ $dept->name }} - {{ $sub->name }}</option>
+                                @endforeach
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label>{{ ui_t('pages.structures_page.services_name_label') }}</label>
+                        <input type="text" name="name" class="form-control py-3 mt-1" placeholder="{{ ui_t('pages.structures_page.services_name_placeholder') }}">
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-sm btn-upload mt-4" type="submit">{{ ui_t('pages.structures_page.services_add_button') }}</button>
+                    </div>
                 </div>
-                <div class="col-md-2">
-                    <button class="btn btn-sm btn-upload mt-4" type="submit">{{ ui_t('pages.structures_page.services_add_button') }}</button>
-                </div>
-            </div>
-        </form>
+            </form>
+        @endif
 
         <h6 class="fw-bold mt-5">{{ ui_t('pages.structures_page.existing') }}</h6>
 

@@ -91,8 +91,8 @@ Route::middleware('auth')->group(function () {
         Route::resource('users', UserController::class);
     });
 
-    // Structure management (Master & Super Admin & Admin)
-    Route::group(['middleware' => ['role:master|Super Administrator|admin']], function () {
+    // Structure management (Master & Super Admin & Admin & Admin de pole)
+    Route::group(['middleware' => ['role:master|Super Administrator|admin|Admin de pole']], function () {
         Route::resources([
             'departments' => \App\Http\Controllers\DepartmentController::class,
             'sub-departments' => \App\Http\Controllers\SubDepartmentController::class,

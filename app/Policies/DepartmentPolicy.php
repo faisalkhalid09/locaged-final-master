@@ -12,7 +12,8 @@ class DepartmentPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('view any department');
+        // Allow Admin de pole to view their assigned departments
+        return $user->can('view any department') || $user->hasRole('Admin de pole');
     }
 
     /**

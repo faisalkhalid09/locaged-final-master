@@ -13,20 +13,28 @@ class DepartmentController extends Controller
     {
         Gate::authorize('viewAny', Department::class);
 
-        // Legacy admin role should not access Structures page
-        if (auth()->user()?->hasRole('admin')) {
-            abort(403);
-        }
+        $user = auth()->user();
+
+        // Check if user is Admin de pole
+        $isAdminDePole = $user?->hasRole('Admin de pole');
+        
+        // Admin de pole can view but not create structures
+        $canCreateStructures = !$isAdminDePole;
 
         // Eager-load sub-departments and services for tree view
-        $departments = Department::with('subDepartments.services')
-            ->latest()
-            ->paginate(10);
+        $departmentsQuery = Department::with('subDepartments.services');
+
+        // Filter to only assigned departments for Admin de pole
+        if ($isAdminDePole && $user->departments && $user->departments->isNotEmpty()) {
+            $departmentsQuery->whereIn('id', $user->departments->pluck('id'));
+        }
+
+        $departments = $departmentsQuery->latest()->paginate(10);
 
         // Full list for creation dropdowns
         $allDepartments = Department::orderBy('name')->get();
 
-        return view('departments.index', compact('departments', 'allDepartments'));
+        return view('departments.index', compact('departments', 'allDepartments', 'canCreateStructures'));
     }
 
 
