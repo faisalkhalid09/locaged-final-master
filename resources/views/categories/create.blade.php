@@ -45,7 +45,7 @@
 
                                     <div class="col-md-4">
                                         <select id="categorySubDepartmentSelect" name="sub_department_id" class="form-control custom-input" required>
-                                            <option value="">Select sub-department</option>
+                                            <option value="">{{ ui_t('pages.categories_form.select_department') }}</option>
                                             @foreach($departments as $department)
                                                 @foreach($department->subDepartments as $sub)
                                                     <option value="{{ $sub->id }}" data-department-id="{{ $department->id }}" {{ $oldSubDept == $sub->id ? 'selected' : '' }}>
@@ -61,7 +61,7 @@
 
                                     <div class="col-md-4">
                                         <select id="categoryServiceSelect" name="service_id" class="form-control custom-input" required>
-                                            <option value="">Select service</option>
+                                            <option value="">{{ ui_t('pages.categories_form.select_service') }}</option>
                                             @foreach($departments as $department)
                                                 @foreach($department->subDepartments as $sub)
                                                     @foreach($sub->services as $service)

@@ -143,9 +143,9 @@
                                 
                                 {{-- Service Selection - Required First --}}
                                 <div class="mb-3">
-                                    <label for="add_box_service_id" class="form-label">{{ __('Service') }} <span class="text-danger">*</span></label>
+                                    <label for="add_box_service_id" class="form-label">{{ ui_t('pages.physical.fields.service') }} <span class="text-danger">*</span></label>
                                     <select class="form-select" id="add_box_service_id" name="service_id" required>
-                                        <option value="">{{ __('Select Service') }}</option>
+                                        <option value="">{{ ui_t('pages.physical.selects.select_service') }}</option>
                                         @php
                                             $user = auth()->user();
                                             $accessibleServiceIds = \App\Models\Box::getAccessibleServiceIds($user);
@@ -161,7 +161,7 @@
                                             <option value="{{ $service->id }}">{{ $service->name }}</option>
                                         @endforeach
                                     </select>
-                                    <small class="text-muted">{{ __('This box will be linked to the selected service') }}</small>
+                                    <small class="text-muted">{{ ui_t('pages.physical.service_link_help') }}</small>
                                 </div>
 
                                 <div class="mb-3">
@@ -398,7 +398,7 @@
 
                                             {{-- Service Selection - After Box Name --}}
                                             <div class="mb-3">
-                                                <label for="edit_service_id_{{ $box->id }}" class="form-label">{{ __('Service') }} <span class="text-danger">*</span></label>
+                                                <label for="edit_service_id_{{ $box->id }}" class="form-label">{{ ui_t('pages.physical.fields.service') }} <span class="text-danger">*</span></label>
                                                 <select class="form-select" id="edit_service_id_{{ $box->id }}" name="service_id" required>
                                                     @php
                                                         $user = auth()->user();
