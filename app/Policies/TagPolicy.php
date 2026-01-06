@@ -26,11 +26,11 @@ class TagPolicy
     /**
      * Determine whether the user can create models.
      *
-     * Allowed roles: service users, Department Administrators, and Service Managers
+     * Allowed roles: Super Administrators, service users, Department Administrators, and Service Managers
      */
     public function create(User $user): bool
     {
-        return $user->hasAnyRole(['user', 'service user', 'Department Administrator', 'Admin de pole', 'Admin de cellule', 'Service Manager', 'Admin de departments']);
+        return $user->hasAnyRole(['master', 'super_admin', 'Super Administrator', 'user', 'service user', 'Department Administrator', 'Admin de pole', 'Admin de cellule', 'Service Manager', 'Admin de departments']);
     }
 
     /**
