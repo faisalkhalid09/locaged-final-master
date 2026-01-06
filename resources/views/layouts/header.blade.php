@@ -50,7 +50,7 @@
                             </div>
                         </div>
                         <div class="d-flex justify-content-between mt-3 mb-2 pointer">
-                            <a href="{{ route('users.show',['user' => auth()->id()]) }}" class="d-flex justify-content-between align-items-center w-100 text-decoration-none text-dark">
+                            <a href="{{ route('profile.show') }}" class="d-flex justify-content-between align-items-center w-100 text-decoration-none text-dark">
                                 <h6 class="d-flex align-items-center mb-0">
                                     <i class="fa-solid fa-user me-2" style="color: #9E9E9E;"></i>{{ ui_t('header.my_profile') }}
                                 </h6>
