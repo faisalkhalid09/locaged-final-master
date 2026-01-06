@@ -151,6 +151,36 @@ class DocumentPolicy
             return true;
         }
 
+        // Service-level users (Admin de cellule, Service Manager, etc.)
+        if ($user->can('view service document')) {
+            // Build list of services the user is related to
+            $visibleServiceIds = collect();
+
+            // Services directly assigned (pivot)
+            if ($user->relationLoaded('services') || method_exists($user, 'services')) {
+                $visibleServiceIds = $visibleServiceIds->merge($user->services->pluck('id'));
+            }
+
+            // Sub-departments (pivot only) -> services under those sub-departments
+            $subDeptIds = collect();
+            if ($user->relationLoaded('subDepartments') || method_exists($user, 'subDepartments')) {
+                $subDeptIds = $subDeptIds->merge($user->subDepartments->pluck('id'));
+            }
+            $subDeptIds = $subDeptIds->unique()->filter();
+
+            if ($subDeptIds->isNotEmpty()) {
+                $visibleServiceIds = $visibleServiceIds->merge(
+                    Service::whereIn('sub_department_id', $subDeptIds)->pluck('id')
+                );
+            }
+
+            $visibleServiceIds = $visibleServiceIds->unique()->filter();
+
+            if ($document->service_id && $visibleServiceIds->contains($document->service_id)) {
+                return true;
+            }
+        }
+
         if ($user->can('view department document') && $user->departments->pluck('id')->contains($document->department_id)) {
             return true;
         }
