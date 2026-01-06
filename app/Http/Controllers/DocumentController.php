@@ -505,7 +505,7 @@ class DocumentController extends Controller
                 $userDepartments = $userDepartmentsRaw;
 
                 // Sub-departments
-                if ($user->hasRole('Department Administrator')) {
+                if ($user->hasRole('Department Administrator') || $user->hasRole('Admin de pole')) {
                     $deptIds = $userDepartments->pluck('id');
                     $userSubDepartments = SubDepartment::whereIn('department_id', $deptIds)->get();
                 } else {
@@ -513,10 +513,10 @@ class DocumentController extends Controller
                 }
 
                 // Services
-                if ($user->hasRole('Division Chief')) {
+                if ($user->hasRole('Division Chief') || $user->hasRole('Admin de cellule') || $user->hasRole('Service Manager')) {
                     $subIds = $userSubDepartments->pluck('id');
                     $userServices = Service::whereIn('sub_department_id', $subIds)->get();
-                } elseif ($user->hasRole('Department Administrator')) {
+                } elseif ($user->hasRole('Department Administrator') || $user->hasRole('Admin de pole')) {
                     $subIds = $userSubDepartments->pluck('id');
                     $userServices = Service::whereIn('sub_department_id', $subIds)->get();
                 } else {
