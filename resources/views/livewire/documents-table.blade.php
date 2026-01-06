@@ -1200,7 +1200,7 @@
 
 
         <!-- Document Metadata Modal -->
-        <div class="modal fade" id="documentMetadataModal" tabindex="-1" aria-labelledby="documentMetadataLabel" aria-hidden="true" style="z-index: 1056;">
+        <div class="modal fade" id="documentMetadataModal" tabindex="-1" aria-labelledby="documentMetadataLabel" aria-hidden="true" style="z-index: 10000;">
             <div class="modal-dialog modal-lg modal-dialog-scrollable">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -1267,7 +1267,7 @@
     window.showToast = function(message, type = 'success') {
         const toast = document.createElement('div');
         toast.className = `alert alert-${type} position-fixed top-0 start-50 translate-middle-x mt-3 shadow-lg`;
-        toast.style.cssText = 'z-index: 9999; min-width: 300px;';
+        toast.style.cssText = 'z-index: 10100; min-width: 300px;';
         toast.innerHTML = `
             <div class="d-flex align-items-center">
                 <i class="fas fa-check-circle me-2"></i>
