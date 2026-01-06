@@ -1200,8 +1200,8 @@
 
 
         <!-- Document Metadata Modal -->
-        <div class="modal fade" id="documentMetadataModal" tabindex="-1" aria-labelledby="documentMetadataLabel" aria-hidden="true" style="z-index: 10000 !important;">
-            <div class="modal-dialog modal-lg modal-dialog-scrollable" style="z-index: 10001 !important;">
+        <div class="modal fade" id="documentMetadataModal" tabindex="-1" aria-labelledby="documentMetadataLabel" aria-hidden="true" style="z-index: 1056;">
+            <div class="modal-dialog modal-lg modal-dialog-scrollable">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="documentMetadataLabel">
