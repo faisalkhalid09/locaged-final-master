@@ -91,13 +91,13 @@
                     if (isFolder) {
                         const filesArray = Array.from(files || []);
                         const paths = filesArray.map(f => f.webkitRelativePath || f.name);
-                        $wire.set('relativePaths', paths);
+                        this.$wire.set('relativePaths', paths);
                     }
 
                     // Manually trigger Livewire upload after validation passes
                     // We use explicit callbacks to ensure the progress bar updates correctly
                     const self = this;
-                    $wire.uploadMultiple(
+                    this.$wire.uploadMultiple(
                         'newDocuments', 
                         files, 
                         () => { 
