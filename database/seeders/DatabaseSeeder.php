@@ -26,6 +26,7 @@ class DatabaseSeeder extends Seeder
         }
 
         $this->call([
+            \Database\Seeders\RolesAndPermissionsSeeder::class,
             \Database\Seeders\AddActivityTabsTranslationsSeeder::class,
             \Database\Seeders\AddApprovalReminderTranslationsSeeder::class,
             \Database\Seeders\AddDayNamesTranslationsSeeder::class,

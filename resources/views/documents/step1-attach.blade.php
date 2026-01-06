@@ -9,38 +9,57 @@
             maxBatchFiles: {{ config('uploads.max_batch_files', 50) }},
             
             validateFiles(files) {
-                const filesArray = Array.from(files || []);
-                if (!filesArray.length) return { valid: true };
+                try {
+                    const filesArray = Array.from(files || []);
+                    if (!filesArray.length) return { valid: true };
 
-                // Validate individual file sizes
-                const maxBytes = this.maxSizeBytes;
-                console.log('Validating files. Max bytes:', maxBytes);
+                    // Validate individual file sizes
+                    const maxBytes = this.maxSizeBytes;
+                    console.log('[File Validation] Starting validation. Max bytes allowed:', maxBytes, '(', (maxBytes / 1024 / 1024).toFixed(2), 'MB)');
 
-                const oversizedFiles = filesArray.filter(f => {
-                    console.log(`File: ${f.name}, Size: ${f.size}`);
-                    return f.size > maxBytes;
-                });
-                
-                if (oversizedFiles.length > 0) {
-                    const fileNames = oversizedFiles.map(f => f.name).slice(0, 3).join(', ');
-                    const sizeMB = (oversizedFiles[0].size / 1024 / 1024).toFixed(2);
-                    const maxMB = (this.maxSizeBytes / 1024 / 1024).toFixed(2);
-                    const moreCount = oversizedFiles.length > 3 ? ` (+${oversizedFiles.length - 3} more)` : '';
+                    const oversizedFiles = [];
+                    filesArray.forEach((f, index) => {
+                        const fileSizeBytes = f.size || 0;
+                        const fileSizeMB = (fileSizeBytes / 1024 / 1024).toFixed(2);
+                        console.log(`[File Validation] File ${index + 1}: "${f.name}", Size: ${fileSizeBytes} bytes (${fileSizeMB} MB)`);
+                        
+                        // Explicit comparison - file size must be strictly greater than max
+                        if (fileSizeBytes > maxBytes) {
+                            console.warn(`[File Validation] REJECTED: "${f.name}" exceeds limit! Size: ${fileSizeMB} MB > Max: ${(maxBytes / 1024 / 1024).toFixed(2)} MB`);
+                            oversizedFiles.push(f);
+                        }
+                    });
+                    
+                    if (oversizedFiles.length > 0) {
+                        const fileNames = oversizedFiles.map(f => f.name).slice(0, 3).join(', ');
+                        const sizeMB = (oversizedFiles[0].size / 1024 / 1024).toFixed(2);
+                        const maxMB = (this.maxSizeBytes / 1024 / 1024).toFixed(0);
+                        const moreCount = oversizedFiles.length > 3 ? ` (+${oversizedFiles.length - 3} more)` : '';
+                        console.error('[File Validation] Upload blocked due to oversized files');
+                        return {
+                            valid: false,
+                            message: `{{ ui_t('pages.upload.upload_blocked') }}:\n\n${fileNames}${moreCount}\n\n{{ __('File size') }}: ${sizeMB} MB\n{{ __('Maximum allowed') }}: ${maxMB} MB`
+                        };
+                    }
+
+                    // Validate number of files
+                    if (filesArray.length > this.maxBatchFiles) {
+                        console.error('[File Validation] Upload blocked: too many files selected');
+                        return {
+                            valid: false,
+                            message: `{{ ui_t('pages.upload.upload_blocked') }}:\n\n{{ __('Too many files selected') }}.\n{{ __('Files selected') }}: ${filesArray.length}\n{{ __('Maximum allowed') }}: ${this.maxBatchFiles}`
+                        };
+                    }
+
+                    console.log('[File Validation] All files passed validation');
+                    return { valid: true };
+                } catch (error) {
+                    console.error('[File Validation] Error during validation:', error);
                     return {
                         valid: false,
-                        message: `File(s) too large: ${fileNames}${moreCount}. Size: ${sizeMB} MB (Maximum allowed: ${maxMB} MB per file)`
+                        message: 'An error occurred while validating files. Please try again.'
                     };
                 }
-
-                // Validate number of files
-                if (filesArray.length > this.maxBatchFiles) {
-                    return {
-                        valid: false,
-                        message: `Too many files selected. You selected ${filesArray.length} files. Maximum allowed: ${this.maxBatchFiles} files per upload.`
-                    };
-                }
-
-                return { valid: true };
             },
             
             validateAndUpload(files, isFolder = false) {
