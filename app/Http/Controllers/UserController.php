@@ -159,6 +159,55 @@ class UserController extends Controller
         return view('users.profile',compact('user','departments','roles'));
     }
 
+    /**
+     * Show the authenticated user's own profile.
+     * This route is accessible to all authenticated users.
+     */
+    public function showOwnProfile()
+    {
+        $user = auth()->user();
+        
+        if (!$user) {
+            abort(403);
+        }
+
+        $departments = Department::all();
+        // Minimal roles for self-view (not editable by regular users)
+        $roles = collect();
+
+        return view('users.profile', compact('user', 'departments', 'roles'));
+    }
+
+    /**
+     * Update the authenticated user's own profile.
+     * This route is accessible to all authenticated users for basic profile updates.
+     */
+    public function updateOwnProfile(Request $request)
+    {
+        $user = auth()->user();
+        
+        if (!$user) {
+            abort(403);
+        }
+
+        $data = $request->validate([
+            'full_name'  => 'string|max:255',
+            'phone' => 'nullable|string|max:255',
+            'profile_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:8384'],
+        ]);
+
+        // Handle profile image upload
+        if ($request->hasFile('profile_image')) {
+            $path = $request->file('profile_image')->store('profile', 'public');
+            $data['image'] = $path;
+        }
+        unset($data['profile_image']);
+
+        $user->update($data);
+
+        return redirect()->back()->with('success', 'Profile updated successfully.');
+    }
+
     public function audit()
     {
         Gate::authorize('viewAny',User::class);
