@@ -34,11 +34,11 @@
                         const fileNames = oversizedFiles.map(f => f.name).slice(0, 3).join(', ');
                         const sizeMB = (oversizedFiles[0].size / 1024 / 1024).toFixed(2);
                         const maxMB = (this.maxSizeBytes / 1024 / 1024).toFixed(0);
-                        const moreCount = oversizedFiles.length > 3 ? ` (+${oversizedFiles.length - 3} more)` : '';
+                        const moreCount = oversizedFiles.length > 3 ? ' (+' + (oversizedFiles.length - 3) + ' more)' : '';
                         console.error('[File Validation] Upload blocked due to oversized files');
                         return {
                             valid: false,
-                            message: `{{ ui_t('pages.upload.upload_blocked') }}:\n\n${fileNames}${moreCount}\n\n{{ __('File size') }}: ${sizeMB} MB\n{{ __('Maximum allowed') }}: ${maxMB} MB`
+                            message: '{{ ui_t("pages.upload.upload_blocked") }}: ' + fileNames + moreCount + ' | {{ __("File size") }}: ' + sizeMB + ' MB | {{ __("Maximum allowed") }}: ' + maxMB + ' MB'
                         };
                     }
 
@@ -47,7 +47,7 @@
                         console.error('[File Validation] Upload blocked: too many files selected');
                         return {
                             valid: false,
-                            message: `{{ ui_t('pages.upload.upload_blocked') }}:\n\n{{ __('Too many files selected') }}.\n{{ __('Files selected') }}: ${filesArray.length}\n{{ __('Maximum allowed') }}: ${this.maxBatchFiles}`
+                            message: '{{ ui_t("pages.upload.upload_blocked") }}: {{ __("Too many files selected") }}. {{ __("Files selected") }}: ' + filesArray.length + ' | {{ __("Maximum allowed") }}: ' + this.maxBatchFiles
                         };
                     }
 
