@@ -40,6 +40,7 @@ class DatabaseSeeder extends Seeder
             \Database\Seeders\AddPendingDocumentsPageHeadingSeeder::class,
             \Database\Seeders\AddPhysicalLocationBoxErrorTranslationsSeeder::class,
             \Database\Seeders\AddPostponeFeatureTranslationsSeeder::class,
+            \Database\Seeders\AddServiceSelectionTranslationsSeeder::class,
             \Database\Seeders\AddUploadLimitTranslationsSeeder::class,
             \Database\Seeders\AddUploadSubmittingTranslationSeeder::class,
             \Database\Seeders\AddUserPasswordCheckboxTranslationsSeeder::class,
