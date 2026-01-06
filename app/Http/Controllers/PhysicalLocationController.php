@@ -42,14 +42,25 @@ class PhysicalLocationController extends Controller
         $accessibleServiceIds = Box::getAccessibleServiceIds($user);
 
         if ($accessibleServiceIds !== 'all') {
-            $roomsQuery->where(function($q) use ($accessibleServiceIds) {
+            $userDepartmentId = $this->getUserDepartmentId($user);
+
+            $roomsQuery->where(function($q) use ($accessibleServiceIds, $userDepartmentId) {
                 // Show rooms that have boxes belonging to user's services
                 $q->whereHas('rows.shelves.boxes', function($boxQ) use ($accessibleServiceIds) {
                     $boxQ->whereIn('service_id', $accessibleServiceIds);
-                })
-                // OR show empty rooms (rooms with no boxes at all)
-                // Note: We check 'rows.shelves.boxes' to catch deep nesting
-                ->orWhereDoesntHave('rows.shelves.boxes');
+                });
+
+                // OR show rooms reserved for the user's department (even if empty)
+                if ($userDepartmentId) {
+                    $q->orWhere('department_id', $userDepartmentId);
+                } 
+                // OR show legacy public rooms (no dept assigned) that are empty
+                else {
+                     $q->orWhere(function($subQ) {
+                        $subQ->whereNull('department_id')
+                             ->whereDoesntHave('rows.shelves.boxes');
+                     });
+                }
             });
         }
 
@@ -73,11 +84,15 @@ class PhysicalLocationController extends Controller
 
         try {
             DB::beginTransaction();
+            
+            $user = auth()->user();
+            $deptId = $this->getUserDepartmentId($user);
 
             // Step 1: Find or create room
+            // If creating, assign department ID
             $room = Room::firstOrCreate(
                 ['name' => $validated['room_name']],
-                ['description' => null]
+                ['description' => null, 'department_id' => $deptId]
             );
 
             // Step 2: Find or create row inside the room
@@ -115,7 +130,6 @@ class PhysicalLocationController extends Controller
     }
 
 
-
     /**
      * Add a new Room
      */
@@ -128,9 +142,48 @@ class PhysicalLocationController extends Controller
             'description' => 'nullable|string',
         ]);
 
+        // Automatically assign department for restricted users
+        $user = auth()->user();
+        $validated['department_id'] = $this->getUserDepartmentId($user);
+
         $room = Room::create($validated);
 
         return back()->with('success', 'Room "<strong>' . $room->name . '</strong>" created successfully.');
+    }
+
+    /**
+     * Helper to get potentially associated department ID for user
+     */
+    private function getUserDepartmentId($user)
+    {
+        if (!$user) return null;
+        
+        // If super admin, return null (global rooms)
+        if ($user->hasRole('master') || $user->hasRole('Super Administrator') || $user->hasRole('super_admin')) {
+            return null;
+        }
+
+        // 1. Direct Department Assignment (e.g. Pole Admin)
+        $dept = $user->departments()->first();
+        if ($dept) return $dept->id;
+
+        // 2. Service Assignment (Service -> SubDept -> Dept)
+        if ($user->service_id) {
+            $service = \App\Models\Service::with('subDepartment.department')->find($user->service_id);
+            return $service?->subDepartment?->department_id;
+        } elseif ($user->service) {
+             return $user->service->subDepartment?->department_id;
+        }
+
+        // 3. SubDepartment Assignment (SubDept -> Dept)
+        if ($user->sub_department_id) {
+            $sub = \App\Models\SubDepartment::find($user->sub_department_id);
+            return $sub?->department_id;
+        } elseif ($user->subDepartment) {
+            return $user->subDepartment->department_id;
+        }
+
+        return null;
     }
 
     /**

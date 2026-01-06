@@ -10,7 +10,16 @@ class Room extends Model
     protected $fillable = [
         'name',
         'description',
+        'department_id',
     ];
+
+    /**
+     * Get the department that owns this room
+     */
+    public function department()
+    {
+        return $this->belongsTo(\App\Models\Department::class);
+    }
 
     /**
      * Get all rows in this room
