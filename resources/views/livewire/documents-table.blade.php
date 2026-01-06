@@ -1,4 +1,38 @@
 <div class="mt-5">
+    <style>
+        /* Toast Notification Styles */
+        .custom-toast-notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: #10b981;
+            color: white;
+            padding: 16px 24px;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            z-index: 10100; /* Ensured high z-index to stay above modal */
+            display: flex;
+            align-items: center;
+            font-size: 15px;
+            font-weight: 500;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        .custom-toast-notification.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        .custom-toast-notification.custom-toast-success {
+            background: #10b981;
+        }
+        .custom-toast-notification.custom-toast-error {
+            background: #ef4444;
+        }
+        .custom-toast-notification i {
+            font-size: 18px;
+        }
+    </style>
     @if($boxId)
         @php
             $box = \App\Models\Box::with('shelf.row.room')->find($boxId);
@@ -1265,20 +1299,21 @@
 
     // Toast notification function - GLOBAL
     window.showToast = function(message, type = 'success') {
+        const existingToasts = document.querySelectorAll('.custom-toast-notification');
+        existingToasts.forEach(toast => toast.remove());
+
         const toast = document.createElement('div');
-        toast.className = `alert alert-${type} position-fixed top-0 start-50 translate-middle-x mt-3 shadow-lg`;
-        toast.style.cssText = 'z-index: 10100; min-width: 300px;';
+        toast.className = `custom-toast-notification custom-toast-${type}`;
         toast.innerHTML = `
-            <div class="d-flex align-items-center">
-                <i class="fas fa-check-circle me-2"></i>
-                <span>${message}</span>
-            </div>
+            <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'} me-2"></i>
+            <span>${message}</span>
         `;
         document.body.appendChild(toast);
         
+        setTimeout(() => toast.classList.add('show'), 10);
+        
         setTimeout(() => {
-            toast.style.transition = 'opacity 0.3s';
-            toast.style.opacity = '0';
+            toast.classList.remove('show');
             setTimeout(() => toast.remove(), 300);
         }, 3000);
     };
