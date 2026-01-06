@@ -92,6 +92,11 @@ class ActivityLogsTable extends Component
     {
         $current = auth()->user();
         
+        // Check if current user is Super Admin (not master)
+        $isSuperAdmin = $current && 
+            $current->hasRole(['Super Administrator', 'super_admin']) && 
+            !$current->hasRole('master');
+        
         $isDeAdmin = $current && (
             $current->hasRole('Department Administrator') ||
             $current->hasRole('Admin de pole') ||
@@ -103,7 +108,13 @@ class ActivityLogsTable extends Component
             $current->hasRole('Service Manager')
         );
         
-        return \App\Models\AuthenticationLog::with('user')
+        return \App\Models\AuthenticationLog::with(['user', 'user.roles'])
+            // Super Admin: hide logs from master users
+            ->when($isSuperAdmin, function($q) {
+                $q->whereDoesntHave('user.roles', function($r) {
+                    $r->whereRaw('LOWER(name) = ?', ['master']);
+                });
+            })
             // Department Administrator: only see logs from their department and users below their rank
             ->when($isDeAdmin && !$current->hasRole('master') && !$current->hasRole('super administrator'), function($q) use ($current) {
                 $deptIds = $current->departments?->pluck('id') ?? collect();
@@ -194,9 +205,15 @@ class ActivityLogsTable extends Component
     private function buildDocumentQuery()
     {
         $current = auth()->user();
+        
+        // Check if current user is Super Admin (not master)
+        $isSuperAdmin = $current && 
+            $current->hasRole(['Super Administrator', 'super_admin']) && 
+            !$current->hasRole('master');
 
         $query = AuditLog::with([
                 'user.departments', 
+                'user.roles',
                 'document' => function($q) {
                     // Include soft-deleted documents so audit logs show the document name
                     $q->withTrashed();
@@ -205,7 +222,13 @@ class ActivityLogsTable extends Component
                 'documentVersion'
             ])
             // Exclude OCR view activity from logs
-            ->where('action', '!=', 'viewed_ocr');
+            ->where('action', '!=', 'viewed_ocr')
+            // Super Admin: hide logs from master users
+            ->when($isSuperAdmin, function($q) {
+                $q->whereDoesntHave('user.roles', function($r) {
+                    $r->whereRaw('LOWER(name) = ?', ['master']);
+                });
+            });
 
         $isDeptAdmin = $current && (
             $current->hasRole('Department Administrator') ||
@@ -419,7 +442,20 @@ class ActivityLogsTable extends Component
             }
             $departments = collect();
         } else {
-            $users = User::orderBy('full_name')->get();
+            // Super Admin: exclude master users from filter dropdown
+            $isSuperAdminNotMaster = $current && 
+                $current->hasRole(['Super Administrator', 'super_admin']) && 
+                !$current->hasRole('master');
+            
+            if ($isSuperAdminNotMaster) {
+                $users = User::whereDoesntHave('roles', function($q) {
+                        $q->whereRaw('LOWER(name) = ?', ['master']);
+                    })
+                    ->orderBy('full_name')
+                    ->get();
+            } else {
+                $users = User::orderBy('full_name')->get();
+            }
             $departments = Department::orderBy('name')->get();
         }
         

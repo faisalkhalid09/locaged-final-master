@@ -1141,10 +1141,12 @@
                 <td colspan="8">
                         @php
                             $currentUser = auth()->user();
+                            $isSuperAdmin = $currentUser->hasRole(['Super Administrator', 'super_admin']) && !$currentUser->hasRole('master');
                             $isAdminDePole = $currentUser->hasRole('Admin de pole') || $currentUser->hasRole('Department Administrator');
                             $isAdminDeCellule = $currentUser->hasRole('Admin de cellule') || $currentUser->hasRole('Service Manager');
                             
                             // Define roles that should be hidden for each user type
+                            $hiddenRolesForSuperAdmin = ['master'];
                             $hiddenRolesForAdminDePole = ['master', 'super administrator', 'admin'];
                             $hiddenRolesForAdminDeCellule = ['master', 'super administrator', 'admin', 'admin de pole', 'department administrator'];
                         @endphp
@@ -1163,6 +1165,16 @@
                                     $logUserRoles = $log->user->roles->pluck('name')->map(function($name) {
                                         return strtolower($name);
                                     })->toArray();
+                                    
+                                    // Super Admin: hide logs from master only
+                                    if ($isSuperAdmin) {
+                                        foreach ($logUserRoles as $roleName) {
+                                            if (in_array($roleName, $hiddenRolesForSuperAdmin)) {
+                                                $canViewLog = false;
+                                                break;
+                                            }
+                                        }
+                                    }
                                     
                                     // Admin de pole: hide logs from master, super admin, and admin
                                     if ($isAdminDePole) {
