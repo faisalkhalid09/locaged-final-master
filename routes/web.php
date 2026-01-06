@@ -70,6 +70,10 @@ Route::middleware('auth')->group(function () {
     // Approvals page: access controlled by policy (approve/decline Document)
     Route::get('/documents/status',[DocumentController::class,'showStatus'])->name('documents.status');
 
+    // Profile route: allow any authenticated user to view their own profile
+    Route::get('/profile', [UserController::class, 'showOwnProfile'])->name('profile.show');
+    Route::put('/profile', [UserController::class, 'updateOwnProfile'])->name('profile.update');
+
 
     // Debug route removed for security - see audit report
     // Original route /debug-service/{id} exposed internal database structure
