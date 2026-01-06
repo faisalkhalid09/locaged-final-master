@@ -1,4 +1,14 @@
 @if($step === 1)
+    @php
+        $translations = [
+            'uploadBlocked' => ui_t('pages.upload.upload_blocked'),
+            'fileSize' => __('File size'),
+            'maxAllowed' => __('Maximum allowed'),
+            'tooManyFiles' => __('Too many files selected'),
+            'filesSelected' => __('Files selected'),
+        ];
+    @endphp
+    
     <script>
         document.addEventListener('alpine:init', () => {
             Alpine.data('fileUpload', () => ({
@@ -152,15 +162,6 @@
         });
     </script>
     
-    @php
-        $translations = [
-            'uploadBlocked' => ui_t('pages.upload.upload_blocked'),
-            'fileSize' => __('File size'),
-            'maxAllowed' => __('Maximum allowed'),
-            'tooManyFiles' => __('Too many files selected'),
-            'filesSelected' => __('Files selected'),
-        ];
-    @endphp
     <div class="upload-section p-3 mt-2"
          x-data="fileUpload"
          x-on:livewire-upload-start.window="isUploading = true"
