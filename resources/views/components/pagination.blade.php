@@ -1,11 +1,8 @@
 @props(['items'])
 
 @php
-    // Check if we're in a Livewire component by checking if the paginator has Livewire methods
-    $isLivewirePaginator = method_exists($items, 'hasPages') &&
-                          (str_contains(get_class($items), 'Livewire') ||
-                           isset($this) ||
-                           request()->header('X-Livewire'));
+    // Check if we're in a Livewire component context
+    $isLivewire = isset($this) || request()->header('X-Livewire');
 @endphp
 
 
@@ -21,9 +18,15 @@
                 <i class="fa-solid fa-chevron-left"></i> {{ ui_t('tables.pagination.previous') }}
             </button>
         @else
-            <button type="button" class="btn-page" wire:click="previousPage" wire:loading.attr="disabled">
-                <i class="fa-solid fa-chevron-left"></i> {{ ui_t('tables.pagination.previous') }}
-            </button>
+            @if($isLivewire)
+                <button type="button" class="btn-page" wire:click="previousPage" wire:loading.attr="disabled">
+                    <i class="fa-solid fa-chevron-left"></i> {{ ui_t('tables.pagination.previous') }}
+                </button>
+            @else
+                <a href="{{ $items->previousPageUrl() }}" class="btn-page">
+                    <i class="fa-solid fa-chevron-left"></i> {{ ui_t('tables.pagination.previous') }}
+                </a>
+            @endif
         @endif
 
         {{-- Page Numbers --}}
@@ -37,15 +40,25 @@
             @if ($page == $items->currentPage())
                 <span class="page-num active">{{ $page }}</span>
             @else
-                <button type="button" class="page-num" wire:click="gotoPage({{ $page }})" wire:loading.attr="disabled">{{ $page }}</button>
+                @if($isLivewire)
+                    <button type="button" class="page-num" wire:click="gotoPage({{ $page }})" wire:loading.attr="disabled">{{ $page }}</button>
+                @else
+                    <a href="{{ $url }}" class="page-num">{{ $page }}</a>
+                @endif
             @endif
         @endforeach
 
         {{-- Next Page Link --}}
         @if ($items->hasMorePages())
-            <button type="button" class="btn-page" wire:click="nextPage" wire:loading.attr="disabled">
-                {{ ui_t('tables.pagination.next') }} <i class="fa-solid fa-chevron-right"></i>
-            </button>
+            @if($isLivewire)
+                <button type="button" class="btn-page" wire:click="nextPage" wire:loading.attr="disabled">
+                    {{ ui_t('tables.pagination.next') }} <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            @else
+                <a href="{{ $items->nextPageUrl() }}" class="btn-page">
+                    {{ ui_t('tables.pagination.next') }} <i class="fa-solid fa-chevron-right"></i>
+                </a>
+            @endif
         @else
             <button class="btn-page" disabled>
                 {{ ui_t('tables.pagination.next') }} <i class="fa-solid fa-chevron-right"></i>
