@@ -10,21 +10,23 @@
                 $maxUsers = \App\Support\Branding::getMaxUsers();
             @endphp
             
-            @if($maxUsers > 0)
-                <div class="alert alert-info mt-3">
-                    <i class="fas fa-info-circle me-2"></i>
-                    <strong>{{ ui_t('pages.users_page.user_limit') }}</strong> {{ $currentUserCount }} / {{ $maxUsers }} {{ ui_t('pages.users_page.users') }}
-                    @if($currentUserCount >= $maxUsers)
-                        <span class="text-danger ms-2">
-                            <i class="fas fa-exclamation-triangle"></i> {{ ui_t('pages.users_page.limit_reached') }}
-                        </span>
-                    @endif
-                </div>
-            @else
-                <div class="alert alert-success mt-3">
-                    <i class="fas fa-users me-2"></i>
-                    <strong>{{ ui_t('pages.users_page.total_users') }}</strong> {{ $currentUserCount }} ({{ ui_t('pages.users_page.unlimited') }})
-                </div>
+            @if(auth()->user()->hasAnyRole(['master', 'Super Administrator']))
+                @if($maxUsers > 0)
+                    <div class="alert alert-info mt-3">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>{{ ui_t('pages.users_page.user_limit') }}</strong> {{ $currentUserCount }} / {{ $maxUsers }} {{ ui_t('pages.users_page.users') }}
+                        @if($currentUserCount >= $maxUsers)
+                            <span class="text-danger ms-2">
+                                <i class="fas fa-exclamation-triangle"></i> {{ ui_t('pages.users_page.limit_reached') }}
+                            </span>
+                        @endif
+                    </div>
+                @else
+                    <div class="alert alert-success mt-3">
+                        <i class="fas fa-users me-2"></i>
+                        <strong>{{ ui_t('pages.users_page.total_users') }}</strong> {{ $currentUserCount }} ({{ ui_t('pages.users_page.unlimited') }})
+                    </div>
+                @endif
             @endif
 
             <div class="d-flex justify-content-between mt-4 pb-2 border-bottom mb-4 notification-info w-100">
