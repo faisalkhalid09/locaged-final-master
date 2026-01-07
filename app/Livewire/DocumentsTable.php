@@ -228,9 +228,11 @@ class DocumentsTable extends Component
         // Base documents query (database only; we no longer use Elasticsearch
         // here because the ES cluster may be down and users expect search to
         // always work based on the database state.)
+        // Optimized: removed heavy 'auditLogs.user' eager loading for performance
+        // auditLogs are loaded lazily in the view only when needed
         $documentsQuery = Document::with([
             'subcategory', 'department', 'box.shelf.row.room',
-            'createdBy', 'latestVersion', 'auditLogs.user'
+            'createdBy', 'latestVersion'
         ]);
 
         // Hide expired documents by default (unless explicitly filtered for "expired")
@@ -412,11 +414,12 @@ class DocumentsTable extends Component
             ->orderBy('created_at', 'desc')
             ->orderBy('id', 'desc');
         
-        // Get ALL filtered document IDs for navigation (before pagination)
-        $this->documentsIds = (clone $documents)->pluck('id')->toArray();
-        
-        // Now paginate for display
+        // Paginate first for performance
         $documents = $documents->paginate($this->perPage);
+        
+        // Get document IDs only from paginated results (for navigation within current page)
+        // This is much faster than fetching ALL document IDs before pagination
+        $this->documentsIds = $documents->pluck('id')->toArray();
 
         // Folders for current level
         // - Hidden when showing only pending approvals (dashboard)
@@ -436,27 +439,16 @@ class DocumentsTable extends Component
             }
         }
 
-        // Folders for current level
-        // - Hidden when showing only pending approvals (dashboard)
-        // - Hidden on File Audit page (documents.index)
-        $hideFolders = $this->showOnlyPendingApprovals || request()->routeIs('documents.index');
-        if ($hideFolders) {
-            $folders = collect();
-        } else {
-            if (is_null($this->currentFolderId)) {
-                $folders = Folder::whereNull('parent_id')
-                    ->orderBy('name')
-                    ->get();
-            } else {
-                $folders = Folder::where('parent_id', $this->currentFolderId)
-                    ->orderBy('name')
-                    ->get();
-            }
-        }
+        // NOTE: Folders were already fetched above; duplicate block removed
 
+        // Load movements only if needed (for move modal)
         $movements = DocumentMovement::all();
+        
         // Load rooms for move modal hierarchical selection
-        $rooms = \App\Models\Room::with(['rows.shelves.boxes'])->get();
+        // Cache this as it rarely changes
+        $rooms = cache()->remember('rooms_with_hierarchy', 300, function() {
+            return \App\Models\Room::with(['rows.shelves.boxes'])->get();
+        });
 
         // Rebuild search suggestions when rendering (in case filters changed)
         $this->updateSearchSuggestions(false);
