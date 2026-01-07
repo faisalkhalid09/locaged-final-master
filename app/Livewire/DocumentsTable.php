@@ -414,32 +414,12 @@ class DocumentsTable extends Component
             ->orderBy('created_at', 'desc')
             ->orderBy('id', 'desc');
         
-        // Paginate first for performance
-        $documents = $documents->paginate($this->perPage);
+        // Get ALL filtered document IDs for navigation (before pagination)
+        // This is needed for prev/next navigation in the preview page
+        $this->documentsIds = (clone $documents)->pluck('id')->toArray();
         
-        // Get document IDs only from paginated results (for navigation within current page)
-        // This is much faster than fetching ALL document IDs before pagination
-        $this->documentsIds = $documents->pluck('id')->toArray();
-
-        // Folders for current level
-        // - Hidden when showing only pending approvals (dashboard)
-        // - Hidden on File Audit page (documents.index)
-        $hideFolders = $this->showOnlyPendingApprovals || request()->routeIs('documents.index');
-        if ($hideFolders) {
-            $folders = collect();
-        } else {
-            if (is_null($this->currentFolderId)) {
-                $folders = Folder::whereNull('parent_id')
-                    ->orderBy('name')
-                    ->get();
-            } else {
-                $folders = Folder::where('parent_id', $this->currentFolderId)
-                    ->orderBy('name')
-                    ->get();
-            }
-        }
-
-        // NOTE: Folders were already fetched above; duplicate block removed
+        // Now paginate for display
+        $documents = $documents->paginate($this->perPage);
 
         // Load movements only if needed (for move modal)
         $movements = DocumentMovement::all();
@@ -514,7 +494,7 @@ class DocumentsTable extends Component
 
         return view('livewire.documents-table', [
             'documents' => $documents,
-            'folders'   => $folders,
+            'folders'   => collect(), // Empty collection - folders feature removed
             'movements' => $movements,
             'rooms'     => $rooms,
             'hierarchyDepartments' => $hierarchyDepartments,
