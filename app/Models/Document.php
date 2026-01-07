@@ -160,7 +160,7 @@ class Document extends Model
             // =========================================================
             //  STRICT DIVISION CHIEF POLICY
             // =========================================================
-            if ($user->hasRole('Division Chief')) {
+            if ($user->hasAnyRole(['Division Chief', 'Admin de departments'])) {
 
                 // 1. Get all Sub-Departments assigned to this user (pivot only)
                 $userSubDeptIds = collect();

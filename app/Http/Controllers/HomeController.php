@@ -286,7 +286,7 @@ class HomeController extends Controller
         }
 
         // Special strict rule for Division Chief (must match department + service pair)
-        if ($user->hasRole('Division Chief')) {
+        if ($user->hasAnyRole(['Division Chief', 'Admin de departments'])) {
             $userDeptIds = ($user->relationLoaded('departments') || method_exists($user, 'departments'))
                 ? $user->departments->pluck('id')->filter()
                 : collect();
