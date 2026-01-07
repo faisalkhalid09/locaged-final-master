@@ -385,12 +385,12 @@ class DocumentsTable extends Component
             ->orderBy('created_at', 'desc')
             ->orderBy('id', 'desc');
         
-        // Get ALL filtered document IDs for navigation (before pagination)
-        // This is needed for prev/next navigation in the preview page
-        $this->documentsIds = (clone $documents)->pluck('id')->toArray();
-        
-        // Now paginate for display
+        // Paginate for display first (fast)
         $documents = $documents->paginate($this->perPage);
+        
+        // Get document IDs only from current page for navigation
+        // Full navigation across all pages is too slow - limit to current page only
+        $this->documentsIds = $documents->pluck('id')->toArray();
 
         // Load movements only if needed (for move modal)
         $movements = DocumentMovement::all();
