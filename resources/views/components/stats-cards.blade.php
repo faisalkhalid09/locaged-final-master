@@ -18,7 +18,7 @@
 
     @if(auth()->user() && auth()->user()->hasRole('user'))
         {{-- Service Users: show pending documents on All Documents page --}}
-        <a href="{{ route('documents.all', ['status' => \App\Enums\DocumentStatus::Pending->value, 'page_title' => 'pending_documents', 'show_expired' => 1]) }}" class="text-decoration-none text-reset">
+        <a href="{{ route('documents.all', ['status' => \App\Enums\DocumentStatus::Pending->value, 'page_title' => 'pending_documents', 'show_expired' => 1, 'lock_status' => 1]) }}" class="text-decoration-none text-reset">
     @else
         {{-- Other roles: show pending approvals page --}}
         <a href="{{ route('documents.status', ['show_expired' => 1]) }}" class="text-decoration-none text-reset">
