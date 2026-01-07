@@ -44,6 +44,7 @@ class DatabaseSeeder extends Seeder
             \Database\Seeders\AddUploadLimitTranslationsSeeder::class,
             \Database\Seeders\AddUploadSubmittingTranslationSeeder::class,
             \Database\Seeders\AddUserPasswordCheckboxTranslationsSeeder::class,
+            \Database\Seeders\AddLoginSecureSpaceTranslationSeeder::class,
         ]);
     }
 }
