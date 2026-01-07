@@ -5,7 +5,6 @@ namespace App\Livewire;
 use App\Enums\DocumentStatus;
 use App\Models\Document;
 use App\Models\DocumentMovement;
-use App\Models\Folder;
 use App\Models\PhysicalLocation;
 use App\Models\Department;
 use App\Models\SubDepartment;
@@ -52,8 +51,7 @@ class DocumentsTable extends Component
     // Pagination page size
     public int $perPage = 10;
 
-    // Folder navigation: null = root
-    public ?int $currentFolderId = null;
+
 
     // When true (e.g., dashboard), show only items awaiting approval for the current user
     public bool $showOnlyPendingApprovals = false;
@@ -89,22 +87,7 @@ class DocumentsTable extends Component
         }
     }
 
-    public function openFolder(int $folderId): void
-    {
-        $this->currentFolderId = $folderId;
-        $this->resetPage();
-    }
 
-    public function goUp(): void
-    {
-        if (is_null($this->currentFolderId)) {
-            return; // already at root
-        }
-
-        $parentId = Folder::where('id', $this->currentFolderId)->value('parent_id');
-        $this->currentFolderId = $parentId; // may become null (root)
-        $this->resetPage();
-    }
 
     public function resetFilters()
     {
@@ -246,18 +229,6 @@ class DocumentsTable extends Component
 
         // Apply hierarchy filter (department / sub-department / service)
         $this->applyHierarchyToQuery($documentsQuery);
-
-        // Restrict to current folder (or root when null) UNLESS we are filtering by
-        // global filters. In approvals view we ignore folders entirely.
-        $isFiltering = $this->category || $this->tags || $this->keywords || $this->author || $this->dateFrom || $this->dateTo || $this->service;
-
-        if (! $this->showOnlyPendingApprovals && ! $isFiltering) {
-            if (is_null($this->currentFolderId)) {
-                $documentsQuery->whereNull('folder_id');
-            } else {
-                $documentsQuery->where('folder_id', $this->currentFolderId);
-            }
-        }
 
         // Pending-approvals mode: default to pending status, but allow user filter
         if ($this->showOnlyPendingApprovals) {
