@@ -78,6 +78,14 @@ class DocumentsTable extends Component
         'hierarchy' => ['except' => ''],
     ];
 
+    public function mount(): void
+    {
+        // Check if status filter should be locked (e.g., service users from dashboard pending card)
+        if (request()->get('lock_status')) {
+            $this->lockStatusFilter = true;
+        }
+    }
+
     public function updated($field)
     {
         // Reset to first page when any filter changes
