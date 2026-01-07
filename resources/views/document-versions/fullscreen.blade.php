@@ -54,6 +54,17 @@
         }
     </style>
 
+    @php
+        // Determine the safest close URL
+        // Priority: 1) explicit return_url param, 2) documents.all route
+        $closeUrl = $returnUrl ?? route('documents.all');
+        
+        // Safety check: never use livewire update URL
+        if (str_contains($closeUrl, '/livewire/')) {
+            $closeUrl = route('documents.all');
+        }
+    @endphp
+
     <div class="container-fluid mt-3">
         <div class="preview-container">
             <div class="preview-header">
@@ -102,9 +113,10 @@
                        title="{{ ui_t('actions.download') ?? 'Download' }}">
                         <i class="fas fa-download"></i>
                     </a>
-                    <a href="{{ $returnUrl ?? route('documents.all') }}" 
-                            class="btn-preview" 
-                            title="{{ ui_t('actions.close') ?? 'Close' }}">
+                    <a href="{{ $closeUrl }}" 
+                       id="closePreviewBtn"
+                       class="btn-preview" 
+                       title="{{ ui_t('actions.close') ?? 'Close' }}">
                         <i class="fas fa-times"></i> {{ ui_t('actions.close') ?? 'Close' }}
                     </a>
                 </div>
@@ -157,11 +169,38 @@
     </div>
 
     <script>
-        // Close on Escape key - use smart return URL
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                window.location.href = '{{ $returnUrl ?? route('documents.all') }}';
+        (function() {
+            const defaultCloseUrl = '{{ route("documents.all") }}';
+            const serverCloseUrl = '{{ $closeUrl }}';
+            
+            // Determine the best close URL
+            // Use referrer if it's a valid documents page, otherwise use server-provided URL
+            let closeUrl = serverCloseUrl;
+            
+            // Check if referrer is a valid documents page (not livewire endpoint)
+            if (document.referrer) {
+                const referrerUrl = new URL(document.referrer);
+                const pathname = referrerUrl.pathname;
+                
+                // Only use referrer if it's a documents page, not a livewire endpoint
+                if (pathname.includes('/documents/') && !pathname.includes('/livewire/')) {
+                    closeUrl = document.referrer;
+                }
             }
-        });
+            
+            // Update the close button href
+            const closeBtn = document.getElementById('closePreviewBtn');
+            if (closeBtn) {
+                closeBtn.href = closeUrl;
+            }
+            
+            // Handle Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    window.location.href = closeUrl;
+                }
+            });
+        })();
     </script>
 @endsection
+
