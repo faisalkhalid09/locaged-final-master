@@ -333,7 +333,7 @@ class DeletionLogsTable extends Component
             // In ActivityLogsTable we used a complex query. Let's start simple: specific service users.
             $users = User::whereHas('services', function($q) use ($serviceIds) {
                     $q->whereIn('services.id', $serviceIds);
-                 })->orWhere('service_id', $serviceIds)
+                 })->orWhereIn('service_id', $serviceIds)
                  ->orderBy('full_name')
                  ->get();
 
