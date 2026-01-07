@@ -148,7 +148,7 @@
             </div>
             <div class="table-filters">
                 @unless($this->showOnlyPendingApprovals)
-                    <select class="form-select" wire:model.change="status">
+                    <select class="form-select" wire:model.change="status" @if($this->lockStatusFilter) disabled @endif>
                         <option value="all">{{ ui_t('filters.all') }}</option>
                         @foreach(\App\Enums\DocumentStatus::activeCases() as $status)
                             @if(!in_array($status->value, ['archived', 'destroyed']))

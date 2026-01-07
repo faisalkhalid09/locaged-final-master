@@ -56,6 +56,10 @@ class DocumentsTable extends Component
     // When true (e.g., dashboard), show only items awaiting approval for the current user
     public bool $showOnlyPendingApprovals = false;
 
+    // When true, the status filter is locked and cannot be changed
+    // Used when service users access pending documents from dashboard
+    public bool $lockStatusFilter = false;
+
     protected $queryString = [
         'search' => ['except' => ''],
         'status' => ['except' => ''],
