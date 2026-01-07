@@ -106,7 +106,7 @@
                         {{ ui_t('pages.documents.export') }}
                     </button>
                     @can('create', \App\Models\Document::class)
-                        <a href="{{ route('documents.create', ['folder_id' => $this->currentFolderId]) }}" class="btn btn-dark text-white d-inline-flex gap-1 align-items-center" style="font-size: 0.9rem;">
+                        <a href="{{ route('documents.create') }}" class="btn btn-dark text-white d-inline-flex gap-1 align-items-center" style="font-size: 0.9rem;">
                             <i class="fas fa-plus"></i> {{ ui_t('pages.documents.upload_documents') }}
                         </a>
                     @endcan
@@ -117,16 +117,7 @@
     </div>
 
     <div class="recent-files-section">
-        {{-- Folder breadcrumb / navigation (hidden on dashboard pending-approvals view) --}}
-        @unless($this->showOnlyPendingApprovals)
-        <div class="mb-3 d-flex align-items-center gap-2">
-            @if(!is_null($this->currentFolderId))
-                <button type="button" class="btn btn-sm btn-outline-secondary" wire:click="goUp">
-                    &larr; {{ ui_t('pages.documents.back') ?? 'Up' }}
-                </button>
-            @endif
-        </div>
-        @endunless
+
 
         <div class="table-controls">
             <div class="search-files position-relative">
