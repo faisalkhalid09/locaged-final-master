@@ -52,20 +52,9 @@ class PhysicalLocationController extends Controller
                 }
             ]);
 
-            // Filter rooms: show if owned by department OR contain accessible boxes
-            $userDepartmentId = $this->getUserDepartmentId($user);
-
-            $roomsQuery->where(function($q) use ($accessibleServiceIds, $userDepartmentId) {
-                // Show rooms reserved for the user's department (including empty/partial ones)
-                if ($userDepartmentId) {
-                    $q->where('department_id', $userDepartmentId);
-                }
-                
-                // OR show rooms that have boxes belonging to user's services
-                $q->orWhereHas('rows.shelves.boxes', function($boxQ) use ($accessibleServiceIds) {
-                    $boxQ->whereIn('service_id', $accessibleServiceIds);
-                });
-            });
+            // Filter rooms: show ALL rooms (as per new requirement)
+            // Users can see full structure (Room -> Row -> Shelf) but only their own boxes
+            // The boxes are already filtered in the eager loading above
         }
 
         $rooms = $roomsQuery->get();
