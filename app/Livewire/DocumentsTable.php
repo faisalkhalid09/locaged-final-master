@@ -392,75 +392,79 @@ class DocumentsTable extends Component
         // Full navigation across all pages is too slow - limit to current page only
         $this->documentsIds = $documents->pluck('id')->toArray();
 
-        // Load movements only if needed (for move modal)
-        $movements = DocumentMovement::all();
+        // Lazy-load movements - only used in move modal (not needed for pagination)
+        $movements = collect(); // Will be loaded via AJAX when modal opens if needed
         
-        // Load rooms for move modal hierarchical selection
-        // Cache this as it rarely changes
+        // Load rooms for move modal hierarchical selection - cached
         $rooms = cache()->remember('rooms_with_hierarchy', 300, function() {
             return \App\Models\Room::with(['rows.shelves.boxes'])->get();
         });
 
-        // Rebuild search suggestions when rendering (in case filters changed)
-        $this->updateSearchSuggestions(false);
+        // Skip search suggestions during pagination for performance
+        // Only update when actually searching
+        if ($this->search) {
+            $this->updateSearchSuggestions(false);
+        }
 
-        // Build hierarchy options (departments -> sub-departments -> services) based on user assignments
+        // Cache hierarchy departments per user (changes rarely)
         $user = auth()->user();
         $hierarchyDepartments = collect();
 
         if ($user) {
-            $user->refresh();
-            $user->loadMissing(['subDepartments', 'services']);
+            $cacheKey = 'hierarchy_departments_user_' . $user->id;
+            $hierarchyDepartments = cache()->remember($cacheKey, 600, function() use ($user) {
+                $user->loadMissing(['subDepartments', 'services']);
 
-            $isMasterOrSuper = $user->hasRole('master') || $user->hasRole('Super Administrator');
-            $isDepartmentAdmin = $user->hasAnyRole(['Department Administrator', 'Admin de pole']);
-            $isDivisionChief = $user->hasAnyRole(['Division Chief', 'Admin de departments']);
+                $isMasterOrSuper = $user->hasRole('master') || $user->hasRole('Super Administrator');
+                $isDepartmentAdmin = $user->hasAnyRole(['Department Administrator', 'Admin de pole']);
+                $isDivisionChief = $user->hasAnyRole(['Division Chief', 'Admin de departments']);
 
-            if ($isMasterOrSuper) {
-                $hierarchyDepartments = Department::withoutGlobalScopes()
-                    ->with(['subDepartments.services'])
-                    ->orderBy('name')
-                    ->get();
-            } else {
-                // Departments directly from pivot (bypassing Department global scope)
-                $userDeptIdsRaw = DB::table('department_user')
-                    ->where('user_id', $user->id)
-                    ->pluck('department_id');
-
-                $departments = Department::withoutGlobalScopes()
-                    ->whereIn('id', $userDeptIdsRaw)
-                    ->orderBy('name')
-                    ->get();
-
-                // Determine visible sub-departments
-                if ($isDepartmentAdmin) {
-                    $deptIds = $departments->pluck('id');
-                    $subDepartments = SubDepartment::whereIn('department_id', $deptIds)->get();
+                if ($isMasterOrSuper) {
+                    return Department::withoutGlobalScopes()
+                        ->with(['subDepartments.services'])
+                        ->orderBy('name')
+                        ->get();
                 } else {
-                    $subDepartments = $user->subDepartments; // via pivot
+                    // Departments directly from pivot (bypassing Department global scope)
+                    $userDeptIdsRaw = DB::table('department_user')
+                        ->where('user_id', $user->id)
+                        ->pluck('department_id');
+
+                    $departments = Department::withoutGlobalScopes()
+                        ->whereIn('id', $userDeptIdsRaw)
+                        ->orderBy('name')
+                        ->get();
+
+                    // Determine visible sub-departments
+                    if ($isDepartmentAdmin) {
+                        $deptIds = $departments->pluck('id');
+                        $subDepartments = SubDepartment::whereIn('department_id', $deptIds)->get();
+                    } else {
+                        $subDepartments = $user->subDepartments; // via pivot
+                    }
+
+                    // Determine visible services
+                    if ($isDivisionChief || $isDepartmentAdmin) {
+                        $subIds = $subDepartments->pluck('id');
+                        $services = Service::whereIn('sub_department_id', $subIds)->get();
+                    } else {
+                        $services = $user->services; // via pivot
+                    }
+
+                    // Assemble hierarchy tree limited to these units
+                    $subByDept = $subDepartments->groupBy('department_id');
+                    $servicesBySub = $services->groupBy('sub_department_id');
+
+                    return $departments->map(function ($dept) use ($subByDept, $servicesBySub) {
+                        $dept->visibleSubDepartments = ($subByDept[$dept->id] ?? collect())
+                            ->map(function ($sub) use ($servicesBySub) {
+                                $sub->visibleServices = $servicesBySub[$sub->id] ?? collect();
+                                return $sub;
+                            });
+                        return $dept;
+                    });
                 }
-
-                // Determine visible services
-                if ($isDivisionChief || $isDepartmentAdmin) {
-                    $subIds = $subDepartments->pluck('id');
-                    $services = Service::whereIn('sub_department_id', $subIds)->get();
-                } else {
-                    $services = $user->services; // via pivot
-                }
-
-                // Assemble hierarchy tree limited to these units
-                $subByDept = $subDepartments->groupBy('department_id');
-                $servicesBySub = $services->groupBy('sub_department_id');
-
-                $hierarchyDepartments = $departments->map(function ($dept) use ($subByDept, $servicesBySub) {
-                    $dept->visibleSubDepartments = ($subByDept[$dept->id] ?? collect())
-                        ->map(function ($sub) use ($servicesBySub) {
-                            $sub->visibleServices = $servicesBySub[$sub->id] ?? collect();
-                            return $sub;
-                        });
-                    return $dept;
-                });
-            }
+            });
         }
 
         return view('livewire.documents-table', [
