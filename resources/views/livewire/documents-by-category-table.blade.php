@@ -120,7 +120,7 @@
                 <input type="text" placeholder="{{ ui_t('tables.file_name') }}" wire:model.live="search" />
             </div>
             <div class="table-filters">
-                <select class="form-select" wire:model.change="status" {{ $hideStatusFilter ? 'disabled' : '' }}>
+                <select class="form-select" wire:model.change="status" {{ $hideStatusFilter || $lockStatusFilter ? 'disabled' : '' }}>
                     <option value="all">{{ ui_t('filters.all') }}</option>
                     @foreach(\App\Enums\DocumentStatus::activeCases() as $status)
                         <option value="{{ $status->value }}">{{ ui_t('pages.documents.status.' . $status->value) }}</option>

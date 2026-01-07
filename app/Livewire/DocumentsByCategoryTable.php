@@ -35,6 +35,7 @@ class DocumentsByCategoryTable extends Component
     public $showExpired = false; // Show expired documents (from dashboard All Documents card)
     public $pageTitle = null; // Heading to display (from dashboard cards)
     public $hideStatusFilter = false; // Hide status filter dropdown (from dashboard cards)
+    public $lockStatusFilter = false; // Lock status filter dropdown (cannot be changed)
 
 
     public $documentsIds = [];
@@ -60,6 +61,7 @@ class DocumentsByCategoryTable extends Component
         'showExpired' => ['except' => false, 'as' => 'show_expired'],
         'pageTitle' => ['except' => null, 'as' => 'page_title'],
         'hideStatusFilter' => ['except' => false, 'as' => 'hide_status_filter'],
+        'lockStatusFilter' => ['except' => false, 'as' => 'lock_status'],
     ];
 
     public function mount($filterId = null, $isCategory = false, $contextLabel = null): void
