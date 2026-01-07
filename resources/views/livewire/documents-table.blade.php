@@ -1037,7 +1037,12 @@
                                         @php
                                             $baseUrl = route('document-versions.fullscreen', ['id' => $doc->latestVersion->id]);
                                             $navIds = implode(',', $documentsIds ?? []);
-                                            $fullUrl = $baseUrl . '?nav_ids=' . urlencode($navIds);
+                                            // Build return URL that preserves the current page state
+                                            $currentUrl = route('documents.all');
+                                            if ($this->getPage() > 1) {
+                                                $currentUrl .= '?page=' . $this->getPage();
+                                            }
+                                            $fullUrl = $baseUrl . '?nav_ids=' . urlencode($navIds) . '&return_url=' . urlencode($currentUrl);
                                         @endphp
                                         <a href="{{ $fullUrl }}"
                                            class="btn-table btn-table-preview" title="{{ ui_t('actions.preview') }}" aria-label="{{ ui_t('actions.preview') }}">
