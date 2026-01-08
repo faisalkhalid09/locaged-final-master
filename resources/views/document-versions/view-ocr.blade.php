@@ -32,7 +32,13 @@
                 <div class="doc-meta">{{ ui_t('pages.ocr_view.expire_date') }}</div>
             </div>
             <div class="col-2">
-                <span class="badge-status ">{{ ui_t('pages.documents.status.pending') }}</span>
+                @php
+                    $ocrJob = \App\Models\OcrJob::where('document_version_id', $doc->id)->first();
+                    $ocrStatus = $ocrJob && $ocrJob->status === 'completed' ? 'completed' : 'pending';
+                @endphp
+                <span class="badge-status">
+                    {{ $ocrStatus === 'completed' ? ui_t('pages.ocr.status.completed') : ui_t('pages.documents.status.pending') }}
+                </span>
                 <div class="doc-meta">{{ ui_t('pages.ocr_view.status') }}</div>
             </div>
         </div>
