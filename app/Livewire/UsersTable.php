@@ -66,10 +66,25 @@ class UsersTable extends Component
     {
         $usersQuery = User::with(['departments','roles']);
         
-        // Apply filtering for users who can't view all users
-        if (auth()->user()->cannot('view any user')) {
-            $actor = auth()->user();
-
+        $actor = auth()->user();
+        
+        // Priority 1: Admin de departments - ALWAYS filter by sub-departments
+        // This must come FIRST to prevent them from seeing all users via broad permissions
+        if ($actor->hasAnyRole(['Admin de departments', 'Division Chief'])) {
+            // Sub-Department level visibility: users from same sub-departments ONLY
+            $subDeptIds = $actor->subDepartments->pluck('id')->toArray();
+            
+            if (!empty($subDeptIds)) {
+                // Show ONLY users who are assigned to one of these sub-departments
+                $usersQuery->whereHas('subDepartments', function ($sq) use ($subDeptIds) {
+                    $sq->whereIn('sub_departments.id', $subDeptIds);
+                });
+            } else {
+                $usersQuery->whereRaw('1 = 0'); // Show nothing if no sub-departments assigned
+            }
+        }
+        // Priority 2: Check permissions for other roles
+        elseif ($actor->cannot('view any user')) {
             if ($actor->can('view department user') || $actor->hasRole('Admin de pole')) {
                 // Pole (Department) level visibility: users from same departments
                 $departmentIds = $actor->departments->pluck('id')->toArray();
@@ -79,19 +94,6 @@ class UsersTable extends Component
                     });
                 } else {
                     $usersQuery->whereRaw('1 = 0'); // Show nothing if no departments assigned
-                }
-            } elseif ($actor->hasAnyRole(['Admin de departments', 'Division Chief'])) {
-                // Sub-Department level visibility: users from same sub-departments ONLY
-                // Admin de departments should NOT see users from services outside their sub-departments
-                $subDeptIds = $actor->subDepartments->pluck('id')->toArray();
-                
-                if (!empty($subDeptIds)) {
-                    // Show ONLY users who are assigned to one of these sub-departments
-                    $usersQuery->whereHas('subDepartments', function ($sq) use ($subDeptIds) {
-                        $sq->whereIn('sub_departments.id', $subDeptIds);
-                    });
-                } else {
-                    $usersQuery->whereRaw('1 = 0'); // Show nothing if no sub-departments assigned
                 }
             } elseif ($actor->can('view service user') || $actor->hasAnyRole(['Admin de cellule', 'user'])) {
                 // Service-level visibility: users from same services
@@ -111,6 +113,7 @@ class UsersTable extends Component
                 $usersQuery->whereRaw('1 = 0');
             }
         }
+        // else: they have "view any user" permission - show all users (for Super Admin, Master, etc.)
         
         // Enforce role hierarchy visibility: only same-or-lower roles
         $viewer = auth()->user();
