@@ -536,6 +536,7 @@ return [
         'storage_by_room' => 'Occupation du stockage par salle',
         'room_label' => 'Salle',
         'docs' => 'docs',
+        'see_more' => 'Voir plus',
     ],
     'chart' => [
         'statistics' => 'Statistiques',
