@@ -552,6 +552,7 @@ return [
         'storage_by_room' => 'Storage occupancy by room',
         'room_label' => 'Room',
         'docs' => 'docs',
+        'see_more' => 'See more',
     ],
     'chart' => [
         'statistics' => 'Statistics',
