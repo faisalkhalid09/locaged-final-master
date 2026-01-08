@@ -897,6 +897,12 @@ return [
         'export' => 'Export',
         'preview' => 'Preview',
     ],
+    'ocr' => [
+        'status' => [
+            'completed' => 'Completed',
+            'pending' => 'Pending',
+        ],
+    ],
 ];
 
 

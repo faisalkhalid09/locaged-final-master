@@ -880,6 +880,12 @@ return [
         'export' => 'Exporter',
         'preview' => 'Aperçu',
     ],
+    'ocr' => [
+        'status' => [
+            'completed' => 'Terminé',
+            'pending' => 'En attente',
+        ],
+    ],
 ];
 
 
