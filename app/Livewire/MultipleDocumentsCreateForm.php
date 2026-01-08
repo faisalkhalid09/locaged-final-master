@@ -466,19 +466,36 @@ class MultipleDocumentsCreateForm extends Component
     // NEW: Check ALL files for duplicates at once (batch operation)
     private function checkAllFilesForDuplicates(): void
     {
-        Log::info('Starting batch duplicate check for all files');
+        Log::info('Starting batch duplicate check for all files', [
+            'total_files' => count($this->documentInfos),
+        ]);
         
         $this->allDuplicates = [];
         $this->filesWithDuplicates = [];
         
         foreach ($this->documentInfos as $index => $meta) {
+            Log::info("Checking file index {$index}", [
+                'has_title' => !empty($meta['title']),
+                'has_created_at' => !empty($meta['created_at']),
+                'has_department_id' => !empty($meta['department_id']),
+                'title' => $meta['title'] ?? 'MISSING',
+                'department_id' => $meta['department_id'] ?? 'MISSING',
+            ]);
+            
             // Skip if required fields are missing
             if (empty($meta['title']) || empty($meta['created_at']) || empty($meta['department_id'])) {
+                Log::warning("Skipping file index {$index} - missing required fields");
                 continue;
             }
             
             // Extract just the date portion for comparison
             $searchDate = \Carbon\Carbon::parse($meta['created_at'])->format('Y-m-d');
+            
+            Log::info("Searching for duplicates for file {$index}", [
+                'title' => $meta['title'],
+                'department_id' => $meta['department_id'],
+                'search_date' => $searchDate,
+            ]);
             
             // Check for duplicates
             $duplicates = Document::whereRaw('LOWER(title) = ?', [strtolower($meta['title'])])
@@ -493,21 +510,77 @@ class MultipleDocumentsCreateForm extends Component
                 ])
                 ->toArray();
             
+            Log::info("Duplicate search result for file {$index}", [
+                'duplicates_found' => count($duplicates),
+            ]);
+            
             if (!empty($duplicates)) {
                 $this->allDuplicates[$index] = $duplicates;
                 $this->filesWithDuplicates[] = $index;
+                Log::info("Added file {$index} to filesWithDuplicates array");
             }
         }
         
         Log::info('Batch duplicate check complete', [
             'total_files' => count($this->documentInfos),
             'files_with_duplicates' => count($this->filesWithDuplicates),
+            'filesWithDuplicates_array' => $this->filesWithDuplicates,
         ]);
         
         // Show modal if any duplicates found
         if (!empty($this->filesWithDuplicates)) {
             $this->showDuplicateModal = true;
         }
+    }
+    
+    // Apply shared metadata from first file to all other files
+    private function applySharedMetadataToAll(): void
+    {
+        $firstMeta = $this->documentInfos[0] ?? null;
+        
+        if (!$firstMeta) {
+            Log::warning('Cannot apply shared metadata - first file has no metadata');
+            return;
+        }
+        
+        Log::info('Applying shared metadata to all files', [
+            'total_files' => count($this->documentInfos),
+        ]);
+        
+        // These fields will be copied from the first document to all others.
+        // The title is intentionally excluded so each file keeps its own name.
+        $sharedKeys = [
+            'category_id',
+            'subcategory_id',
+            'color',
+            'created_at',
+            'expire_at',
+            'tags',
+            'new_tags',
+            'physical_location_id',
+            'box_id',
+            'author',
+            'email',
+            'department_id',
+            'sub_department_id',
+            'service_id',
+        ];
+        
+        // Apply to all files except the first one
+        for ($i = 1; $i < count($this->documentInfos); $i++) {
+            foreach ($sharedKeys as $key) {
+                if (isset($firstMeta[$key])) {
+                    $this->documentInfos[$i][$key] = $firstMeta[$key];
+                }
+            }
+            
+            // Ensure title exists (use filename if missing)
+            if (empty($this->documentInfos[$i]['title']) && isset($this->documents[$i])) {
+                $this->documentInfos[$i]['title'] = pathinfo($this->documents[$i]->getClientOriginalName(), PATHINFO_FILENAME);
+            }
+        }
+        
+        Log::info('Shared metadata applied successfully');
     }
 
     // Helper to save the form data back to the main array
@@ -1066,6 +1139,12 @@ class MultipleDocumentsCreateForm extends Component
 
         $this->saveCurrentInfo();
         $this->validate($this->getStep2Rules());
+
+        // IMPORTANT: Apply shared metadata to all files BEFORE checking for duplicates
+        // This ensures that when useSharedMetadata is ON, all files get metadata from file 1
+        if ($this->useSharedMetadata && count($this->documentInfos) > 1) {
+            $this->applySharedMetadataToAll();
+        }
 
         // NEW: Use batch duplicate check instead of single-file check
         // Check ALL files for duplicates before submitting
