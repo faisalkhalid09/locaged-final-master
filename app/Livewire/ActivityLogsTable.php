@@ -233,16 +233,17 @@ class ActivityLogsTable extends Component
 
         $isDeptAdmin = $current && (
             $current->hasRole('Department Administrator') ||
-            $current->hasRole('Admin de pole') ||
-            $current->hasRole('Admin de departments')
+            $current->hasRole('Admin de pole')
         );
+
+        $isSubDeptAdmin = $current && $current->hasAnyRole(['Admin de departments', 'Division Chief']);
 
         $isServiceManager = $current && (
             $current->hasRole('Admin de cellule') ||
             $current->hasRole('Service Manager')
         );
 
-        // Department Admin Scope
+        // Department Admin (Pole level) Scope
         $query->when($isDeptAdmin && !$current->hasRole('master') && !$current->hasRole('super administrator'), function($q) use ($current) {
             $deptIds = $current->departments?->pluck('id') ?? collect();
             $allowedRoleNames = \App\Support\RoleHierarchy::allowedRoleNamesFor($current);
@@ -257,6 +258,36 @@ class ActivityLogsTable extends Component
                 // AND user must be subordinate
                 ->whereHas('user.roles', function($q2) use ($allowedRoleNames) {
                     $q2->whereIn('name', $allowedRoleNames);
+                });
+            } else {
+                $q->whereRaw('1 = 0');
+            }
+        });
+
+        // Sub-Department Admin Scope (Admin de departments)
+        $query->when($isSubDeptAdmin && !$isDeptAdmin && !$current->hasRole('master') && !$current->hasRole('super administrator'), function($q) use ($current) {
+            $subDeptIds = $current->subDepartments?->pluck('id') ?? collect();
+            $allowedRoleNames = \App\Support\RoleHierarchy::allowedRoleNamesFor($current);
+            
+            if ($subDeptIds->isNotEmpty()) {
+                // Get all service IDs under these sub-departments
+                $serviceIds = \App\Models\Service::whereIn('sub_department_id', $subDeptIds)->pluck('id');
+                
+                $q->where(function($q2) use ($serviceIds) {
+                    // Document belongs to one of the services under the admin's sub-departments
+                    $q2->whereHas('document', function($q3) use ($serviceIds) {
+                        $q3->withTrashed()->whereIn('documents.service_id', $serviceIds);
+                    });
+                })
+                // AND user must be in one of these sub-departments
+                ->whereHas('user', function($q2) use ($subDeptIds, $allowedRoleNames) {
+                    $q2->whereHas('subDepartments', function($q3) use ($subDeptIds) {
+                        $q3->whereIn('sub_departments.id', $subDeptIds);
+                    })
+                    // AND user must be subordinate
+                    ->whereHas('roles', function($q3) use ($allowedRoleNames) {
+                        $q3->whereIn('name', $allowedRoleNames);
+                    });
                 });
             } else {
                 $q->whereRaw('1 = 0');
