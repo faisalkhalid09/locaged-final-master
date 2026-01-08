@@ -12,7 +12,8 @@
 
 
         @can('create', \App\Models\PhysicalLocation::class)
-            {{-- Quick Create Form hidden as per requirements
+            @unless(request('view_only'))
+                {{-- Quick Create Form hidden as per requirements
             <div class="card mb-4">
                 <div class="card-header bg-dark text-white">
                     <h5 class="mb-0"><i class="fas fa-plus-circle"></i> {{ ui_t('pages.physical.quick_create') }}</h5>
@@ -202,6 +203,7 @@
                     </div>
                 </div>
             </div>
+            @endunless
         @endcan
 
         <!-- Hierarchical Tree View -->
