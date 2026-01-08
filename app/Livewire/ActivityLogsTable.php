@@ -99,9 +99,10 @@ class ActivityLogsTable extends Component
         
         $isDeAdmin = $current && (
             $current->hasRole('Department Administrator') ||
-            $current->hasRole('Admin de pole') ||
-            $current->hasRole('Admin de departments')
+            $current->hasRole('Admin de pole')
         );
+
+        $isSubDeptAdmin = $current && $current->hasAnyRole(['Admin de departments', 'Division Chief']);
 
         $isServiceManager = $current && (
             $current->hasRole('Admin de cellule') ||
@@ -115,7 +116,7 @@ class ActivityLogsTable extends Component
                     $r->whereRaw('LOWER(name) = ?', ['master']);
                 });
             })
-            // Department Administrator: only see logs from their department and users below their rank
+            // Department Administrator (Pole level): only see logs from their department and users below their rank
             ->when($isDeAdmin && !$current->hasRole('master') && !$current->hasRole('super administrator'), function($q) use ($current) {
                 $deptIds = $current->departments?->pluck('id') ?? collect();
                 $allowedRoleNames = \App\Support\RoleHierarchy::allowedRoleNamesFor($current);
@@ -124,6 +125,22 @@ class ActivityLogsTable extends Component
                     // User must be in one of the admin's departments
                     $q2->whereHas('departments', function($q3) use ($deptIds) {
                         $q3->whereIn('departments.id', $deptIds);
+                    })
+                    // AND user must have a role below the admin's rank
+                    ->whereHas('roles', function($q3) use ($allowedRoleNames) {
+                        $q3->whereIn('name', $allowedRoleNames);
+                    });
+                });
+            })
+            // Sub-Department Administrator (Admin de departments): only see logs from users in their sub-departments
+            ->when($isSubDeptAdmin && !$isDeAdmin && !$current->hasRole('master') && !$current->hasRole('super administrator'), function($q) use ($current) {
+                $subDeptIds = $current->subDepartments?->pluck('id') ?? collect();
+                $allowedRoleNames = \App\Support\RoleHierarchy::allowedRoleNamesFor($current);
+                
+                $q->whereHas('user', function($q2) use ($subDeptIds, $allowedRoleNames) {
+                    // User must be in one of the admin's sub-departments
+                    $q2->whereHas('subDepartments', function($q3) use ($subDeptIds) {
+                        $q3->whereIn('sub_departments.id', $subDeptIds);
                     })
                     // AND user must have a role below the admin's rank
                     ->whereHas('roles', function($q3) use ($allowedRoleNames) {
