@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\UiTranslation;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 
 class AddLoginSecureSpaceTranslationSeeder extends Seeder
 {
@@ -14,16 +13,14 @@ class AddLoginSecureSpaceTranslationSeeder extends Seeder
     public function run(): void
     {
         // Update the login page tagline
-        DB::table('ui_translations')
-            ->updateOrInsert(
-                ['key' => 'auth.ui.secure_space'],
-                [
-                    'en' => 'Gestion éléctronique documentaire.',
-                    'fr' => 'Gestion éléctronique documentaire.',
-                    'ar' => 'إدارة إلكترونية للوثائق.',
-                    'updated_at' => now(),
-                ]
-            );
+        UiTranslation::updateOrCreate(
+            ['key' => 'auth.ui.secure_space'],
+            [
+                'en_text' => 'Gestion éléctronique documentaire.',
+                'fr_text' => 'Gestion éléctronique documentaire.',
+                'ar_text' => 'إدارة إلكترونية للوثائق.',
+            ]
+        );
 
         $this->command->info('Login page secure space translation updated successfully.');
     }
