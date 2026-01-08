@@ -384,11 +384,19 @@
                             </h5>
                         </div>
 
-                        <div class="modal-body" style="max-height: 60vh; overflow-y: auto;">
+                        <div class="modal-body" style="max-height: 50vh; overflow-y: auto; scroll-behavior: smooth;">
                             <p class="mb-3">
                                 <i class="fa-solid fa-info-circle me-1"></i>
                                 {{ ui_t('pages.upload.batch_duplicate_warning_intro') ?? 'The following files match existing documents in the system:' }}
                             </p>
+                            
+                            {{-- Scroll indicator hint --}}
+                            @if(count($filesWithDuplicates) > 2)
+                                <div class="alert alert-info alert-sm py-2 mb-3">
+                                    <i class="fa-solid fa-arrows-up-down me-1"></i>
+                                    <small>Scroll down to see all {{ count($filesWithDuplicates) }} files with duplicates</small>
+                                </div>
+                            @endif
                             
                             {{-- Loop through all files with duplicates --}}
                             @foreach($filesWithDuplicates as $fileIndex)
