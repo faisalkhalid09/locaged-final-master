@@ -142,9 +142,12 @@ class DocumentController extends Controller
         if (!$confirmDuplicate) {
             $deptIds = auth()->user()?->departments->pluck('id')->toArray();
             if (!empty($deptIds)) {
+                // Extract just the date portion for comparison (ignore time)
+                $searchDate = \Carbon\Carbon::parse($validated['created_at'])->format('Y-m-d');
+                
                 $duplicates = Document::whereRaw('LOWER(title) = ?', [strtolower($validated['title'])])
                     ->whereIn('department_id', $deptIds)
-                    ->whereDate('created_at', $validated['created_at'])
+                    ->whereDate('created_at', $searchDate)
                 ->get(['id', 'title'])
                 ->map(fn($d) => [
                     'id' => $d->id,

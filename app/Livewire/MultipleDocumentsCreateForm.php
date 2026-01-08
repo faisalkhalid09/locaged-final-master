@@ -396,12 +396,18 @@ class MultipleDocumentsCreateForm extends Component
             'title' => $meta['title'],
             'department_id' => $meta['department_id'],
             'created_at' => $meta['created_at'],
+            'created_at_date_only' => \Carbon\Carbon::parse($meta['created_at'])->format('Y-m-d'),
         ]);
+        
+        // Extract just the date portion for comparison
+        $searchDate = \Carbon\Carbon::parse($meta['created_at'])->format('Y-m-d');
+        
+        Log::info('Searching database for duplicates with date', ['search_date' => $searchDate]);
         
         // PERFORMANCE OPTIMIZATION: Use exists() for faster check before fetching records
         $hasMatches = Document::whereRaw('LOWER(title) = ?', [strtolower($meta['title'])])
             ->where('department_id', $meta['department_id'])
-            ->whereDate('created_at', $meta['created_at'])
+            ->whereDate('created_at', $searchDate)
             ->exists();
             
         if (!$hasMatches) {
@@ -413,7 +419,7 @@ class MultipleDocumentsCreateForm extends Component
         
         return Document::whereRaw('LOWER(title) = ?', [strtolower($meta['title'])])
             ->where('department_id', $meta['department_id'])
-            ->whereDate('created_at', $meta['created_at'])
+            ->whereDate('created_at', $searchDate)
             ->limit(10) // Limit to 10 duplicates max for performance
             ->get(['id', 'title'])
             ->map(fn($d) => [
