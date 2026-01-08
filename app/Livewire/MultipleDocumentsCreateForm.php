@@ -79,10 +79,14 @@ class MultipleDocumentsCreateForm extends Component
     // Prevent duplicate submissions
     public $isSubmitting = false;
 
-    // Duplicate detection state
+    // Duplicate detection state (DEPRECATED - now using batch detection)
     public $showDuplicateModal = false;
     public $currentDuplicates = [];
     public $duplicateDecisions = []; // index => 'upload' | 'skip'
+    
+    // Batch duplicate detection state
+    public $allDuplicates = []; // ['fileIndex' => [duplicates]]
+    public $filesWithDuplicates = []; // [fileIndex, fileIndex, ...]
 
     protected $listeners = ['previewFile'];
 
@@ -458,6 +462,53 @@ class MultipleDocumentsCreateForm extends Component
             Log::info('Setting showDuplicateModal to false (no duplicates)');
         }
     }
+    
+    // NEW: Check ALL files for duplicates at once (batch operation)
+    private function checkAllFilesForDuplicates(): void
+    {
+        Log::info('Starting batch duplicate check for all files');
+        
+        $this->allDuplicates = [];
+        $this->filesWithDuplicates = [];
+        
+        foreach ($this->documentInfos as $index => $meta) {
+            // Skip if required fields are missing
+            if (empty($meta['title']) || empty($meta['created_at']) || empty($meta['department_id'])) {
+                continue;
+            }
+            
+            // Extract just the date portion for comparison
+            $searchDate = \Carbon\Carbon::parse($meta['created_at'])->format('Y-m-d');
+            
+            // Check for duplicates
+            $duplicates = Document::whereRaw('LOWER(title) = ?', [strtolower($meta['title'])])
+                ->where('department_id', $meta['department_id'])
+                ->whereDate('created_at', $searchDate)
+                ->limit(10)
+                ->get(['id', 'title'])
+                ->map(fn($d) => [
+                    'id' => $d->id,
+                    'title' => $d->title,
+                    'url' => route('document-versions.by-document', ['id' => $d->id])
+                ])
+                ->toArray();
+            
+            if (!empty($duplicates)) {
+                $this->allDuplicates[$index] = $duplicates;
+                $this->filesWithDuplicates[] = $index;
+            }
+        }
+        
+        Log::info('Batch duplicate check complete', [
+            'total_files' => count($this->documentInfos),
+            'files_with_duplicates' => count($this->filesWithDuplicates),
+        ]);
+        
+        // Show modal if any duplicates found
+        if (!empty($this->filesWithDuplicates)) {
+            $this->showDuplicateModal = true;
+        }
+    }
 
     // Helper to save the form data back to the main array
     private function saveCurrentInfo()
@@ -782,13 +833,7 @@ class MultipleDocumentsCreateForm extends Component
 
         $this->validate($this->getStep2Rules());
 
-        // Check for duplicates before moving to next file
-        $this->checkAndShowDuplicateModal();
-        
-        // If modal is shown, stop here; user must decide first
-        if ($this->showDuplicateModal) {
-            return;
-        }
+        // Removed: checkAndShowDuplicateModal() - now using batch duplicate check at submit time
 
         // 1. Save any changes from the form before moving
         $this->saveCurrentInfo();
@@ -934,6 +979,54 @@ class MultipleDocumentsCreateForm extends Component
         // Clear any previous decision for this file so fresh duplicate check applies
         unset($this->duplicateDecisions[$this->currentDocumentIndex]);
     }
+    
+    // NEW: Batch action methods
+    public function uploadAllAnyway(): void
+    {
+        Log::info('Upload all anyway - marking all duplicate files for upload');
+        
+        // Mark all files with duplicates as 'upload'
+        foreach ($this->filesWithDuplicates as $index) {
+            $this->duplicateDecisions[$index] = 'upload';
+        }
+        
+        // Close modal and proceed with submission
+        $this->showDuplicateModal = false;
+        $this->allDuplicates = [];
+        $this->filesWithDuplicates = [];
+        
+        // Proceed with submission
+        $this->performSubmit();
+    }
+    
+    public function skipAllWithDuplicates(): void
+    {
+        Log::info('Skip all with duplicates - marking all duplicate files for skipping');
+        
+        // Mark all files with duplicates as 'skip'
+        foreach ($this->filesWithDuplicates as $index) {
+            $this->duplicateDecisions[$index] = 'skip';
+        }
+        
+        // Close modal and proceed with submission
+        $this->showDuplicateModal = false;
+        $this->allDuplicates = [];
+        $this->filesWithDuplicates = [];
+        
+        // Proceed with submission
+        $this->performSubmit();
+    }
+    
+    public function reviewAndModify(): void
+    {
+        Log::info('Review and modify - user wants to manually review files');
+        
+        // Simply close the modal without making any decisions
+        // User can navigate through files and modify metadata manually
+        $this->showDuplicateModal = false;
+        $this->allDuplicates = [];
+        $this->filesWithDuplicates = [];
+    }
 
     private function continueAfterDuplicateDecision(): void
     {
@@ -974,15 +1067,16 @@ class MultipleDocumentsCreateForm extends Component
         $this->saveCurrentInfo();
         $this->validate($this->getStep2Rules());
 
-        // Check for duplicates on current (last) file before submitting
-        $this->checkAndShowDuplicateModal();
+        // NEW: Use batch duplicate check instead of single-file check
+        // Check ALL files for duplicates before submitting
+        $this->checkAllFilesForDuplicates();
         
-        // If modal is shown, stop here; user must decide first
+        // If modal is shown (duplicates found), stop here; user must decide
         if ($this->showDuplicateModal) {
             return;
         }
 
-        // Proceed with submission
+        // Proceed with submission (no duplicates found)
         $this->performSubmit();
     }
 

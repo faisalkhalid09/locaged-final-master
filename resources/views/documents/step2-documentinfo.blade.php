@@ -368,58 +368,79 @@
             </div>
         </div>
 
-        <!-- Duplicate Warning Modal for Multi-Upload -->
+
+        {{-- NEW: Batch Duplicate Warning Modal --}}
         @if($showDuplicateModal)
-            <div class="modal show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);" wire:ignore.self>
-                <div class="modal-dialog modal-dialog-centered">
+            <div class="modal show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5); z-index: 1055;" wire:ignore.self>
+                <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
                     <div class="modal-content">
                         <div class="modal-header bg-warning bg-opacity-10">
                             <h5 class="modal-title">
                                 <i class="fa-solid fa-triangle-exclamation text-warning me-2"></i>
                                 {{ ui_t('pages.upload.duplicate_warning_title') }}
+                                <span class="badge bg-warning text-dark ms-2">
+                                    {{ count($filesWithDuplicates) }} of {{ count($documentInfos) }} files
+                                </span>
                             </h5>
                         </div>
 
-                        <div class="modal-body">
-                            <p class="mb-3">{{ ui_t('pages.upload.duplicate_warning_intro') }}</p>
-                            
-                            <div class="alert alert-light border">
-                                <h6 class="mb-0">{{ ui_t('pages.upload.duplicate_current_file', ['title' => $currentInfo['title'] ?? '—']) }}</h6>
-                            </div>
-
-                            <p class="mb-2 fw-semibold">{{ ui_t('pages.upload.existing_documents') }}</p>
-                            <ul class="list-group mb-3">
-                                @foreach($currentDuplicates as $dup)
-                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        <span>{{ $dup['title'] }}</span>
-                                        <a href="{{ $dup['url'] }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                            <i class="fa-solid fa-eye me-1"></i> {{ ui_t('pages.upload.view_document') }}
-                                        </a>
-                                    </li>
-                                @endforeach
-                            </ul>
-
-                            <p class="text-muted small mb-0">
+                        <div class="modal-body" style="max-height: 60vh; overflow-y: auto;">
+                            <p class="mb-3">
                                 <i class="fa-solid fa-info-circle me-1"></i>
-                                {{ ui_t('pages.upload.duplicate_question') }}
+                                {{ ui_t('pages.upload.batch_duplicate_warning_intro') ?? 'The following files match existing documents in the system:' }}
                             </p>
+                            
+                            {{-- Loop through all files with duplicates --}}
+                            @foreach($filesWithDuplicates as $fileIndex)
+                                @php
+                                    $fileInfo = $documentInfos[$fileIndex] ?? [];
+                                    $fileDuplicates = $allDuplicates[$fileIndex] ?? [];
+                                    $fileName = $fileInfo['title'] ?? 'Unknown';
+                                @endphp
+                                
+                                <div class="card mb-3 border-warning">
+                                    <div class="card-header bg-light d-flex align-items-center">
+                                        <i class="fa-solid fa-file text-warning me-2"></i>
+                                        <strong>{{ $fileName }}</strong>
+                                        <span class="badge bg-secondary ms-auto">File {{ $fileIndex + 1 }}</span>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="small text-muted mb-2">
+                                            <i class="fa-solid fa-calendar me-1"></i>
+                                            {{ \Carbon\Carbon::parse($fileInfo['created_at'] ?? now())->format('Y-m-d') }}
+                                        </p>
+                                        <p class="mb-2 fw-semibold small">{{ ui_t('pages.upload.existing_documents') ?? 'Matches found:' }}</p>
+                                        <ul class="list-group list-group-flush">
+                                            @foreach($fileDuplicates as $dup)
+                                                <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2">
+                                                    <span class="small">{{ $dup['title'] }}</span>
+                                                    <a href="{{ $dup['url'] }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                        <i class="fa-solid fa-eye me-1"></i> {{ ui_t('actions.view') ?? 'View' }}
+                                                    </a>
+                                                </li>
+                                            @endforeach
+                                        </ul>
+                                    </div>
+                                </div>
+                            @endforeach
                         </div>
 
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-outline-secondary" wire:click="modifyCurrentFile">
-                                <i class="fa-solid fa-pen-to-square me-1"></i> {{ ui_t('pages.upload.modify_current_file') }}
+                            <button type="button" class="btn btn-outline-secondary" wire:click="reviewAndModify">
+                                <i class="fa-solid fa-pen-to-square me-1"></i> {{ ui_t('pages.upload.review_and_modify') ?? 'Review & Modify' }}
                             </button>
-                            <button type="button" class="btn btn-outline-danger" wire:click="skipFile">
-                                <i class="fa-solid fa-times me-1"></i> {{ ui_t('pages.upload.skip_file') }}
+                            <button type="button" class="btn btn-outline-danger" wire:click="skipAllWithDuplicates">
+                                <i class="fa-solid fa-times me-1"></i> {{ ui_t('pages.upload.skip_all_duplicates') ?? 'Skip All with Duplicates' }}
                             </button>
-                            <button type="button" class="btn btn-success" wire:click="uploadAnyway">
-                                <i class="fa-solid fa-check me-1"></i> {{ ui_t('pages.upload.upload_anyway') }}
+                            <button type="button" class="btn btn-success" wire:click="uploadAllAnyway">
+                                <i class="fa-solid fa-check me-1"></i> {{ ui_t('pages.upload.upload_all_anyway') ?? 'Upload All Anyway' }}
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
         @endif
+
 
     </div>
 
