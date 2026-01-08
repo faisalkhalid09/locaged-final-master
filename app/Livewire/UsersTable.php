@@ -70,7 +70,7 @@ class UsersTable extends Component
         if (auth()->user()->cannot('view any user')) {
             $actor = auth()->user();
 
-            if ($actor->can('view department user') || $actor->hasRole('Admin de pole') || $actor->hasAnyRole(['Admin de departments', 'Division Chief'])) {
+            if ($actor->can('view department user') || $actor->hasRole('Admin de pole')) {
                 // Pole (Department) level visibility: users from same departments
                 $departmentIds = $actor->departments->pluck('id')->toArray();
                 if (!empty($departmentIds)) {
@@ -79,6 +79,34 @@ class UsersTable extends Component
                     });
                 } else {
                     $usersQuery->whereRaw('1 = 0'); // Show nothing if no departments assigned
+                }
+            } elseif ($actor->hasAnyRole(['Admin de departments', 'Division Chief'])) {
+                // Department (SubDepartment) level visibility: users from same sub-departments
+                // Get sub-departments assigned to this user
+                $subDeptIds = $actor->subDepartments->pluck('id')->toArray();
+                
+                if (!empty($subDeptIds)) {
+                    // Get all service IDs under these sub-departments
+                    $serviceIds = \App\Models\Service::whereIn('sub_department_id', $subDeptIds)->pluck('id')->toArray();
+                    
+                    // Show users who are either:
+                    // 1. Assigned to one of these sub-departments, OR
+                    // 2. Assigned to a service under one of these sub-departments
+                    $usersQuery->where(function ($q) use ($subDeptIds, $serviceIds) {
+                        $q->whereHas('subDepartments', function ($sq) use ($subDeptIds) {
+                            $sq->whereIn('sub_departments.id', $subDeptIds);
+                        });
+                        
+                        if (!empty($serviceIds)) {
+                            $q->orWhereHas('services', function ($sq) use ($serviceIds) {
+                                $sq->whereIn('services.id', $serviceIds);
+                            });
+                            // Also check direct service_id column
+                            $q->orWhereIn('service_id', $serviceIds);
+                        }
+                    });
+                } else {
+                    $usersQuery->whereRaw('1 = 0'); // Show nothing if no sub-departments assigned
                 }
             } elseif ($actor->can('view service user') || $actor->hasAnyRole(['Admin de cellule', 'user'])) {
                 // Service-level visibility: users from same services
