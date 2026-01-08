@@ -81,13 +81,12 @@ class UsersTable extends Component
                     $usersQuery->whereRaw('1 = 0'); // Show nothing if no departments assigned
                 }
             } elseif ($actor->hasAnyRole(['Admin de departments', 'Division Chief'])) {
-                // Department (SubDepartment) level visibility: users from same sub-departments
-                // Get sub-departments assigned to this user
+                // Sub-Department level visibility: users from same sub-departments ONLY
+                // Admin de departments should NOT see users from services outside their sub-departments
                 $subDeptIds = $actor->subDepartments->pluck('id')->toArray();
                 
                 if (!empty($subDeptIds)) {
-                    // Show users who are assigned to one of these sub-departments
-                    // (either directly or through their services)
+                    // Show ONLY users who are assigned to one of these sub-departments
                     $usersQuery->whereHas('subDepartments', function ($sq) use ($subDeptIds) {
                         $sq->whereIn('sub_departments.id', $subDeptIds);
                     });
