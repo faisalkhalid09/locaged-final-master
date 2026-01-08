@@ -86,24 +86,10 @@ class UsersTable extends Component
                 $subDeptIds = $actor->subDepartments->pluck('id')->toArray();
                 
                 if (!empty($subDeptIds)) {
-                    // Get all service IDs under these sub-departments
-                    $serviceIds = \App\Models\Service::whereIn('sub_department_id', $subDeptIds)->pluck('id')->toArray();
-                    
-                    // Show users who are either:
-                    // 1. Assigned to one of these sub-departments, OR
-                    // 2. Assigned to a service under one of these sub-departments
-                    $usersQuery->where(function ($q) use ($subDeptIds, $serviceIds) {
-                        $q->whereHas('subDepartments', function ($sq) use ($subDeptIds) {
-                            $sq->whereIn('sub_departments.id', $subDeptIds);
-                        });
-                        
-                        if (!empty($serviceIds)) {
-                            $q->orWhereHas('services', function ($sq) use ($serviceIds) {
-                                $sq->whereIn('services.id', $serviceIds);
-                            });
-                            // Also check direct service_id column
-                            $q->orWhereIn('service_id', $serviceIds);
-                        }
+                    // Show users who are assigned to one of these sub-departments
+                    // (either directly or through their services)
+                    $usersQuery->whereHas('subDepartments', function ($sq) use ($subDeptIds) {
+                        $sq->whereIn('sub_departments.id', $subDeptIds);
                     });
                 } else {
                     $usersQuery->whereRaw('1 = 0'); // Show nothing if no sub-departments assigned
