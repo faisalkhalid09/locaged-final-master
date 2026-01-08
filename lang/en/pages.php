@@ -700,6 +700,11 @@ return [
         'skip_file' => 'Skip This File',
         'modify_current_file' => 'Modify Current File',
         'view_document' => 'View Document',
+        // Batch duplicate detection keys
+        'batch_duplicate_warning_intro' => 'The following files match existing documents in the system:',
+        'review_and_modify' => 'Review & Modify',
+        'skip_all_duplicates' => 'Skip All with Duplicates',
+        'upload_all_anyway' => 'Upload All Anyway',
     ],
     'translations' => [
         'add_button' => '+ Add translation keys',

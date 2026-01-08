@@ -683,6 +683,11 @@ return [
         'skip_file' => 'Ignorer ce fichier',
         'modify_current_file' => 'Modifier le fichier actuel',
         'view_document' => 'Voir le document',
+        // Batch duplicate detection keys
+        'batch_duplicate_warning_intro' => 'Les fichiers suivants correspondent à des documents existants dans le système :',
+        'review_and_modify' => 'Réviser et Modifier',
+        'skip_all_duplicates' => 'Ignorer tous les doublons',
+        'upload_all_anyway' => 'Téléverser tous quand même',
     ],
     'translations' => [
         'add_button' => '+ Ajouter des clés de traduction',
