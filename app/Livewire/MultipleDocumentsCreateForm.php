@@ -430,13 +430,26 @@ class MultipleDocumentsCreateForm extends Component
         // Always check for duplicates, even if user previously made a decision
         // This allows them to reconsider if they navigate back
         
+        Log::info('checkAndShowDuplicateModal called', [
+            'currentInfo' => $this->currentInfo,
+            'currentDocumentIndex' => $this->currentDocumentIndex,
+        ]);
+        
         $dups = $this->checkCurrentDuplicates();
+        
+        Log::info('Duplicate check result', [
+            'duplicates_found' => count($dups),
+            'duplicates' => $dups,
+        ]);
+        
         if (!empty($dups)) {
             $this->currentDuplicates = $dups;
             $this->showDuplicateModal = true;
+            Log::info('Setting showDuplicateModal to true');
         } else {
             $this->showDuplicateModal = false;
             $this->currentDuplicates = [];
+            Log::info('Setting showDuplicateModal to false (no duplicates)');
         }
     }
 
