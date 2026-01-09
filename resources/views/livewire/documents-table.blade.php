@@ -1558,13 +1558,31 @@
             <option value="${s.id}" data-sub-department-id="${s.sub_department_id}" ${String(s.id) == String(metadata.service_id ?? '') ? 'selected' : ''}>${s.name}</option>
         `).join('');
 
-        // Filter categories to only show those matching the current service
+        // Show all categories from user-accessible services
+        // Ensure the current document's category is always included even if service doesn't match
         const currentServiceId = metadata.service_id;
-        const filteredCategories = currentServiceId 
-            ? categories.filter(c => String(c.service_id) === String(currentServiceId))
-            : categories;
+        const currentCategoryId = metadata.category_id;
+        
+        // Filter categories by the current service, but always include the document's current category
+        let filteredCategories = categories;
+        if (currentServiceId) {
+            filteredCategories = categories.filter(c => String(c.service_id) === String(currentServiceId));
             
-        const categoryOptions = filteredCategories.map(c => `
+            // If the current category is not in the filtered list, add it
+            if (currentCategoryId) {
+                const currentCategoryInList = filteredCategories.some(c => String(c.id) === String(currentCategoryId));
+                if (!currentCategoryInList) {
+                    const currentCategory = categories.find(c => String(c.id) === String(currentCategoryId));
+                    if (currentCategory) {
+                        filteredCategories = [currentCategory, ...filteredCategories];
+                    }
+                }
+            }
+        }
+        
+        // Build category options with placeholder
+        let categoryOptions = '<option value="">-- Select a category --</option>';
+        categoryOptions += filteredCategories.map(c => `
             <option value="${c.id}" data-service-id="${c.service_id}" ${String(c.id) == String(metadata.category_id ?? '') ? 'selected' : ''}>${c.name}</option>
         `).join('');
 
