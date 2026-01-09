@@ -516,7 +516,7 @@ class DocumentController extends Controller
                 }
 
                 // Services
-                if ($user->hasRole('Division Chief') || $user->hasRole('Admin de cellule') || $user->hasRole('Service Manager')) {
+                if ($user->hasRole('Division Chief') || $user->hasRole('Admin de departments') || $user->hasRole('Admin de cellule') || $user->hasRole('Service Manager')) {
                     $subIds = $userSubDepartments->pluck('id');
                     $userServices = Service::whereIn('sub_department_id', $subIds)->get();
                 } elseif ($user->hasRole('Department Administrator') || $user->hasRole('Admin de pole')) {
