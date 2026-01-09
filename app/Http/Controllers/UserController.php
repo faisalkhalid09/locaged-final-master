@@ -496,6 +496,17 @@ class UserController extends Controller
         // Sync services (multi-select)
         $user->services()->sync($services ?? []);
 
+        // IMPORTANT: Also update the primary service_id and sub_department_id columns
+        // to match the first selected service/sub-department. This ensures the dashboard
+        // and other parts of the system that rely on these columns show the correct data.
+        $primarySubDeptId = isset($subDepartments[0]) ? $subDepartments[0] : null;
+        $primaryServiceId = isset($services[0]) ? $services[0] : null;
+        
+        $user->update([
+            'sub_department_id' => $primarySubDeptId,
+            'service_id' => $primaryServiceId,
+        ]);
+
         return redirect()->back()->with('success', 'User updated successfully.');
     }
 
