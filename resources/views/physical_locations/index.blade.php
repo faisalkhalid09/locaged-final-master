@@ -222,7 +222,7 @@
                             </div>
                             <div class="d-flex align-items-center">
                                 <span class="badge bg-light text-dark me-2">{{ $room->rows->count() }} {{ ui_t('pages.physical.fields.row') }}(s)</span>
-                                @can('delete physical location')
+                                @if(auth()->user()->hasRole(['master', 'Super Administrator']))
                                     <form method="POST" action="{{ route('physical-locations.destroy-room', $room->id) }}" 
                                           class="d-inline" onsubmit="return confirm('{{ ui_t('pages.activity_log.are_you_sure') }}');">
                                         @csrf
@@ -231,7 +231,7 @@
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </form>
-                                @endcan
+                                @endif
                             </div>
                         </div>
                         <div class="card-body">

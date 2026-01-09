@@ -403,7 +403,7 @@ class PhysicalLocationController extends Controller
 
         // Check if room has documents
         if ($room->documents()->count() > 0) {
-            return back()->withErrors(['error' => 'Cannot delete room because it contains documents. Please move or delete them first.']);
+            return back()->withErrors(['error' => ui_t('messages.physical_location.room_contains_documents') ?? 'Cannot delete room because it contains documents. Please move or delete them first.']);
         }
 
         try {
@@ -420,7 +420,7 @@ class PhysicalLocationController extends Controller
             $room->delete();
 
             DB::commit();
-            return back()->with('success', 'Room and all its contents deleted successfully.');
+            return back()->with('success', ui_t('messages.physical_location.room_deleted') ?? 'Room and all its contents deleted successfully.');
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->withErrors(['error' => 'Failed to delete room: ' . $e->getMessage()]);
