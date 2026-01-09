@@ -508,7 +508,7 @@ class DocumentController extends Controller
                 $userDepartments = $userDepartmentsRaw;
 
                 // Sub-departments
-                if ($user->hasRole('Department Administrator') || $user->hasRole('Admin de pole')) {
+                if ($user->hasRole('Department Administrator') || $user->hasRole('Admin de pole') || $user->hasRole('Admin de departments') || $user->hasRole('Division Chief')) {
                     $deptIds = $userDepartments->pluck('id');
                     $userSubDepartments = SubDepartment::whereIn('department_id', $deptIds)->get();
                 } else {
