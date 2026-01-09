@@ -531,7 +531,31 @@ class DocumentController extends Controller
 
         // Get ALL categories from services the user has access to
         // JavaScript will filter these by the selected service_id dynamically
-        $accessibleServiceIds = $userServices->pluck('id');
+        $accessibleServiceIds = $userServices->pluck('id')->unique();
+        
+        
+        // Always include the document's current service in accessible services
+        // This ensures admins can always see the current category even if service assignments change
+        if ($document->service_id && !$accessibleServiceIds->contains($document->service_id)) {
+            $accessibleServiceIds->push($document->service_id);
+            
+            // Also ensure the document's service is in the services collection
+            $documentService = Service::with('subDepartment.department')->find($document->service_id);
+            if ($documentService && !$userServices->contains('id', $documentService->id)) {
+                $userServices->push($documentService);
+                
+                // Include the sub-department if not already present
+                if ($documentService->subDepartment && !$userSubDepartments->contains('id', $documentService->subDepartment->id)) {
+                    $userSubDepartments->push($documentService->subDepartment);
+                    
+                    // Include the department if not already present
+                    if ($documentService->subDepartment->department && !$userDepartments->contains('id', $documentService->subDepartment->department->id)) {
+                        $userDepartments->push($documentService->subDepartment->department);
+                    }
+                }
+            }
+        }
+        
         $categories = $accessibleServiceIds->isNotEmpty()
             ? Category::withoutGlobalScopes()->whereIn('service_id', $accessibleServiceIds)->orderBy('name')->get()
             : Category::withoutGlobalScopes()->orderBy('name')->get();
