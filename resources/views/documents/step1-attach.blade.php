@@ -306,7 +306,7 @@
                         <div class="d-flex gap-2 mt-3">
                             @php
                                 // File extensions that cannot be previewed
-                                $nonPreviewableExtensions = ['xlsx', 'xls', 'xlsm', 'xlsb', 'doc', 'docx', 'docm', 'ppt', 'pptx', 'pptm'];
+                                $nonPreviewableExtensions = ['xlsx', 'xls', 'xlsm', 'xlsb', 'doc', 'docx', 'docm'];
                                 $canPreview = !in_array($extension, $nonPreviewableExtensions);
                             @endphp
                             

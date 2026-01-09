@@ -37,9 +37,6 @@ return [
         'pdf',
         'doc', 'docx', 'odt', 'rtf', 'txt',
 
-        // Presentations
-        'ppt', 'pptx',
-
         // Spreadsheets
         'xls', 'xlsx', 'csv',
 
