@@ -528,11 +528,13 @@ class DocumentController extends Controller
             }
         }
 
-        // Filter categories to only show those belonging to services the user has access to
+
+        // Get ALL categories from services the user has access to
+        // JavaScript will filter these by the selected service_id dynamically
         $accessibleServiceIds = $userServices->pluck('id');
         $categories = $accessibleServiceIds->isNotEmpty()
-            ? Category::whereIn('service_id', $accessibleServiceIds)->orderBy('name')->get()
-            : Category::orderBy('name')->get();
+            ? Category::withoutGlobalScopes()->whereIn('service_id', $accessibleServiceIds)->orderBy('name')->get()
+            : Category::withoutGlobalScopes()->orderBy('name')->get();
 
         // Filter physical location options by document's service
         // Only show boxes that belong to the document's service, and their parent locations
@@ -545,12 +547,6 @@ class DocumentController extends Controller
                 ->orderBy('name')
                 ->get()
             : \App\Models\Box::with('shelf.row.room')->orderBy('name')->get();
-        
-        // IMPORTANT: Always include the document's current box if it exists,
-        // even if it doesn't match the service filter (for display consistency)
-        if ($document->box && !$serviceBoxes->contains('id', $document->box_id)) {
-            $serviceBoxes->push($document->box);
-        }
         
         // Extract unique room, row, shelf IDs from these boxes
         $validShelfIds = $serviceBoxes->pluck('shelf_id')->unique()->filter();
