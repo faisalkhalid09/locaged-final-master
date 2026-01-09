@@ -128,6 +128,7 @@ Route::middleware('auth')->group(function () {
     // Box operations
     Route::put('/boxes/{box}', [PhysicalLocationController::class, 'updateBox'])->name('physical-locations.update-box');
     Route::delete('/boxes/{box}', [PhysicalLocationController::class, 'destroyBox'])->name('physical-locations.destroy-box');
+    Route::delete('/rooms/{room}', [PhysicalLocationController::class, 'destroyRoom'])->name('physical-locations.destroy-room');
 
     // Destruction Requests export
     Route::get('/documents-destructions/export', [DocumentDestructionRequestController::class, 'export'])->name('documents-destructions.export');

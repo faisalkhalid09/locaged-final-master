@@ -393,6 +393,40 @@ class PhysicalLocationController extends Controller
         return back()->with('success', 'Box deleted successfully.');
     }
 
+    /**
+     * Delete a room (will cascade delete rows/shelves/boxes if no documents)
+     */
+    public function destroyRoom(Room $room)
+    {
+        // Authorize via permission name (no PhysicalLocation instance available here)
+        Gate::authorize('delete physical location');
+
+        // Check if room has documents
+        if ($room->documents()->count() > 0) {
+            return back()->withErrors(['error' => 'Cannot delete room because it contains documents. Please move or delete them first.']);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            // Manually delete items to ensure consistency
+            foreach ($room->rows as $row) {
+                foreach ($row->shelves as $shelf) {
+                     $shelf->boxes()->delete();
+                     $shelf->delete();
+                }
+                $row->delete();
+            }
+            $room->delete();
+
+            DB::commit();
+            return back()->with('success', 'Room and all its contents deleted successfully.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->withErrors(['error' => 'Failed to delete room: ' . $e->getMessage()]);
+        }
+    }
+
 
     public function export()
     {
