@@ -49,6 +49,10 @@
             $userDepartments = $user->departments ?? collect();
             $userSubDepts    = $user->subDepartments ?? collect();
 
+            // Get the HomeController instance to access getVisibleDocumentsQuery
+            $homeController = app(\App\Http\Controllers\HomeController::class);
+            $visibleDocsQuery = $homeController->getVisibleDocumentsQuery();
+
             // Only "master" and "Super Administrator" should see all departments on the dashboard
             $isGlobalAdmin = $user && ($user->hasRole('master') || $user->hasRole('Super Administrator'));
 
@@ -78,8 +82,9 @@
                     }
                 }
 
-                $departments = $userServices->unique('id')->map(function ($service) {
-                    $documentCount = \App\Models\Document::where('service_id', $service->id)->count();
+                $departments = $userServices->unique('id')->map(function ($service) use ($visibleDocsQuery) {
+                    // Use cloned visible documents query to respect permissions
+                    $documentCount = (clone $visibleDocsQuery)->where('service_id', $service->id)->count();
 
                     return (object) [
                         'id' => $service->id,
@@ -92,12 +97,12 @@
                 ->take(4);
             } elseif ($userSubDepts->isNotEmpty() && ! $isGlobalAdmin) {
                 // Sub-department admin: show exactly their assigned sub-departments
-                $departments = $userSubDepts->map(function ($subDept) {
+                $departments = $userSubDepts->map(function ($subDept) use ($visibleDocsQuery) {
                     // Count documents in all services under this sub-department
                     $serviceIds = $subDept->services->pluck('id');
                     $documentCount = $serviceIds->isEmpty()
                         ? 0
-                        : \App\Models\Document::whereIn('service_id', $serviceIds)->count();
+                        : (clone $visibleDocsQuery)->whereIn('service_id', $serviceIds)->count();
 
                     return (object) [
                         'id' => $subDept->id,
@@ -120,8 +125,9 @@
                     }
                 }
 
-                $departments = $userServices->unique('id')->map(function ($service) {
-                    $documentCount = \App\Models\Document::where('service_id', $service->id)->count();
+                $departments = $userServices->unique('id')->map(function ($service) use ($visibleDocsQuery) {
+                    // Use cloned visible documents query to respect permissions
+                    $documentCount = (clone $visibleDocsQuery)->where('service_id', $service->id)->count();
 
                     return (object) [
                         'id' => $service->id,
@@ -146,8 +152,8 @@
                         });
                 } else {
                     // Non-global users (e.g. Department Administrators): only their assigned departments
-                    $departments = $userDepartments->map(function ($dept) {
-                        $documentCount = \App\Models\Document::where('department_id', $dept->id)->count();
+                    $departments = $userDepartments->map(function ($dept) use ($visibleDocsQuery) {
+                        $documentCount = (clone $visibleDocsQuery)->where('department_id', $dept->id)->count();
                         return (object) [
                             'id' => $dept->id,
                             'name' => $dept->name,
@@ -192,7 +198,7 @@
                             $serviceIds = $subDeptModel->services->pluck('id');
                             $pendingCount = $serviceIds->isEmpty()
                                 ? 0
-                                : \App\Models\Document::whereIn('service_id', $serviceIds)
+                                : (clone $visibleDocsQuery)->whereIn('service_id', $serviceIds)
                                     ->where('status', 'pending')
                                     ->count();
                         } else {
@@ -200,12 +206,12 @@
                         }
                     } elseif ($itemType === 'service') {
                         // Service item: count directly by service_id
-                        $pendingCount = \App\Models\Document::where('service_id', $department->id)
+                        $pendingCount = (clone $visibleDocsQuery)->where('service_id', $department->id)
                             ->where('status', 'pending')
                             ->count();
                     } else {
                         // Department item (default): count by department_id
-                        $pendingCount = \App\Models\Document::where('department_id', $department->id)
+                        $pendingCount = (clone $visibleDocsQuery)->where('department_id', $department->id)
                             ->where('status', 'pending')
                             ->count();
                     }

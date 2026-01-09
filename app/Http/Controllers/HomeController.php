@@ -270,7 +270,7 @@ class HomeController extends Controller
     /**
      * Base query for documents visible to the authenticated user, mirroring DocumentPolicy::view rules.
      */
-    private function getVisibleDocumentsQuery(): Builder
+    public function getVisibleDocumentsQuery(): Builder
     {
         $user = auth()->user();
 
