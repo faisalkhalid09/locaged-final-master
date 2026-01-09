@@ -1278,7 +1278,7 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ ui_t('actions.close') ?? 'Close' }}</button>
-                        @if(!auth()->user()?->hasAnyRole(['user', 'Service User']))
+                        @if(auth()->user()?->hasAnyRole(['master', 'Super Administrator', 'Admin de pole', 'Department Administrator', 'Admin de departments', 'Division Chief', 'Admin de cellule', 'Service Manager', 'admin']))
                             <button type="button" class="btn btn-primary" id="metadataSaveBtn" disabled>{{ __('Save') }}</button>
                         @endif
                     </div>
@@ -1325,7 +1325,8 @@
     };
     
     // Flag to indicate if the current user is a service user (read-only metadata)
-    window.IS_SERVICE_USER = {{ auth()->user()?->hasAnyRole(['user', 'Service User']) ? 'true' : 'false' }};
+    // If user does NOT have any admin role, they are considered a service user (read-only)
+    window.IS_SERVICE_USER = {{ !auth()->user()?->hasAnyRole(['master', 'Super Administrator', 'Admin de pole', 'Department Administrator', 'Admin de departments', 'Division Chief', 'Admin de cellule', 'Service Manager', 'admin']) ? 'true' : 'false' }};
 
     // Toast notification function - GLOBAL
     window.showToast = function(message, type = 'success') {
