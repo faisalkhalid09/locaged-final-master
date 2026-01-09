@@ -528,7 +528,11 @@ class DocumentController extends Controller
             }
         }
 
-        $categories = Category::orderBy('name')->get();
+        // Filter categories to only show those belonging to services the user has access to
+        $accessibleServiceIds = $userServices->pluck('id');
+        $categories = $accessibleServiceIds->isNotEmpty()
+            ? Category::whereIn('service_id', $accessibleServiceIds)->orderBy('name')->get()
+            : Category::orderBy('name')->get();
 
         // Filter physical location options by document's service
         // Only show boxes that belong to the document's service, and their parent locations
