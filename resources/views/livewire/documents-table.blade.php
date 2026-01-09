@@ -1278,7 +1278,9 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ ui_t('actions.close') ?? 'Close' }}</button>
-                        <button type="button" class="btn btn-primary" id="metadataSaveBtn" disabled>{{ __('Save') }}</button>
+                        @if(!auth()->user()?->hasAnyRole(['user', 'Service User']))
+                            <button type="button" class="btn btn-primary" id="metadataSaveBtn" disabled>{{ __('Save') }}</button>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -1321,6 +1323,9 @@
         selectShelfFirst: '{{ ui_t("pages.upload.select_shelf_first") }}',
         selectBoxFirst: '{{ ui_t("pages.upload.select_box_first") }}',
     };
+    
+    // Flag to indicate if the current user is a service user (read-only metadata)
+    window.IS_SERVICE_USER = {{ auth()->user()?->hasAnyRole(['user', 'Service User']) ? 'true' : 'false' }};
 
     // Toast notification function - GLOBAL
     window.showToast = function(message, type = 'success') {
@@ -1646,7 +1651,7 @@
                         </div>
                         <div class="col-md-12">
                             <label class="text-muted small d-block">${TRANSLATIONS.category}</label>
-                            <select name="category_id" class="form-select">
+                            <select name="category_id" class="form-select" ${IS_SERVICE_USER ? 'disabled' : ''}>
                                 ${categoryOptions}
                             </select>
                         </div>
@@ -1660,7 +1665,7 @@
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="text-muted small d-block">${TRANSLATIONS.room}</label>
-                            <select name="room_id" class="form-select" data-location-level="room">
+                            <select name="room_id" class="form-select" data-location-level="room" ${IS_SERVICE_USER ? 'disabled' : ''}>
                                 <option value="">${TRANSLATIONS.selectRoomFirst}</option>
                                 ${(metadata.rooms || []).map(room => `
                                     <option value="${room.id}" ${String(room.id) == String(metadata.room_id ?? '') ? 'selected' : ''}>${room.name}</option>
@@ -1669,7 +1674,7 @@
                         </div>
                         <div class="col-md-6">
                             <label class="text-muted small d-block">${TRANSLATIONS.row}</label>
-                            <select name="row_id" class="form-select" data-location-level="row" ${!metadata.room_id ? 'disabled' : ''}>
+                            <select name="row_id" class="form-select" data-location-level="row" ${IS_SERVICE_USER || !metadata.room_id ? 'disabled' : ''}>
                                 <option value="">${TRANSLATIONS.selectRowFirst}</option>
                                 ${(metadata.rows || []).map(row => `
                                     <option value="${row.id}" data-room-id="${row.room_id}" ${String(row.id) == String(metadata.row_id ?? '') ? 'selected' : ''}>${row.name}</option>
@@ -1678,7 +1683,7 @@
                         </div>
                         <div class="col-md-6">
                             <label class="text-muted small d-block">${TRANSLATIONS.shelf}</label>
-                            <select name="shelf_id" class="form-select" data-location-level="shelf" ${!metadata.row_id ? 'disabled' : ''}>
+                            <select name="shelf_id" class="form-select" data-location-level="shelf" ${IS_SERVICE_USER || !metadata.row_id ? 'disabled' : ''}>
                                 <option value="">${TRANSLATIONS.selectShelfFirst}</option>
                                 ${(metadata.shelves || []).map(shelf => `
                                     <option value="${shelf.id}" data-row-id="${shelf.row_id}" ${String(shelf.id) == String(metadata.shelf_id ?? '') ? 'selected' : ''}>${shelf.name}</option>
@@ -1687,7 +1692,7 @@
                         </div>
                         <div class="col-md-6">
                             <label class="text-muted small d-block">${TRANSLATIONS.box}</label>
-                            <select name="box_id" class="form-select" data-location-level="box" ${!metadata.shelf_id ? 'disabled' : ''}>
+                            <select name="box_id" class="form-select" data-location-level="box" ${IS_SERVICE_USER || !metadata.shelf_id ? 'disabled' : ''}>
                                 <option value="">${TRANSLATIONS.selectBoxFirst}</option>
                                 ${(metadata.boxes || []).map(box => `
                                     <option value="${box.id}" data-shelf-id="${box.shelf_id}" ${String(box.id) == String(metadata.box_id ?? '') ? 'selected' : ''}>${box.name}</option>
@@ -1706,7 +1711,7 @@
                             <label class="text-muted small d-block">${TRANSLATIONS.tagsCommaSeparated}</label>
                             <input type="text" name="tags" class="form-control" 
                                    value="${(metadata.tags || []).join(', ')}" 
-                                   placeholder="${TRANSLATIONS.enterTagsComma}">
+                                   placeholder="${TRANSLATIONS.enterTagsComma}" ${IS_SERVICE_USER ? 'disabled' : ''}>
                             <small class="text-muted">${TRANSLATIONS.enterTagsComma}</small>
                         </div>
                     </div>
