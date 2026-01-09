@@ -546,6 +546,12 @@ class DocumentController extends Controller
                 ->get()
             : \App\Models\Box::with('shelf.row.room')->orderBy('name')->get();
         
+        // IMPORTANT: Always include the document's current box if it exists,
+        // even if it doesn't match the service filter (for display consistency)
+        if ($document->box && !$serviceBoxes->contains('id', $document->box_id)) {
+            $serviceBoxes->push($document->box);
+        }
+        
         // Extract unique room, row, shelf IDs from these boxes
         $validShelfIds = $serviceBoxes->pluck('shelf_id')->unique()->filter();
         $validShelves = \App\Models\Shelf::with('row')
