@@ -47,9 +47,7 @@
                 <th>{{ ui_t('pages.versions.table.submitted_by') }}</th>
                 <th>{{ ui_t('pages.versions.table.date') }}</th>
                 <th>{{ ui_t('pages.versions.table.last_update') }}</th>
-                <th>{{ ui_t('pages.versions.table.subcategory') }}</th>
-                <th class="text-center">{{ ui_t('pages.versions.table.version') }}</th>
-                <th class="text-center">{{ ui_t('pages.versions.table.tags') }}</th>
+
                 <th class="text-center">{{ ui_t('pages.versions.table.status') }}</th>
                 <th class="text-center">{{ ui_t('pages.versions.table.actions') }}</th>
             </tr>
@@ -71,12 +69,6 @@
                     </td>
                     <td>
                         <div class="img-history d-flex align-items-center">
-                            <div class="me-2">
-                                <img
-                                    src="{{ asset('storage/'.$documentVersion?->document?->createdBy?->image) }}"
-                                    alt="user"
-                                />
-                            </div>
                             <div>{{ $documentVersion->document?->createdBy?->full_name }}</div>
                         </div>
                     </td>
@@ -87,17 +79,7 @@
                         <div>{{ $documentVersion->updated_at?->format('j/n/Y') }} <br />{{ $documentVersion->updated_at?->format('g:ia') }}</div>
                     </td>
 
-                    <td>
-                        <div>{{ $documentVersion->document?->subcategory?->name }}</div>
-                    </td>
-                    <td class="text-center">
-                        {{ $documentVersion->version_number }}
-                    </td>
-                    <td class="text-center">
-                        @if ($documentVersion->document?->tags->isNotEmpty())
-                            {{ $documentVersion->document?->tags->pluck('name')->implode(', ') }}
-                        @endif
-                    </td>
+
 
                     <td class="text-center">
                         <div class="d-flex justify-content-center align-items-center">
