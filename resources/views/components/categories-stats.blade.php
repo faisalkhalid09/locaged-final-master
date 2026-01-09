@@ -71,16 +71,8 @@
             // IMPORTANT: For service-scoped users, we want to show their services first,
             // even if they are also attached to a sub-department.
             if ($isServiceScoped && ($user->services && $user->services->isNotEmpty())) {
-                // Service Manager / Service User: show all assigned services
+                // Service Manager / Service User: show all assigned services from many-to-many relationship ONLY
                 $userServices = $user->services;
-
-                // Include primary service_id if present but not already in the relation
-                if ($user->service_id && ! $userServices->pluck('id')->contains($user->service_id)) {
-                    $primaryServiceModel = \App\Models\Service::find($user->service_id);
-                    if ($primaryServiceModel) {
-                        $userServices = $userServices->push($primaryServiceModel);
-                    }
-                }
 
                 $departments = $userServices->unique('id')->map(function ($service) use ($visibleDocsQuery) {
                     // Use cloned visible documents query to respect permissions
