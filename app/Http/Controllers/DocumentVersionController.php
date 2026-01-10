@@ -645,8 +645,8 @@ class DocumentVersionController extends Controller
         
         Gate::authorize('view', $document);
 
-        // Log the download action
-        $document->logAction('downloaded', $doc->id);
+        // Log the view action (preview/inline viewing)
+        $document->logAction('viewed', $doc->id);
 
 
         if (!Storage::disk('local')->exists($doc->file_path)) {
