@@ -387,6 +387,7 @@
     <script>
         const previewRooms = @json($rooms);
         const currentBoxId = @json($document->box_id ?? null);
+        const documentServiceId = @json($document->service_id ?? null);
         const translations = {
             selectRow: @json(ui_t('pages.physical.selects.select_row')),
             firstSelectRow: @json(ui_t('pages.physical.selects.first_select_row')),
@@ -512,6 +513,11 @@
                     const shelf = row.shelves.find(s => s.id === shelfId);
                     if (shelf) {
                         shelf.boxes.forEach(box => {
+                            // Filter boxes by service - only show boxes that match the document's service
+                            if (documentServiceId && box.service_id !== documentServiceId) {
+                                return; // Skip this box if it doesn't match the service
+                            }
+                            
                             const option = document.createElement('option');
                             option.value = box.id;
                             option.textContent = box.name;
