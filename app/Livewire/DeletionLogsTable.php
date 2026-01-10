@@ -245,6 +245,12 @@ class DeletionLogsTable extends Component
 
         // Get statistics (respect department scoping and role hierarchy)
         $current = auth()->user();
+        
+        // Check if current user is Super Admin (not master)
+        $isSuperAdmin = $current && 
+            $current->hasRole(['Super Administrator', 'super_admin']) && 
+            !$current->hasRole('master');
+            
         $isDeptAdmin = $current && (
             $current->hasRole('Department Administrator') ||
             $current->hasRole('Admin de pole') ||
@@ -257,8 +263,15 @@ class DeletionLogsTable extends Component
         
         $statsBase = AuditLog::where('action', 'permanently_deleted');
         
+        // Super Admin: hide logs from master users (same as main query)
+        if ($isSuperAdmin) {
+            $statsBase->whereDoesntHave('user.roles', function($r) {
+                $r->whereRaw('LOWER(name) = ?', ['master']);
+            });
+        }
+        
         // Apply same filtering as main query for Department Admins
-        if ($isDeptAdmin) {
+        if ($isDeptAdmin && !$isSuperAdmin) {
             $deptIds = $current->departments?->pluck('id') ?? collect();
             
             $statsBase->where(function($subQuery) use ($deptIds) {
@@ -266,8 +279,12 @@ class DeletionLogsTable extends Component
                 $subQuery->whereHas('document', function($q2) use ($deptIds) {
                     $q2->withTrashed()->whereIn('department_id', $deptIds);
                 });
+            })
+            // Hide logs from Master, Super Admin, and Admin users (same as main query)
+            ->whereDoesntHave('user.roles', function($r) {
+                $r->whereIn(\DB::raw('LOWER(name)'), ['master', 'super administrator', 'super_admin', 'admin']);
             });
-        } elseif ($isServiceManager) { 
+        } elseif ($isServiceManager && !$isDeptAdmin && !$isSuperAdmin) { 
              $serviceIds = collect();
             if ($current->service_id) {
                 $serviceIds->push($current->service_id);
@@ -280,6 +297,10 @@ class DeletionLogsTable extends Component
             if ($serviceIds->isNotEmpty()) {
                  $statsBase->whereHas('document', function($q2) use ($serviceIds) {
                     $q2->withTrashed()->whereIn('service_id', $serviceIds);
+                })
+                // Hide logs from Master, Super Admin, Admin, and Dept Admin users (same as main query)
+                ->whereDoesntHave('user.roles', function($r) {
+                    $r->whereIn(\DB::raw('LOWER(name)'), ['master', 'super administrator', 'super_admin', 'admin', 'admin de pole', 'department administrator']);
                 });
             } else {
                  $statsBase->whereRaw('1 = 0');
