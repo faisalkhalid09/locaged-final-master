@@ -134,6 +134,11 @@ class UserPolicy
      */
     public function delete(User $user, User $model): bool
     {
+        // Only allow admin (master) and Super Administrator to delete users
+        if (!$user->hasAnyRole(['master', 'Super Administrator'])) {
+            return false;
+        }
+
         if ($user->cannot('delete user')) {
             return false;
         }
